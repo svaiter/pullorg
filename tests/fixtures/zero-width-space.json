@@ -1,0 +1,111 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 146,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 89,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Zero width spaces separate markers: "
+            },
+            {
+              "type": "code",
+              "begin": 36,
+              "end": 41,
+              "props": {
+                "value": "nil"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "​s and "
+            },
+            {
+              "type": "bold",
+              "begin": 50,
+              "end": 56,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "bold"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "​ish, or a​"
+            },
+            {
+              "type": "italic",
+              "begin": 71,
+              "end": 83,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "not italic"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "​b.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 90,
+          "end": 146,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "A real NBSP "
+            },
+            {
+              "type": "bold",
+              "begin": 103,
+              "end": 109,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "here"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and ideographic　"
+            },
+            {
+              "type": "verbatim",
+              "begin": 128,
+              "end": 138,
+              "props": {
+                "value": "verbatim"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " space.\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -7,11 +7,15 @@
 //! them with the Unicode properties available in `core`.
 
 /// Whitespace syntax (`\s-`, rx `space`, `[[:space:]]`).
+/// Exactly the characters with whitespace syntax in an Org buffer (checked
+/// against Emacs for every code point below U+30000). Note that the zero
+/// width space U+200B is one of them, which is why it can separate emphasis
+/// markers from adjacent text.
 pub(crate) fn is_ws(c: char) -> bool {
     matches!(
         c,
         ' ' | '\t' | '\n' | '\r' | '\x0c' | '\u{a0}' | '\u{2000}'
-            ..='\u{200a}' | '\u{202f}' | '\u{205f}' | '\u{3000}'
+            ..='\u{200b}' | '\u{202f}' | '\u{205f}' | '\u{3000}'
     )
 }
 

@@ -1,0 +1,3 @@
+Zero width spaces separate markers: ~nil~​s and *bold*​ish, or a​/not italic/​b.
+
+A real NBSP *here* and ideographic　=verbatim= space.
