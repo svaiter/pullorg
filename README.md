@@ -1,4 +1,4 @@
-# pulldown-org
+# pullorg
 
 A pull parser for [Org-mode](https://orgmode.org) written in Rust, in the
 style of [pulldown-cmark](https://github.com/pulldown-cmark/pulldown-cmark).
@@ -23,7 +23,7 @@ what is verified.
 ## Library
 
 ```rust
-use pulldown_org::{html, Parser};
+use pullorg::{html, Parser};
 
 let source = "* A headline\nSome /italic/ text with a [[https://orgmode.org][link]].";
 let parser = Parser::new(source);
@@ -38,7 +38,7 @@ lists, blocks, markup, links, ...) are delimited by `Event::Start(Tag)` and
 ...) is a leaf event.
 
 ```rust
-use pulldown_org::{Event, Parser, Tag};
+use pullorg::{Event, Parser, Tag};
 
 for event in Parser::new("* TODO Write docs :work:") {
     match event {
@@ -75,13 +75,13 @@ the interpretation of `_`/`^`, or to enable inline tasks. In-buffer settings
 ## Command line
 
 ```
-pulldown-org README.org            # HTML fragment on stdout
-pulldown-org README.org -o out.html --standalone --mathjax
-pulldown-org --events notes.org    # dump the event stream
-cat file.org | pulldown-org
+pullorg README.org            # HTML fragment on stdout
+pullorg README.org -o out.html --standalone --mathjax
+pullorg --events notes.org    # dump the event stream
+cat file.org | pullorg
 ```
 
-Install with `cargo install pulldown-org`. The CLI is behind the default
+Install with `cargo install pullorg`. The CLI is behind the default
 `cli` feature; use `default-features = false` when depending on the library
 only.
 

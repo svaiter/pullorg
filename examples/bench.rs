@@ -8,13 +8,13 @@ fn main() {
         let t = Instant::now();
         let mut events = 0;
         for _ in 0..n {
-            events = pulldown_org::Parser::new(&text).count();
+            events = pullorg::Parser::new(&text).count();
         }
         let parse = t.elapsed().as_secs_f64() * 1000.0 / n as f64;
         let t = Instant::now();
         for _ in 0..n {
             let mut out = String::new();
-            pulldown_org::html::push_html(&mut out, pulldown_org::Parser::new(&text));
+            pullorg::html::push_html(&mut out, pullorg::Parser::new(&text));
         }
         let render = t.elapsed().as_secs_f64() * 1000.0 / n as f64;
         let name = std::path::Path::new(&path)

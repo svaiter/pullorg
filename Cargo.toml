@@ -1,22 +1,22 @@
 [package]
-name = "pulldown-org"
+name = "pullorg"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
 description = "A pull parser for Org-mode, in the style of pulldown-cmark, with an HTML renderer and CLI"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/svaiter/pulldown-org"
+repository = "https://github.com/svaiter/pullorg"
 keywords = ["org-mode", "org", "parser", "markup", "html"]
 categories = ["parser-implementations", "text-processing"]
 readme = "README.md"
 exclude = [".github", "CLAUDE.md", "rustfmt.toml"]
 
 [lib]
-name = "pulldown_org"
+name = "pullorg"
 path = "src/lib.rs"
 
 [[bin]]
-name = "pulldown-org"
+name = "pullorg"
 path = "src/bin/main.rs"
 required-features = ["cli"]
 

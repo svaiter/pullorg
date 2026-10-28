@@ -2,10 +2,10 @@
 //!
 //! Every `tests/fixtures/NAME.org` has a `NAME.json` produced by Emacs (see
 //! `tests/emacs/dump.el` and `tools/regen-fixtures.sh`). This test parses the
-//! `.org` file with pulldown-org, converts the event stream into the same
+//! `.org` file with pullorg, converts the event stream into the same
 //! JSON shape, normalizes both trees and compares them.
 //!
-//! Set `PULLDOWN_ORG_FIXTURE=name[,name...]` to run only some fixtures.
+//! Set `PULLORG_FIXTURE=name[,name...]` to run only some fixtures.
 //! See `tests/README.md` for the JSON shape and the normalization rules.
 
 #![recursion_limit = "256"]
@@ -15,7 +15,7 @@ use std::ops::Range;
 use std::panic::{self, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
 
-use pulldown_org::{
+use pullorg::{
     Checkbox, ClockStatus, Event, Headline, Item, Keyword, Link, LinkFormat, ListKind, Parser,
     Priority, RepeaterKind, TableKind, TableRowKind, Tag, TagEnd, TimeUnit, Timestamp,
     TimestampKind, TodoType, WarningKind,
@@ -642,7 +642,7 @@ where
 // ---------------------------------------------------------------------------
 
 /// Types whose `value` property is a raw multi-line body: trailing newlines
-/// are not compared (Emacs keeps the final newline, pulldown-org drops it).
+/// are not compared (Emacs keeps the final newline, pullorg drops it).
 const RAW_VALUE_TYPES: &[&str] = &[
     "src-block",
     "example-block",
@@ -733,7 +733,7 @@ fn fixture_names() -> Vec<String> {
         })
         .collect();
     names.sort();
-    if let Ok(filter) = std::env::var("PULLDOWN_ORG_FIXTURE") {
+    if let Ok(filter) = std::env::var("PULLORG_FIXTURE") {
         let wanted: Vec<&str> = filter
             .split(',')
             .map(|n| n.trim().trim_end_matches(".org"))
@@ -742,7 +742,7 @@ fn fixture_names() -> Vec<String> {
         for w in &wanted {
             assert!(
                 names.iter().any(|n| n == w),
-                "PULLDOWN_ORG_FIXTURE: no fixture named {w:?}"
+                "PULLORG_FIXTURE: no fixture named {w:?}"
             );
         }
         names.retain(|n| wanted.contains(&n.as_str()));
@@ -789,7 +789,7 @@ fn check_fixture(name: &str) -> Result<(), String> {
     let e = serde_json::to_string_pretty(&expected).unwrap();
     let a = serde_json::to_string_pretty(&actual).unwrap();
     Err(format!(
-        "mismatch (left: Emacs, right: pulldown-org)\n{}",
+        "mismatch (left: Emacs, right: pullorg)\n{}",
         pretty_assertions::StrComparison::new(&e, &a)
     ))
 }
@@ -815,7 +815,7 @@ fn emacs_conformance() {
     if !failures.is_empty() {
         let list: Vec<_> = failures.iter().map(|(n, _)| n.as_str()).collect();
         panic!(
-            "{} of {} fixture(s) failed: {}\n(rerun one with PULLDOWN_ORG_FIXTURE=name)",
+            "{} of {} fixture(s) failed: {}\n(rerun one with PULLORG_FIXTURE=name)",
             failures.len(),
             results.len(),
             list.join(", ")
@@ -874,7 +874,7 @@ fn fixture_json_is_well_formed() {
 mod converter {
     use super::*;
     use pretty_assertions::assert_eq;
-    use pulldown_org::{DateTime, Repeater};
+    use pullorg::{DateTime, Repeater};
     use std::borrow::Cow;
 
     fn b(x: &str) -> Cow<'_, str> {
@@ -1146,7 +1146,7 @@ mod converter {
 mod roundtrip {
     use super::*;
     use pretty_assertions::assert_eq;
-    use pulldown_org::{DateTime, Entity, Repeater, Warning};
+    use pullorg::{DateTime, Entity, Repeater, Warning};
     use std::borrow::Cow;
 
     type Ev = (Event<'static>, Range<usize>);

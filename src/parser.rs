@@ -28,7 +28,7 @@ enum Frame {
 /// also get the byte range of each event.
 ///
 /// ```
-/// use pulldown_org::{Parser, Event, Tag};
+/// use pullorg::{Parser, Event, Tag};
 ///
 /// let parser = Parser::new("* Hello\nSome *bold* text.");
 /// let events: Vec<_> = parser.collect();

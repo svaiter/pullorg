@@ -1,7 +1,7 @@
 //! A pull parser for [Org-mode], in the style of [pulldown-cmark].
 //!
 //! ```
-//! use pulldown_org::{html, Parser};
+//! use pullorg::{html, Parser};
 //!
 //! let source = "* A headline\nSome /italic/ text.";
 //! let parser = Parser::new(source);

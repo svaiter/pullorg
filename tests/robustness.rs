@@ -3,7 +3,7 @@
 
 use std::ops::Range;
 
-use pulldown_org::{html, Event, Options, Parser, SubSuperscripts, TagEnd};
+use pullorg::{html, Event, Options, Parser, SubSuperscripts, TagEnd};
 
 /// Small xorshift PRNG so the test is deterministic without dependencies.
 struct Rng(u64);
@@ -223,7 +223,7 @@ fn check(text: &str, options: Options) {
 #[test]
 fn random_documents_never_panic() {
     let mut rng = Rng(0x9E37_79B9_7F4A_7C15);
-    let iterations = std::env::var("PULLDOWN_ORG_FUZZ_ITERATIONS")
+    let iterations = std::env::var("PULLORG_FUZZ_ITERATIONS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(4000);

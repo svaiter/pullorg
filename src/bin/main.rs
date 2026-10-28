@@ -4,11 +4,11 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::Parser as ClapParser;
-use pulldown_org::{html, Event, Options, Parser, SubSuperscripts};
+use pullorg::{html, Event, Options, Parser, SubSuperscripts};
 
 /// Convert Org-mode documents to HTML.
 #[derive(ClapParser, Debug)]
-#[command(name = "pulldown-org", version, about)]
+#[command(name = "pullorg", version, about)]
 struct Cli {
     /// Input file; reads standard input when absent or `-`.
     file: Option<PathBuf>,
@@ -166,7 +166,7 @@ fn main() -> ExitCode {
     match run(Cli::parse()) {
         Ok(()) => ExitCode::SUCCESS,
         Err(msg) => {
-            eprintln!("pulldown-org: {msg}");
+            eprintln!("pullorg: {msg}");
             ExitCode::FAILURE
         }
     }

@@ -35,7 +35,7 @@ done
 
 LOG=$(mktemp -t regen-fixtures.XXXXXX)
 trap 'rm -f "$LOG"' EXIT
-if ! "$EMACS" --batch -Q -l org -l "$DUMP" -f pulldown-org-dump-batch "$@" >"$LOG" 2>&1; then
+if ! "$EMACS" --batch -Q -l org -l "$DUMP" -f pullorg-dump-batch "$@" >"$LOG" 2>&1; then
   echo "error: emacs failed:" >&2
   cat "$LOG" >&2
   exit 1

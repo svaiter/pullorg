@@ -1,4 +1,4 @@
-# pulldown-org
+# pullorg
 
 Rust pull parser for Org-mode modelled on pulldown-cmark, plus an HTML
 renderer and a CLI. The reference implementation is Emacs' `org-element.el`;
@@ -32,7 +32,7 @@ secondary. When they disagree, Emacs wins.
 - Oracle for any syntax question: `tools/org-parse.sh 'snippet'` prints the
   org-element tree Emacs produces. Decide behaviour from it, not from memory.
 - Fixtures: add `tests/fixtures/NAME.org`, run `sh tools/regen-fixtures.sh`
-  (needs Emacs), commit both files. `PULLDOWN_ORG_FIXTURE=name cargo test
+  (needs Emacs), commit both files. `PULLORG_FIXTURE=name cargo test
   --test conformance` runs one. Never hand-edit the `.json`.
 - Before committing: `cargo fmt`, `cargo test`, `cargo clippy --all-targets`.
 - `ref/` (gitignored) may hold a local copy of the GPL Org Elisp sources for

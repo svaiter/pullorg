@@ -14,7 +14,7 @@ Initial release.
   line breaks, citations.
 - In-buffer settings: `#+TODO`/`#+SEQ_TODO`/`#+TYP_TODO`, `#+OPTIONS: ^:`,
   `#+LINK`, `#+STARTUP: odd`.
-- HTML renderer and `pulldown-org` command-line tool.
+- HTML renderer and `pullorg` command-line tool.
 - Conformance suite comparing the event stream with Emacs'
   `org-element-parse-buffer` (Org 9.8.3) on 47 fixtures; also verified on
   the Org manual, the Org guide and ORG-NEWS.

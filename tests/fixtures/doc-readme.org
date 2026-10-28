@@ -1,9 +1,9 @@
-#+TITLE: pulldown-org
+#+TITLE: pullorg
 #+AUTHOR: Jane Doe
 #+OPTIONS: toc:2
 
 * Introduction
-=pulldown-org= is a /pull parser/ for [[https://orgmode.org][Org-mode]],
+=pullorg= is a /pull parser/ for [[https://orgmode.org][Org-mode]],
 modelled on [[https://docs.rs/pulldown-cmark][pulldown-cmark]].
 
 ** Features
@@ -16,13 +16,13 @@ Add this to your =Cargo.toml=:
 
 #+begin_src toml
 [dependencies]
-pulldown-org = "0.1"
+pullorg = "0.1"
 #+end_src
 
 * Usage
 #+NAME: example-usage
 #+begin_src rust
-use pulldown_org::{html, Parser};
+use pullorg::{html, Parser};
 
 let parser = Parser::new("* Hello\n*world*");
 let mut out = String::new();

@@ -1,11 +1,11 @@
 ;;; dump.el --- Dump the org-element tree of an Org file as JSON  -*- lexical-binding: t -*-
 
-;; Part of the pulldown-org conformance harness.  See tests/README.md.
+;; Part of the pullorg conformance harness.  See tests/README.md.
 ;;
 ;; Usage:
 ;;
 ;;   emacs --batch -Q -l org -l tests/emacs/dump.el \
-;;         -f pulldown-org-dump-batch IN.org OUT.json [IN2.org OUT2.json ...]
+;;         -f pullorg-dump-batch IN.org OUT.json [IN2.org OUT2.json ...]
 ;;
 ;; Output shape (one node per element/object):
 ;;
@@ -22,7 +22,7 @@
 ;;   excluded).  The post-blank whitespace of an object is re-materialized
 ;;   as a plain-text node right after it (and merged with adjacent
 ;;   plain-text), so that the text of a container is complete, as in the
-;;   pulldown-org event stream where that whitespace is part of the next
+;;   pullorg event stream where that whitespace is part of the next
 ;;   `Text' event.
 ;; - Timestamps stored in properties (planning, clock) are emitted without
 ;;   positions; objects inside secondary strings that are emitted as node
@@ -48,11 +48,11 @@
 (require 'json)
 (require 'cl-lib)
 
-(defun pulldown-org-dump--bytes (pos)
+(defun pullorg-dump--bytes (pos)
   "0-based byte offset of buffer position POS."
   (1- (position-bytes pos)))
 
-(defun pulldown-org-dump--str (v)
+(defun pullorg-dump--str (v)
   "Convert V (string, symbol or nil) to a JSON string or null."
   (cond ((null v) :null)
         ((stringp v) (substring-no-properties v))
@@ -60,33 +60,33 @@
         ((numberp v) (number-to-string v))
         (t (format "%s" v))))
 
-(defun pulldown-org-dump--num (v)
+(defun pullorg-dump--num (v)
   (if (numberp v) v :null))
 
-(defun pulldown-org-dump--bool (v)
+(defun pullorg-dump--bool (v)
   (if v t :false))
 
-(defun pulldown-org-dump--strings (l)
-  (vconcat (mapcar #'pulldown-org-dump--str l)))
+(defun pullorg-dump--strings (l)
+  (vconcat (mapcar #'pullorg-dump--str l)))
 
-(defun pulldown-org-dump--raw-secondary (s)
+(defun pullorg-dump--raw-secondary (s)
   "Raw text of secondary string S, or null."
   (if s
       (substring-no-properties (org-element-interpret-data s))
     :null))
 
-(defun pulldown-org-dump--element-end (el)
+(defun pullorg-dump--element-end (el)
   (save-excursion
     (let ((begin (org-element-property :begin el)))
       (goto-char (org-element-property :end el))
       (skip-chars-backward " \t\n\r" begin)
       (unless (bolp) (forward-line 1))
-      (pulldown-org-dump--bytes (min (point) (point-max))))))
+      (pullorg-dump--bytes (min (point) (point-max))))))
 
-(defun pulldown-org-dump--object-p (node)
+(defun pullorg-dump--object-p (node)
   (memq (org-element-type node) org-element-all-objects))
 
-(defun pulldown-org-dump--affiliated (el)
+(defun pullorg-dump--affiliated (el)
   "Affiliated keywords of EL read back from the buffer."
   (let ((begin (org-element-property :begin el))
         (post (org-element-property :post-affiliated el))
@@ -121,60 +121,60 @@
                           if (string< y x) return nil
                           finally return nil))))))))
 
-(defun pulldown-org-dump--timestamp-props (ts)
+(defun pullorg-dump--timestamp-props (ts)
   (let ((p (lambda (k) (org-element-property k ts))))
-    `((type . ,(pulldown-org-dump--str (funcall p :type)))
-      (raw-value . ,(pulldown-org-dump--str (funcall p :raw-value)))
+    `((type . ,(pullorg-dump--str (funcall p :type)))
+      (raw-value . ,(pullorg-dump--str (funcall p :raw-value)))
       ,@(mapcar (lambda (k)
                   (cons (intern (substring (symbol-name k) 1))
-                        (pulldown-org-dump--num (funcall p k))))
+                        (pullorg-dump--num (funcall p k))))
                 '(:year-start :month-start :day-start :hour-start :minute-start
                   :year-end :month-end :day-end :hour-end :minute-end))
-      (repeater-type . ,(pulldown-org-dump--str (funcall p :repeater-type)))
-      (repeater-value . ,(pulldown-org-dump--num (funcall p :repeater-value)))
-      (repeater-unit . ,(pulldown-org-dump--str (funcall p :repeater-unit)))
-      (warning-type . ,(pulldown-org-dump--str (funcall p :warning-type)))
-      (warning-value . ,(pulldown-org-dump--num (funcall p :warning-value)))
-      (warning-unit . ,(pulldown-org-dump--str (funcall p :warning-unit))))))
+      (repeater-type . ,(pullorg-dump--str (funcall p :repeater-type)))
+      (repeater-value . ,(pullorg-dump--num (funcall p :repeater-value)))
+      (repeater-unit . ,(pullorg-dump--str (funcall p :repeater-unit)))
+      (warning-type . ,(pullorg-dump--str (funcall p :warning-type)))
+      (warning-value . ,(pullorg-dump--num (funcall p :warning-value)))
+      (warning-unit . ,(pullorg-dump--str (funcall p :warning-unit))))))
 
-(defun pulldown-org-dump--embedded-ts (ts)
+(defun pullorg-dump--embedded-ts (ts)
   "Timestamp TS stored in a property: a node without positions."
   (if ts
       `((type . "timestamp")
-        (props . ,(pulldown-org-dump--timestamp-props ts))
+        (props . ,(pullorg-dump--timestamp-props ts))
         (children . []))
     :null))
 
-(defun pulldown-org-dump--headline-props (el)
+(defun pullorg-dump--headline-props (el)
   (let ((p (lambda (k) (org-element-property k el))))
     `((level . ,(funcall p :level))
-      (todo-keyword . ,(pulldown-org-dump--str (funcall p :todo-keyword)))
-      (todo-type . ,(pulldown-org-dump--str (funcall p :todo-type)))
+      (todo-keyword . ,(pullorg-dump--str (funcall p :todo-keyword)))
+      (todo-type . ,(pullorg-dump--str (funcall p :todo-type)))
       (priority . ,(or (funcall p :priority) :null))
-      (tags . ,(pulldown-org-dump--strings (funcall p :tags)))
-      (commentedp . ,(pulldown-org-dump--bool (funcall p :commentedp)))
-      (archivedp . ,(pulldown-org-dump--bool (funcall p :archivedp)))
-      (footnote-section-p . ,(pulldown-org-dump--bool (funcall p :footnote-section-p)))
-      (raw-value . ,(pulldown-org-dump--str (funcall p :raw-value)))
-      (title . ,(pulldown-org-dump--contents (funcall p :title))))))
+      (tags . ,(pullorg-dump--strings (funcall p :tags)))
+      (commentedp . ,(pullorg-dump--bool (funcall p :commentedp)))
+      (archivedp . ,(pullorg-dump--bool (funcall p :archivedp)))
+      (footnote-section-p . ,(pullorg-dump--bool (funcall p :footnote-section-p)))
+      (raw-value . ,(pullorg-dump--str (funcall p :raw-value)))
+      (title . ,(pullorg-dump--contents (funcall p :title))))))
 
-(defun pulldown-org-dump--props (node)
+(defun pullorg-dump--props (node)
   "Type-specific properties of NODE, as an alist."
   (let* ((type (org-element-type node))
          (p (lambda (k) (org-element-property k node)))
-         (s (lambda (k) (pulldown-org-dump--str (funcall p k)))))
+         (s (lambda (k) (pullorg-dump--str (funcall p k)))))
     (pcase type
-      ((or 'headline 'inlinetask) (pulldown-org-dump--headline-props node))
+      ((or 'headline 'inlinetask) (pullorg-dump--headline-props node))
       ('item
        `((bullet . ,(funcall s :bullet))
          (checkbox . ,(funcall s :checkbox))
-         (counter . ,(pulldown-org-dump--num (funcall p :counter)))
+         (counter . ,(pullorg-dump--num (funcall p :counter)))
          (tag . ,(let ((tag (funcall p :tag)))
-                   (if tag (pulldown-org-dump--contents tag) :null)))))
+                   (if tag (pullorg-dump--contents tag) :null)))))
       ('plain-list `((type . ,(funcall s :type))))
       ('table
        `((type . ,(funcall s :type))
-         (tblfm . ,(pulldown-org-dump--strings (funcall p :tblfm)))
+         (tblfm . ,(pullorg-dump--strings (funcall p :tblfm)))
          (value . ,(funcall s :value))))
       ('table-row `((type . ,(funcall s :type))))
       ('src-block
@@ -212,11 +212,11 @@
       ('clock
        `((status . ,(funcall s :status))
          (duration . ,(funcall s :duration))
-         (value . ,(pulldown-org-dump--embedded-ts (funcall p :value)))))
+         (value . ,(pullorg-dump--embedded-ts (funcall p :value)))))
       ('planning
-       `((closed . ,(pulldown-org-dump--embedded-ts (funcall p :closed)))
-         (scheduled . ,(pulldown-org-dump--embedded-ts (funcall p :scheduled)))
-         (deadline . ,(pulldown-org-dump--embedded-ts (funcall p :deadline)))))
+       `((closed . ,(pullorg-dump--embedded-ts (funcall p :closed)))
+         (scheduled . ,(pullorg-dump--embedded-ts (funcall p :scheduled)))
+         (deadline . ,(pullorg-dump--embedded-ts (funcall p :deadline)))))
       ('node-property
        `((key . ,(funcall s :key))
          (value . ,(funcall s :value))))
@@ -227,10 +227,10 @@
          (raw-link . ,(funcall s :raw-link))
          (search-option . ,(funcall s :search-option))
          (application . ,(funcall s :application))))
-      ('timestamp (pulldown-org-dump--timestamp-props node))
+      ('timestamp (pullorg-dump--timestamp-props node))
       ('entity
        `((name . ,(funcall s :name))
-         (use-brackets-p . ,(pulldown-org-dump--bool (funcall p :use-brackets-p)))))
+         (use-brackets-p . ,(pullorg-dump--bool (funcall p :use-brackets-p)))))
       ('export-snippet
        `((back-end . ,(funcall s :back-end))
          (value . ,(funcall s :value))))
@@ -240,23 +240,23 @@
          (value . ,(funcall s :value))))
       ('macro
        `((key . ,(funcall s :key))
-         (args . ,(pulldown-org-dump--strings (funcall p :args)))))
+         (args . ,(pullorg-dump--strings (funcall p :args)))))
       ('footnote-reference
        `((label . ,(funcall s :label))
          (type . ,(funcall s :type))))
       ((or 'subscript 'superscript)
-       `((use-brackets-p . ,(pulldown-org-dump--bool (funcall p :use-brackets-p)))))
+       `((use-brackets-p . ,(pullorg-dump--bool (funcall p :use-brackets-p)))))
       ('citation
        `((style . ,(funcall s :style))
-         (prefix . ,(pulldown-org-dump--raw-secondary (funcall p :prefix)))
-         (suffix . ,(pulldown-org-dump--raw-secondary (funcall p :suffix)))))
+         (prefix . ,(pullorg-dump--raw-secondary (funcall p :prefix)))
+         (suffix . ,(pullorg-dump--raw-secondary (funcall p :suffix)))))
       ('citation-reference
        `((key . ,(funcall s :key))
-         (prefix . ,(pulldown-org-dump--raw-secondary (funcall p :prefix)))
-         (suffix . ,(pulldown-org-dump--raw-secondary (funcall p :suffix)))))
+         (prefix . ,(pullorg-dump--raw-secondary (funcall p :prefix)))
+         (suffix . ,(pullorg-dump--raw-secondary (funcall p :suffix)))))
       (_ nil))))
 
-(defun pulldown-org-dump--node (node)
+(defun pullorg-dump--node (node)
   "Convert NODE (an element, object or string) to a JSON alist.
 Return a list of nodes: an object with post-blank whitespace is followed
 by a plain-text node holding that whitespace."
@@ -264,20 +264,20 @@ by a plain-text node holding that whitespace."
       (list `((type . "plain-text")
               (value . ,(substring-no-properties node))))
     (let* ((type (org-element-type node))
-           (object (pulldown-org-dump--object-p node))
+           (object (pullorg-dump--object-p node))
            (begin (org-element-property :begin node))
            (end (org-element-property :end node))
            (post-blank (or (org-element-property :post-blank node) 0))
-           (props (pulldown-org-dump--props node))
-           (aff (and (not object) (pulldown-org-dump--affiliated node)))
+           (props (pullorg-dump--props node))
+           (aff (and (not object) (pullorg-dump--affiliated node)))
            (props (if aff (append props `((affiliated . ,aff))) props))
            (json `((type . ,(symbol-name type))
-                   (begin . ,(pulldown-org-dump--bytes begin))
+                   (begin . ,(pullorg-dump--bytes begin))
                    (end . ,(if object
-                               (pulldown-org-dump--bytes (- end post-blank))
-                             (pulldown-org-dump--element-end node)))
+                               (pullorg-dump--bytes (- end post-blank))
+                             (pullorg-dump--element-end node)))
                    (props . ,(or props (make-hash-table)))
-                   (children . ,(pulldown-org-dump--contents
+                   (children . ,(pullorg-dump--contents
                                  (org-element-contents node))))))
       (if (and object (> post-blank 0))
           (list json
@@ -285,11 +285,11 @@ by a plain-text node holding that whitespace."
                   (value . ,(buffer-substring-no-properties (- end post-blank) end))))
         (list json)))))
 
-(defun pulldown-org-dump--contents (contents)
+(defun pullorg-dump--contents (contents)
   "Convert a list of nodes CONTENTS to a JSON vector, merging plain text."
   (let (out)
     (dolist (c contents)
-      (dolist (j (pulldown-org-dump--node c))
+      (dolist (j (pullorg-dump--node c))
         (if (and out
                  (equal (alist-get 'type j) "plain-text")
                  (equal (alist-get 'type (car out)) "plain-text"))
@@ -299,7 +299,7 @@ by a plain-text node holding that whitespace."
           (push j out))))
     (vconcat (nreverse out))))
 
-(defun pulldown-org-dump-file (in out)
+(defun pullorg-dump-file (in out)
   "Parse Org file IN and write its JSON tree to OUT."
   (let ((tree
          (with-temp-buffer
@@ -309,7 +309,7 @@ by a plain-text node holding that whitespace."
              (org-mode))
            (let ((data (org-element-parse-buffer)))
              `((type . "org-data")
-               (children . ,(pulldown-org-dump--contents
+               (children . ,(pullorg-dump--contents
                              (org-element-contents data))))))))
     (with-temp-buffer
       (insert (decode-coding-string
@@ -323,15 +323,15 @@ by a plain-text node holding that whitespace."
       (let ((coding-system-for-write 'utf-8-unix))
         (write-region (point-min) (point-max) out nil 'silent)))))
 
-(defun pulldown-org-dump-batch ()
+(defun pullorg-dump-batch ()
   "Batch entry point: remaining command-line args are IN OUT pairs."
   (unless (and command-line-args-left
                (zerop (% (length command-line-args-left) 2)))
-    (error "Usage: -f pulldown-org-dump-batch IN.org OUT.json [IN OUT ...]"))
+    (error "Usage: -f pullorg-dump-batch IN.org OUT.json [IN OUT ...]"))
   (while command-line-args-left
     (let ((in (pop command-line-args-left))
           (out (pop command-line-args-left)))
-      (pulldown-org-dump-file in out))))
+      (pullorg-dump-file in out))))
 
-(provide 'pulldown-org-dump)
+(provide 'pullorg-dump)
 ;;; dump.el ends here
