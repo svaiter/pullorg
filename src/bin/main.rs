@@ -25,6 +25,10 @@ struct Cli {
     #[arg(long)]
     standalone: bool,
 
+    /// With --standalone, load MathJax from a CDN to typeset LaTeX fragments.
+    #[arg(long)]
+    mathjax: bool,
+
     /// Document title for --standalone (default: `#+TITLE:` or the file name).
     #[arg(long)]
     title: Option<String>,
@@ -41,6 +45,29 @@ struct Cli {
     #[arg(long, value_name = "KEYWORDS")]
     done: Option<String>,
 }
+
+const STYLE: &str = "\
+body { max-width: 50em; margin: 2em auto; padding: 0 1em; line-height: 1.5; font-family: sans-serif; }
+pre { background: #f5f5f5; border: 1px solid #ddd; padding: 0.6em; overflow-x: auto; }
+code { font-family: monospace; background: #f5f5f5; padding: 0 0.2em; }
+pre code { background: none; padding: 0; }
+.todo { color: #c00; font-weight: bold; }
+.done { color: #080; font-weight: bold; }
+.tag { float: right; font-size: 80%; font-weight: normal; }
+.tag span { background: #eee; border-radius: 3px; padding: 0 0.3em; }
+.timestamp { color: #666; font-family: monospace; }
+table { border-collapse: collapse; margin: 1em 0; }
+th, td { border: 1px solid #ccc; padding: 0.2em 0.6em; }
+th { background: #f0f0f0; }
+.footdef { margin: 0.4em 0; }
+.footpara { display: inline; }
+.footpara > p:first-child { display: inline; }
+#footnotes { border-top: 1px solid #ccc; margin-top: 2em; font-size: 90%; }
+blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; color: #444; }
+";
+
+const MATHJAX: &str =
+    "<script async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n";
 
 fn split_keywords(s: &str) -> Vec<String> {
     s.split(',')
@@ -111,8 +138,10 @@ fn run(cli: Cli) -> Result<(), String> {
         if cli.standalone {
             let title = title.unwrap_or(name);
             out.push_str(&format!(
-                "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<title>{}</title>\n</head>\n<body>\n",
-                escape(&title)
+                "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n\
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>{}</title>\n<style>\n{STYLE}</style>\n{}</head>\n<body>\n",
+                escape(&title),
+                if cli.mathjax { MATHJAX } else { "" }
             ));
             out.push_str(&body);
             out.push_str("</body>\n</html>\n");

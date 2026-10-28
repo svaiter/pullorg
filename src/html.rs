@@ -9,7 +9,27 @@
 //!
 //! The renderer streams into the sink and only buffers where look-ahead is
 //! required: tables, footnote definitions, radio targets and paragraphs
-//! carrying affiliated keywords.
+//! carrying affiliated keywords. Headlines are held back until their property
+//! drawer has been seen, so that a `CUSTOM_ID` property can become the `id`.
+//!
+//! # Headline ids and links
+//!
+//! Every rendered headline gets `id="outline-N"` (`N` counting rendered
+//! headlines from 1 in document order), or its `CUSTOM_ID` when it has one.
+//! `[[#id]]` links point at `#id`. Fuzzy links such as `[[*Title]]` are *not*
+//! resolved to headlines: that would need a pre-scan of the whole document,
+//! which the streaming renderer does not do, so they keep pointing at `#path`.
+//!
+//! # Macros
+//!
+//! `#+MACRO: name template` defines a macro; `{{{name(a,b)}}}` expands the
+//! template, replacing `$1`, `$2`, ... by the arguments (missing ones become
+//! empty). The built-ins of `org-macro` are supported (`title`, `author`,
+//! `email`, `date`, `language`, `subtitle`, `keyword(KEY)`, `n`, `n(NAME)`,
+//! `kbd(x)`; `results`, `property`, `time`, `modification-time` and
+//! `input-file` expand to nothing). Unlike Emacs, an expansion is inserted as
+//! escaped plain text and is not parsed as Org again, and a macro must be
+//! defined before its first use. Unknown macros expand to nothing.
 
 use std::collections::HashMap;
 use std::fmt;
@@ -181,10 +201,28 @@ impl Aff {
 enum Next {
     EndLink,
     StartItemTag,
+    EndContainer,
     Other,
 }
 
+/// How the currently open paragraph is rendered.
+enum ParaKind {
+    Plain,
+    /// First child of an item or footnote definition: no `<p>`.
+    Lead,
+    Aff(Aff),
+}
+
+/// A rendered headline line waiting for the property drawer.
+struct Held {
+    level: usize,
+    id: usize,
+    custom_id: Option<String>,
+    inner: String,
+}
+
 struct HInfo {
+    id: usize,
     level: usize,
     inline: bool,
     archived: bool,
@@ -214,7 +252,13 @@ struct Renderer<W: fmt::Write> {
     hstack: Vec<HInfo>,
     lists: Vec<ListKind>,
     items: Vec<ItemInfo>,
-    paras: Vec<Option<Aff>>,
+    paras: Vec<ParaKind>,
+    lead: bool,
+    held: Option<Held>,
+    headline_count: usize,
+    macros: HashMap<String, String>,
+    kw_values: HashMap<String, String>,
+    counters: HashMap<String, i64>,
     src_caption: Vec<bool>,
     export_html: Vec<bool>,
     entries: Vec<FnEntry>,
@@ -231,6 +275,31 @@ fn is_image(path: &str) -> bool {
     ["png", "jpg", "jpeg", "gif", "svg", "webp"]
         .iter()
         .any(|e| lower.rsplit_once('.').is_some_and(|(_, x)| x == *e))
+}
+
+/// Replace `$N` (N >= 1) in a macro template by the N-th argument.
+fn expand_template(tpl: &str, args: &[crate::strings::CowStr<'_>]) -> String {
+    let mut out = String::new();
+    let mut rest = tpl;
+    while let Some(i) = rest.find('$') {
+        out.push_str(&rest[..i]);
+        let after = &rest[i + 1..];
+        let digits = after.bytes().take_while(u8::is_ascii_digit).count();
+        match after[..digits].parse::<usize>() {
+            Ok(n) if n >= 1 => {
+                if let Some(a) = args.get(n - 1) {
+                    out.push_str(a);
+                }
+                rest = &after[digits..];
+            }
+            _ => {
+                out.push('$');
+                rest = after;
+            }
+        }
+    }
+    out.push_str(rest);
+    out
 }
 
 fn checkbox_html(c: Checkbox) -> &'static str {
@@ -254,6 +323,12 @@ impl<W: fmt::Write> Renderer<W> {
             lists: Vec::new(),
             items: Vec::new(),
             paras: Vec::new(),
+            lead: false,
+            held: None,
+            headline_count: 0,
+            macros: HashMap::new(),
+            kw_values: HashMap::new(),
+            counters: HashMap::new(),
             src_caption: Vec::new(),
             export_html: Vec::new(),
             entries: Vec::new(),
@@ -290,6 +365,7 @@ impl<W: fmt::Write> Renderer<W> {
             if self.skip == 0 {
                 if let Event::Start(Tag::Table { kind, .. }) = &ev {
                     let kind = *kind;
+                    self.flush_held()?;
                     let kws = std::mem::take(&mut self.pending);
                     let mut depth = 1usize;
                     let mut evs = Vec::new();
@@ -311,6 +387,7 @@ impl<W: fmt::Write> Renderer<W> {
             let next = match it.peek() {
                 Some(Event::End(TagEnd::Link)) => Next::EndLink,
                 Some(Event::Start(Tag::ItemTag)) => Next::StartItemTag,
+                Some(Event::End(TagEnd::Item | TagEnd::FootnoteDefinition)) => Next::EndContainer,
                 _ => Next::Other,
             };
             if self.handle(ev, next)? {
@@ -321,6 +398,7 @@ impl<W: fmt::Write> Renderer<W> {
     }
 
     fn finish(&mut self) -> fmt::Result {
+        self.flush_held()?;
         if self.entries.is_empty() {
             return Ok(());
         }
@@ -381,6 +459,22 @@ impl<W: fmt::Write> Renderer<W> {
             }
             return Ok(false);
         }
+        if self.held.is_some() {
+            match &ev {
+                Event::NodeProperty { key, value } => {
+                    if key.eq_ignore_ascii_case("CUSTOM_ID") {
+                        if let Some(h) = &mut self.held {
+                            h.custom_id = Some(value.trim().to_string());
+                        }
+                    }
+                }
+                Event::Start(Tag::Section | Tag::PropertyDrawer)
+                | Event::End(TagEnd::PropertyDrawer)
+                | Event::Planning { .. } => {}
+                _ => self.flush_held()?,
+            }
+        }
+        let lead = std::mem::take(&mut self.lead);
         let kws = match &ev {
             Event::Keyword(Keyword {
                 affiliated: true, ..
@@ -388,8 +482,8 @@ impl<W: fmt::Write> Renderer<W> {
             _ => std::mem::take(&mut self.pending),
         };
         match ev {
-            Event::Start(tag) => return self.start(tag, &kws, next),
-            Event::End(end) => self.end(end)?,
+            Event::Start(tag) => return self.start(tag, &kws, next, lead),
+            Event::End(end) => self.end(end, next)?,
             Event::Text(t) => {
                 if let Some(r) = self.radio_text.last_mut() {
                     r.push_str(&t);
@@ -423,7 +517,8 @@ impl<W: fmt::Write> Renderer<W> {
                 self.we(&value)?;
                 self.w("</code>")?;
             }
-            Event::InlineBabelCall { .. } | Event::Macro { .. } => {}
+            Event::InlineBabelCall { .. } => {}
+            Event::Macro { key, args } => self.expand_macro(&key, &args)?,
             Event::Target(name) => self.w(&format!("<a id=\"{}\"></a>", escape(&name)))?,
             Event::StatisticsCookie(c) => {
                 self.w("<code>")?;
@@ -471,15 +566,25 @@ impl<W: fmt::Write> Renderer<W> {
             Event::Keyword(k) => {
                 if k.affiliated {
                     self.pending.push((k.key.to_string(), k.value.to_string()));
+                } else if k.key.eq_ignore_ascii_case("MACRO") {
+                    let v = k.value.trim();
+                    let (name, tpl) = match v.split_once(char::is_whitespace) {
+                        Some((n, t)) => (n, t.trim_start()),
+                        None => (v, ""),
+                    };
+                    if !name.is_empty() {
+                        self.macros
+                            .insert(name.to_ascii_lowercase(), tpl.to_string());
+                    }
+                } else {
+                    self.kw_values
+                        .insert(k.key.to_ascii_uppercase(), k.value.to_string());
                 }
             }
             Event::FixedWidth(t) => {
                 let aff = Aff::from_keywords(&kws);
                 self.w(&aff.open("pre", Some("example")))?;
-                self.we(&t)?;
-                if !t.ends_with('\n') {
-                    self.w("\n")?;
-                }
+                self.we(t.strip_suffix('\n').unwrap_or(&t))?;
                 self.w("</pre>\n")?;
             }
             Event::Comment(_)
@@ -490,6 +595,61 @@ impl<W: fmt::Write> Renderer<W> {
             | Event::NodeProperty { .. } => {}
         }
         Ok(false)
+    }
+
+    fn flush_held(&mut self) -> fmt::Result {
+        if let Some(h) = self.held.take() {
+            let id = h.custom_id.unwrap_or_else(|| format!("outline-{}", h.id));
+            let n = (h.level + 1).min(6);
+            self.w(&format!(
+                "<h{n} id=\"{}\">{}</h{n}>\n",
+                escape(&id),
+                h.inner
+            ))?;
+        }
+        Ok(())
+    }
+
+    fn expand_macro(&mut self, key: &str, args: &[crate::strings::CowStr<'_>]) -> fmt::Result {
+        if let Some(tpl) = self.macros.get(key) {
+            let out = expand_template(tpl, args);
+            return self.we(&out);
+        }
+        let arg = |i: usize| args.get(i).map(|a| a.trim()).unwrap_or("");
+        match key {
+            "title" | "author" | "email" | "date" | "language" | "subtitle" => {
+                let v = self
+                    .kw_values
+                    .get(&key.to_ascii_uppercase())
+                    .cloned()
+                    .unwrap_or_default();
+                self.we(&v)
+            }
+            "keyword" => {
+                let v = self
+                    .kw_values
+                    .get(&arg(0).to_ascii_uppercase())
+                    .cloned()
+                    .unwrap_or_default();
+                self.we(&v)
+            }
+            "n" => {
+                let c = self.counters.entry(arg(0).to_string()).or_insert(0);
+                if arg(1) == "-" {
+                    *c = 0;
+                    return Ok(());
+                }
+                *c += 1;
+                let c = *c;
+                self.w(&c.to_string())
+            }
+            "kbd" => {
+                self.w("<kbd>")?;
+                self.we(arg(0))?;
+                self.w("</kbd>")
+            }
+            _ => Ok(()),
+        }
     }
 
     fn fn_link(&mut self, n: usize, id: &str) -> fmt::Result {
@@ -523,7 +683,11 @@ impl<W: fmt::Write> Renderer<W> {
         if muted {
             self.bufs.push(String::new());
         }
+        if !inline {
+            self.headline_count += 1;
+        }
         self.hstack.push(HInfo {
+            id: self.headline_count,
             level: h.level,
             inline,
             archived: h.archived && !inline,
@@ -542,6 +706,7 @@ impl<W: fmt::Write> Renderer<W> {
         tag: Tag<'_>,
         kws: &[(String, String)],
         next: Next,
+        lead: bool,
     ) -> Result<bool, fmt::Error> {
         if matches!(tag, Tag::Section | Tag::Headline(_) | Tag::Inlinetask(_))
             && self.hstack.last().is_some_and(|h| h.archived)
@@ -555,23 +720,25 @@ impl<W: fmt::Write> Renderer<W> {
             Tag::Inlinetask(h) => self.start_headline(&h, true)?,
             Tag::Title => {
                 if let Some(h) = self.hstack.last() {
-                    let open = if h.inline {
-                        "<b>".to_string()
-                    } else {
-                        format!("<h{}>", (h.level + 1).min(6))
-                    };
+                    let inline = h.inline;
                     let prefix = h.prefix.clone();
-                    self.w(&open)?;
+                    if inline {
+                        self.w("<b>")?;
+                    } else {
+                        self.bufs.push(String::new());
+                    }
                     self.w(&prefix)?;
                 }
             }
             Tag::Section => {}
             Tag::Paragraph => {
-                if aff.is_empty() {
-                    self.paras.push(None);
+                if aff.is_empty() && lead {
+                    self.paras.push(ParaKind::Lead);
+                } else if aff.is_empty() {
+                    self.paras.push(ParaKind::Plain);
                     self.w("<p>")?;
                 } else {
-                    self.paras.push(Some(aff));
+                    self.paras.push(ParaKind::Aff(aff));
                     self.bufs.push(String::new());
                 }
             }
@@ -592,6 +759,7 @@ impl<W: fmt::Write> Renderer<W> {
                     desc,
                     checkbox: item.checkbox,
                 });
+                self.lead = true;
                 if desc {
                     if next != Next::StartItemTag {
                         self.w("<dt></dt>\n<dd>")?;
@@ -658,9 +826,11 @@ impl<W: fmt::Write> Renderer<W> {
                     _ => "src".to_string(),
                 };
                 self.w(&aff.open("pre", Some(&base)))?;
+                self.bufs.push(String::new());
             }
             Tag::ExampleBlock { .. } => {
                 self.w(&aff.open("pre", Some("example")))?;
+                self.bufs.push(String::new());
             }
             Tag::ExportBlock { backend } => {
                 let html = backend.eq_ignore_ascii_case("html");
@@ -680,6 +850,7 @@ impl<W: fmt::Write> Renderer<W> {
             Tag::FootnoteDefinition { label } => {
                 self.fn_def_stack.push(label.to_string());
                 self.bufs.push(String::new());
+                self.lead = true;
             }
             Tag::Bold => self.w("<b>")?,
             Tag::Italic => self.w("<i>")?,
@@ -746,7 +917,7 @@ impl<W: fmt::Write> Renderer<W> {
         Ok(false)
     }
 
-    fn end(&mut self, end: TagEnd) -> fmt::Result {
+    fn end(&mut self, end: TagEnd, next: Next) -> fmt::Result {
         match end {
             TagEnd::Headline | TagEnd::Inlinetask => {
                 if let Some(h) = self.hstack.pop() {
@@ -760,6 +931,7 @@ impl<W: fmt::Write> Renderer<W> {
             }
             TagEnd::Title => {
                 if let Some(h) = self.hstack.last() {
+                    let (inline, level, id) = (h.inline, h.level, h.id);
                     let mut s = String::new();
                     if !h.tags.is_empty() {
                         s.push_str(" <span class=\"tag\">");
@@ -774,19 +946,30 @@ impl<W: fmt::Write> Renderer<W> {
                         s.push_str(&spans.join("&#xa0;"));
                         s.push_str("</span>");
                     }
-                    if h.inline {
-                        s.push_str("</b><br />\n");
-                    } else {
-                        s.push_str(&format!("</h{}>\n", (h.level + 1).min(6)));
-                    }
                     self.w(&s)?;
+                    if inline {
+                        self.w("</b><br />\n")?;
+                    } else {
+                        let inner = self.pop_buf();
+                        self.held = Some(Held {
+                            level,
+                            id,
+                            custom_id: None,
+                            inner,
+                        });
+                    }
                 }
             }
             TagEnd::Section => {}
             TagEnd::Paragraph => match self.paras.pop() {
-                Some(Some(aff)) => {
+                Some(ParaKind::Aff(aff)) => {
                     let content = self.pop_buf();
                     self.finish_paragraph(&aff, &content)?;
+                }
+                Some(ParaKind::Lead) => {
+                    if next != Next::EndContainer {
+                        self.w("\n")?;
+                    }
                 }
                 _ => self.w("</p>\n")?,
             },
@@ -806,6 +989,7 @@ impl<W: fmt::Write> Renderer<W> {
                 if self.items.last().is_some_and(|i| i.desc) {
                     self.w("</dt>\n<dd>")?;
                 }
+                self.lead = true;
             }
             TagEnd::Table | TagEnd::TableRow | TagEnd::TableCell => {}
             TagEnd::CenterBlock => self.w("</div>\n")?,
@@ -816,12 +1000,12 @@ impl<W: fmt::Write> Renderer<W> {
             }
             TagEnd::SpecialBlock => self.w("</div>\n")?,
             TagEnd::SrcBlock => {
-                self.w("</pre>\n")?;
+                self.end_verbatim()?;
                 if self.src_caption.pop().unwrap_or(false) {
                     self.w("</div>\n")?;
                 }
             }
-            TagEnd::ExampleBlock => self.w("</pre>\n")?,
+            TagEnd::ExampleBlock => self.end_verbatim()?,
             TagEnd::ExportBlock => {
                 if self.export_html.pop().unwrap_or(false) {
                     self.raw = false;
@@ -864,6 +1048,12 @@ impl<W: fmt::Write> Renderer<W> {
             TagEnd::Citation => self.w("]")?,
         }
         Ok(())
+    }
+
+    fn end_verbatim(&mut self) -> fmt::Result {
+        let content = self.pop_buf();
+        self.w(content.strip_suffix('\n').unwrap_or(&content))?;
+        self.w("</pre>\n")
     }
 
     fn finish_paragraph(&mut self, aff: &Aff, content: &str) -> fmt::Result {
@@ -1097,7 +1287,7 @@ mod tests {
         ev.push(en(TagEnd::Headline));
         assert_eq!(
             render(ev),
-            "<h2><span class=\"todo TODO\">TODO</span> <span class=\"priority\">[#A]</span> Hi \
+            "<h2 id=\"outline-1\"><span class=\"todo TODO\">TODO</span> <span class=\"priority\">[#A]</span> Hi \
 <span class=\"tag\"><span class=\"a\">a</span>&#xa0;<span class=\"b\">b</span></span></h2>\n<p>body</p>\n"
         );
     }
@@ -1115,7 +1305,7 @@ mod tests {
         ];
         assert_eq!(
             render(ev),
-            "<h6><span class=\"done DONE\">DONE</span> </h6>\n"
+            "<h6 id=\"outline-1\"><span class=\"done DONE\">DONE</span> </h6>\n"
         );
     }
 
@@ -1165,7 +1355,7 @@ mod tests {
         ev.push(en(TagEnd::Headline));
         ev.push(en(TagEnd::Headline));
         ev.extend(para(vec![t("next")]));
-        assert_eq!(render(ev), "<h2>Old</h2>\n<p>next</p>\n");
+        assert_eq!(render(ev), "<h2 id=\"outline-1\">Old</h2>\n<p>next</p>\n");
     }
 
     #[test]
@@ -1208,8 +1398,8 @@ mod tests {
         ];
         assert_eq!(
             render(ev),
-            "<ul>\n<li><code>[X]</code> <p>a</p>\n<ol>\n<li value=\"3\"><p>n</p>\n</li>\n</ol>\n</li>\n</ul>\n\
-<dl>\n<dt>term</dt>\n<dd><p>def</p>\n</dd>\n</dl>\n"
+            "<ul>\n<li><code>[X]</code> a\n<ol>\n<li value=\"3\">n</li>\n</ol>\n</li>\n</ul>\n\
+<dl>\n<dt>term</dt>\n<dd>def</dd>\n</dl>\n"
         );
     }
 
@@ -1291,7 +1481,7 @@ mod tests {
         ];
         assert_eq!(
             render(ev),
-            "<pre class=\"src src-rust\">if a &lt; b &amp;&amp; c &gt; &quot;d&quot; {}\n</pre>\n"
+            "<pre class=\"src src-rust\">if a &lt; b &amp;&amp; c &gt; &quot;d&quot; {}</pre>\n"
         );
     }
 
@@ -1341,7 +1531,7 @@ mod tests {
             "<p>a<sup><a id=\"fnr.1\" class=\"footref\" href=\"#fn.1\" role=\"doc-backlink\">1</a></sup>b\
 <sup><a id=\"fnr.2\" class=\"footref\" href=\"#fn.2\" role=\"doc-backlink\">2</a></sup></p>\n\
 <div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n\
-<div class=\"footdef\"><sup><a id=\"fn.1\" class=\"footnum\" href=\"#fnr.1\">1</a></sup> <div class=\"footpara\"><p>def x</p>\n</div></div>\n\
+<div class=\"footdef\"><sup><a id=\"fn.1\" class=\"footnum\" href=\"#fnr.1\">1</a></sup> <div class=\"footpara\">def x</div></div>\n\
 <div class=\"footdef\"><sup><a id=\"fn.2\" class=\"footnum\" href=\"#fnr.2\">2</a></sup> <div class=\"footpara\">inline</div></div>\n\
 </div></div>\n"
         );
@@ -1381,7 +1571,7 @@ mod tests {
         assert_eq!(
             render(ev),
             "<div class=\"org-src-container\">\n<label class=\"org-src-name\">Cap</label>\n\
-<pre id=\"s\" class=\"src src-sh\">ls\n</pre>\n</div>\n"
+<pre id=\"s\" class=\"src src-sh\">ls</pre>\n</div>\n"
         );
         let mut ev = vec![kw("CAPTION", "Pic"), kw("ATTR_HTML", ":width 100")];
         ev.extend(para(vec![
@@ -1479,5 +1669,67 @@ mod tests {
         let mut buf = Vec::new();
         write_html_io(&mut buf, para(vec![t("x")]).into_iter()).unwrap();
         assert_eq!(buf, b"<p>x</p>\n");
+    }
+
+    fn parse_html(src: &str) -> String {
+        let mut s = String::new();
+        push_html(&mut s, crate::Parser::new(src));
+        s
+    }
+
+    #[test]
+    fn leading_paragraph_has_no_p() {
+        assert_eq!(parse_html("- a\n"), "<ul>\n<li>a</li>\n</ul>\n");
+        let out = parse_html("- [X] a\n\n  b\n");
+        assert!(
+            out.starts_with("<ul>\n<li><code>[X]</code> a\n<p>"),
+            "{out}"
+        );
+        assert_eq!(
+            parse_html("- t :: d\n"),
+            "<dl>\n<dt>t</dt>\n<dd>d</dd>\n</dl>\n"
+        );
+    }
+
+    #[test]
+    fn macros_user_defined() {
+        let out = parse_html(
+            "#+MACRO: hi Hello $1, $2! $10 $x $$ <b>\n\npara {{{hi(Bob)}}} {{{HI(a\\,b,c)}}}\n",
+        );
+        assert_eq!(
+            out,
+            "<p>para Hello Bob, !  $x $$ &lt;b&gt; Hello a,b, c!  $x $$ &lt;b&gt;</p>\n"
+        );
+    }
+
+    #[test]
+    fn macros_builtin() {
+        let out = parse_html(
+            "#+TITLE: T&C\n#+AUTHOR: Me\n#+DATE: 2024\n\n{{{title}}}|{{{author}}}|{{{date(x)}}}|{{{email}}}|{{{keyword(author)}}}|{{{n}}}{{{n}}}{{{n(b)}}}|{{{kbd(C-c)}}}|{{{property(a)}}}|{{{nope}}}\n",
+        );
+        assert_eq!(out, "<p>T&amp;C|Me|2024||Me|121|<kbd>C-c</kbd>||</p>\n");
+    }
+
+    #[test]
+    fn verbatim_trailing_newline_stripped() {
+        let ev = vec![Event::FixedWidth("a\nb\n".into())];
+        assert_eq!(render(ev), "<pre class=\"example\">a\nb</pre>\n");
+        let ev = vec![
+            st(Tag::ExampleBlock { switches: None }),
+            t("a\nb\n"),
+            en(TagEnd::ExampleBlock),
+        ];
+        assert_eq!(render(ev), "<pre class=\"example\">a\nb</pre>\n");
+    }
+
+    #[test]
+    fn headline_ids() {
+        let out = parse_html("* A\n** B\n:PROPERTIES:\n:CUSTOM_ID: bee\n:END:\ntext\n* C\n");
+        assert_eq!(
+            out,
+            "<h2 id=\"outline-1\">A</h2>\n<h3 id=\"bee\">B</h3>\n<p>text</p>\n<h2 id=\"outline-3\">C</h2>\n"
+        );
+        let out = parse_html("* A\n:PROPERTIES:\n:CUSTOM_ID: x\n:END:\n| a |\n");
+        assert!(out.starts_with("<h2 id=\"x\">A</h2>\n<table"), "{out}");
     }
 }

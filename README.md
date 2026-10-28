@@ -67,7 +67,7 @@ the interpretation of `_`/`^`, or to enable inline tasks. In-buffer settings
 
 ```
 pulldown-org README.org            # HTML fragment on stdout
-pulldown-org README.org -o out.html --standalone
+pulldown-org README.org -o out.html --standalone --mathjax
 pulldown-org --events notes.org    # dump the event stream
 cat file.org | pulldown-org
 ```
@@ -94,7 +94,8 @@ on the 47 checked-in fixtures and on large real-world documents (the Org
 manual, the Org guide and ORG-NEWS); the manual (900 KB) parses and renders
 in about 20 ms. Expect API changes before 1.0.
 
-Not yet handled: macro re-parsing (macros expand to plain text), `#+INCLUDE`,
+Not yet handled: macro re-parsing (`#+MACRO` definitions and the built-in
+macros expand to plain text in the HTML renderer), `#+INCLUDE`,
 `#+SETUPFILE`, Babel evaluation, `\r\n` line endings.
 
 The library builds on Rust 1.75 or later; the CLI follows `clap`'s
