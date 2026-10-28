@@ -56,18 +56,26 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo doc --no-deps
 
-  # Regenerates the Emacs reference fixtures with the Org version bundled in
-  # a released Emacs and reports whether they drifted from what is committed
-  # (generated with Org 9.8.3). Informational: Org versions differ slightly.
+  # Regenerates the Emacs reference fixtures with the exact Org version they
+  # were generated with (tests/emacs/ORG-VERSION, built from the Org git tag)
+  # and fails if the committed JSON drifted.
   emacs-fixtures:
     name: Emacs fixtures up to date
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: purcell/setup-emacs@master
         with:
           version: 30.1
-      - run: emacs --version
-      - run: sh tools/regen-fixtures.sh
+      - name: Read pinned Org version
+        id: org
+        run: echo "version=$(tr -d ' \n' < tests/emacs/ORG-VERSION)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: bzg/org-mode
+          ref: release_${{ steps.org.outputs.version }}
+          path: org-mode
+      - run: make -C org-mode autoloads
+      - run: emacs --version | head -1
+      - run: ORG_LOAD_PATH="$GITHUB_WORKSPACE/org-mode/lisp" sh tools/regen-fixtures.sh
       - run: git diff --exit-code -- tests/fixtures

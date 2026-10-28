@@ -32,7 +32,15 @@ sh tools/regen-fixtures.sh my-feature   # just one
 
 This runs
 `emacs --batch -Q -l org -l tests/emacs/dump.el -f pullorg-dump-batch IN.org OUT.json ...`
-(set `EMACS=` to pick a binary). The fixtures were generated with Org 9.8.3.
+(set `EMACS=` to pick a binary). The script refuses to run unless Emacs
+loads the Org version recorded in `tests/emacs/ORG-VERSION` (the version the
+committed fixtures were generated with). To use another Org than the one
+bundled with your Emacs, check out the matching `release_X.Y.Z` tag of Org,
+run `make autoloads` in it and set `ORG_LOAD_PATH=/path/to/org-mode/lisp`.
+`ALLOW_ORG_MISMATCH=1` bypasses the check when deliberately moving to a newer
+Org: then update `ORG-VERSION` and review every fixture that changed. CI
+rebuilds the pinned Org from its git tag and fails if the committed JSON
+drifts.
 Look at the generated JSON before committing it: it is the expected output.
 `tools/org-parse.sh -f FILE` prints the raw Emacs tree when in doubt.
 

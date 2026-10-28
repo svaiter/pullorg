@@ -89,8 +89,9 @@ only.
 
 `tests/fixtures/*.org` are parsed by Emacs (`tests/emacs/dump.el`) into
 `tests/fixtures/*.json` reference trees, checked in so the test suite runs
-without Emacs. `sh tools/regen-fixtures.sh` regenerates them; CI checks that
-they are up to date with a known Org version. `tools/org-parse.sh 'snippet'`
+without Emacs. `sh tools/regen-fixtures.sh` regenerates them with the Org
+version pinned in `tests/emacs/ORG-VERSION`; CI rebuilds that exact Org from
+its git tag and fails if the committed trees drift. `tools/org-parse.sh 'snippet'`
 prints the raw `org-element` tree for any snippet, which is the quickest way
 to settle a question about the syntax.
 

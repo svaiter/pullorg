@@ -32,7 +32,8 @@ secondary. When they disagree, Emacs wins.
 - Oracle for any syntax question: `tools/org-parse.sh 'snippet'` prints the
   org-element tree Emacs produces. Decide behaviour from it, not from memory.
 - Fixtures: add `tests/fixtures/NAME.org`, run `sh tools/regen-fixtures.sh`
-  (needs Emacs), commit both files. `PULLORG_FIXTURE=name cargo test
+  (needs Emacs with the Org version in `tests/emacs/ORG-VERSION`, or
+  `ORG_LOAD_PATH` pointing at a checkout of it), commit both files. `PULLORG_FIXTURE=name cargo test
   --test conformance` runs one. Never hand-edit the `.json`.
 - Before committing: `cargo fmt`, `cargo test`, `cargo clippy --all-targets`.
 - `ref/` (gitignored) may hold a local copy of the GPL Org Elisp sources for
