@@ -1,0 +1,36 @@
+[package]
+name = "pulldown-org"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "A pull parser for Org-mode, in the style of pulldown-cmark, with an HTML renderer and CLI"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/svaiter/pulldown-org"
+keywords = ["org-mode", "org", "parser", "markup", "html"]
+categories = ["parser-implementations", "text-processing"]
+readme = "README.md"
+
+[lib]
+name = "pulldown_org"
+path = "src/lib.rs"
+
+[[bin]]
+name = "pulldown-org"
+path = "src/bin/main.rs"
+required-features = ["cli"]
+
+[features]
+default = ["cli"]
+cli = ["dep:clap"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"], optional = true }
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+pretty_assertions = "1"
+
+[profile.release]
+lto = true
+codegen-units = 1
