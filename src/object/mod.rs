@@ -792,7 +792,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
                     } else if rest.as_bytes().first().is_some_and(u8::is_ascii_digit) {
                         2
                     } else {
-                        1 + link::type_prefix(rest)?.len()
+                        1 + link::type_prefix(rest, self.p.settings)?.len()
                     };
                     if !fits(len) {
                         return None;
@@ -860,7 +860,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
                         None
                     }
                 } else if set.has(Set::LINK) && self.word_start(p) {
-                    match link::type_prefix(rest) {
+                    match link::type_prefix(rest, self.p.settings) {
                         Some(t) if rest[t.len()..].starts_with(':') && fits(t.len() + 1) => {
                             self.link(p)
                         }

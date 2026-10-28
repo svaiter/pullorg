@@ -70,6 +70,58 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// Parse `text` as objects only (Emacs' `org-element-parse-secondary-string`),
+    /// with the default [`Options`].
+    ///
+    /// The text is read as the contents of a paragraph: markup, links,
+    /// entities, timestamps and the other objects are recognised, but no
+    /// element is, so `- x` or `| x |` are plain text. Unlike
+    /// [`Parser::new`], the stream has no `Paragraph` or `Section` around
+    /// the objects. This is the way to parse a string that Org treats as a
+    /// secondary string but that the parser hands over raw, such as the
+    /// `parameters` of a [`Tag::SpecialBlock`] or the value of a
+    /// `#+CAPTION:` keyword.
+    ///
+    /// ```
+    /// use pullorg::{Event, Parser, Tag};
+    ///
+    /// let events: Vec<_> = Parser::new_inline("Theorem *1*").collect();
+    /// assert_eq!(events[0], Event::Text("Theorem ".into()));
+    /// assert_eq!(events[1], Event::Start(Tag::Bold));
+    /// ```
+    pub fn new_inline(text: &'a str) -> Self {
+        Self::new_inline_ext(text, Options::default())
+    }
+
+    /// Parse `text` as objects only with the given [`Options`], see
+    /// [`Parser::new_inline`].
+    ///
+    /// Only the options that affect objects matter: the link abbreviations,
+    /// the registered link types and the interpretation of `_` and `^`.
+    /// In-buffer settings are not read from `text`.
+    pub fn new_inline_ext(text: &'a str, options: Options) -> Self {
+        let (settings, _) = element::collect_settings(&[], &options);
+        let mut queue = VecDeque::new();
+        let mut objs = Vec::new();
+        object::parse_objects(
+            text,
+            0..text.len(),
+            Restriction::Standard,
+            &settings,
+            &mut objs,
+        );
+        queue.extend(objs);
+        Parser {
+            text,
+            nodes: Vec::new(),
+            settings,
+            roots: Vec::new(),
+            stack: Vec::new(),
+            queue,
+            root_next: 0,
+        }
+    }
+
     /// Consume the parser and return an iterator yielding each event together
     /// with its byte range in the source text.
     pub fn into_offset_iter(self) -> OffsetIter<'a> {

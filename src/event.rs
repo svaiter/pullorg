@@ -30,8 +30,13 @@ pub enum Event<'a> {
     ///
     /// Text never spans a line ending inside a paragraph; a [`Event::SoftBreak`]
     /// is emitted instead. Inside raw containers such as source or example
-    /// blocks, the text is emitted verbatim (including newlines), after
+    /// blocks, the text is emitted verbatim (including newlines and the
+    /// indentation as written, like `org-element`'s `:value`), after
     /// removing the `,` escaping of lines starting with `*` or `#+`.
+    ///
+    /// The whitespace following an object (`org-element`'s `:post-blank`)
+    /// is not part of the object: it starts the `Text` that follows it, so
+    /// `*a* b` gives `Start(Bold)`, `Text("a")`, `End(Bold)`, `Text(" b")`.
     Text(CowStr<'a>),
     /// `~code~` markup.
     Code(CowStr<'a>),
@@ -187,8 +192,16 @@ pub enum Tag<'a> {
     },
     /// A list item. Its content is an optional [`Tag::ItemTag`] (for
     /// descriptive lists) followed by elements.
+    ///
+    /// The range of the `Start` event begins at the bullet, like
+    /// `org-element`'s `:begin`. The contents (`:contents-begin`) start
+    /// after the bullet, counter, checkbox and tag, at the range of the
+    /// first event following `Start(Item)` or `End(ItemTag)`; an item with
+    /// no element has no contents.
     Item(Item<'a>),
-    /// The tag (term) of an item in a descriptive list (objects).
+    /// The tag (term) of an item in a descriptive list (objects). The range
+    /// of the `Start` and `End` events is the tag as written, before the
+    /// ` ::`.
     ItemTag,
     /// A table. Its content is table rows.
     Table {
@@ -204,6 +217,10 @@ pub enum Tag<'a> {
         kind: TableRowKind,
     },
     /// A table cell (objects).
+    ///
+    /// Its range runs from after the previous `|` to after its own closing
+    /// `|` (or the end of the line), like `org-element`'s `:begin` and
+    /// `:end`; the trimmed cell text is the content between.
     TableCell,
     /// `#+BEGIN_CENTER` block (elements).
     CenterBlock,
@@ -215,10 +232,15 @@ pub enum Tag<'a> {
     SpecialBlock {
         /// The block name, as written.
         name: CowStr<'a>,
-        /// Text following the name on the `#+BEGIN` line.
+        /// Text following the name on the `#+BEGIN` line, raw (as
+        /// `org-element`'s `:parameters`). Use
+        /// [`Parser::new_inline`](crate::Parser::new_inline) to read it as
+        /// objects.
         parameters: Option<CowStr<'a>>,
     },
-    /// `#+BEGIN_SRC` block. Its content is a single [`Event::Text`].
+    /// `#+BEGIN_SRC` block. Its content is a single [`Event::Text`] with
+    /// the body as written; the HTML renderer removes the common
+    /// indentation unless the `-i` switch is given, as `ox-html` does.
     SrcBlock {
         /// The language, if given.
         language: Option<CowStr<'a>>,
@@ -535,7 +557,10 @@ pub struct Keyword<'a> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Link<'a> {
     /// The link type: `https`, `file`, `id`, `fuzzy`, `custom-id`, `coderef`,
-    /// `radio`, ... Follows `org-element`'s `:type`.
+    /// `radio`, ... Follows `org-element`'s `:type`. Types that are not
+    /// built into Emacs are only recognised when registered with
+    /// [`Options::link_types`](crate::Options::link_types); otherwise
+    /// `[[media:key]]` is a `fuzzy` link with path `media:key`.
     pub link_type: CowStr<'a>,
     /// The path, i.e. the link without its type prefix.
     pub path: CowStr<'a>,

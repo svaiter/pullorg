@@ -129,6 +129,9 @@ pub(crate) struct Settings<'a> {
     pub done_keywords: Vec<CowStr<'a>>,
     pub sub_superscripts: crate::options::SubSuperscripts,
     pub link_abbreviations: Vec<(CowStr<'a>, CowStr<'a>)>,
+    /// Link types registered by the user, in addition to the built-in ones
+    /// (`org-link-set-parameters`).
+    pub link_types: Vec<CowStr<'a>>,
     /// Radio targets (`<<<text>>>`) found in the document, used to turn
     /// matching plain text into radio links.
     pub radio_targets: Vec<CowStr<'a>>,
@@ -230,7 +233,10 @@ fn link_abbrev(v: &str) -> Option<(&str, &str)> {
 
 /// Collect the in-buffer settings. Also returns whether
 /// `org-odd-levels-only` is set by `#+STARTUP: odd`.
-fn collect_settings<'a>(elements: &[Element<'a>], options: &Options) -> (Settings<'a>, bool) {
+pub(crate) fn collect_settings<'a>(
+    elements: &[Element<'a>],
+    options: &Options,
+) -> (Settings<'a>, bool) {
     let mut typ: Vec<&'a str> = Vec::new();
     let mut todo: Vec<&'a str> = Vec::new();
     let mut seq: Vec<&'a str> = Vec::new();
@@ -342,6 +348,11 @@ fn collect_settings<'a>(elements: &[Element<'a>], options: &Options) -> (Setting
             .map(|(k, u)| (Cow::Owned(k.clone()), Cow::Owned(u.clone()))),
     );
     settings.link_abbreviations = abbrevs;
+    settings.link_types = options
+        .link_types
+        .iter()
+        .map(|t| Cow::Owned(t.clone()))
+        .collect();
     (settings, odd)
 }
 

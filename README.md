@@ -53,8 +53,27 @@ for event in Parser::new("* TODO Write docs :work:") {
 
 Use `Parser::into_offset_iter()` to get the byte range of each event in the
 source, and `Parser::new_ext(source, Options)` to change the TODO keywords,
-the interpretation of `_`/`^`, or to enable inline tasks. In-buffer settings
-(`#+TODO:`, `#+OPTIONS: ^:nil`, `#+LINK:`) override the options, as in Emacs.
+the interpretation of `_`/`^`, to enable inline tasks or to register link
+types. In-buffer settings (`#+TODO:`, `#+OPTIONS: ^:nil`, `#+LINK:`)
+override the options, as in Emacs.
+
+```rust
+use pullorg::{Options, Parser};
+
+// Like `org-link-set-parameters`: `[[media:key]]` is now a link of type
+// `media` with path `key` (instead of a `fuzzy` link), and so is a plain
+// `media:key` in text.
+let options = Options {
+    link_types: vec!["media".to_string()],
+    ..Options::default()
+};
+let parser = Parser::new_ext("[[media:key][a picture]]", options);
+```
+
+`Parser::new_inline(text)` parses a string as objects only, the way Emacs
+parses a secondary string: use it for the raw strings the parser hands over
+as written, such as the parameters of a special block or a `#+CAPTION:`
+value.
 
 ### How the stream is shaped
 
@@ -68,9 +87,21 @@ the interpretation of `_`/`^`, or to enable inline tasks. In-buffer settings
   `Event::Keyword` events with `affiliated: true`, emitted right before the
   `Start` of the element they apply to.
 - Source, example, export and comment blocks contain exactly one `Text` event
-  with the raw body.
+  with the raw body, indentation included (`org-element`'s `:value`); the
+  HTML renderer removes the common indentation, like `ox-html`.
 - Inside paragraphs `Text` never spans a line; a `SoftBreak` is emitted for
-  each newline, like pulldown-cmark.
+  each newline, like pulldown-cmark. Join the `Text`/`SoftBreak` run to get
+  the plain text `org-element` would hold in one string.
+- The whitespace after an object (`org-element`'s `:post-blank`) begins the
+  `Text` that follows the object.
+- Element ranges (from `into_offset_iter`) exclude the trailing blank lines
+  that `org-element`'s `:end` includes; object ranges exclude trailing
+  whitespace. The range of `Start(Item)` begins at the bullet; the item's
+  contents start at the first event after `Start(Item)` (or `End(ItemTag)`).
+  A `TableCell` range ends after the cell's closing `|`.
+- Special block parameters (`#+begin_theorem Title :open`) are one raw
+  string, as in `org-element`; parse it with `Parser::new_inline` if it
+  holds markup.
 
 ## Command line
 
@@ -106,7 +137,8 @@ in about 20 ms. Expect API changes before 1.0.
 
 Not yet handled: macro re-parsing (`#+MACRO` definitions and the built-in
 macros expand to plain text in the HTML renderer), `#+INCLUDE`,
-`#+SETUPFILE`, Babel evaluation, `\r\n` line endings.
+`#+SETUPFILE`, Babel evaluation, `\r\n` line endings (replace them with
+`\n` before parsing, which is what Emacs does when it visits the file).
 
 The library builds on Rust 1.75 or later; the CLI follows `clap`'s
 requirements.
