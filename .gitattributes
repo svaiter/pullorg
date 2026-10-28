@@ -1,0 +1,4 @@
+# Byte offsets in tests/fixtures/*.json refer to LF line endings, and the
+# parser does not treat CRLF specially: check everything out with LF, on
+# every platform (Windows runners default to core.autocrlf=true).
+* text=auto eol=lf
