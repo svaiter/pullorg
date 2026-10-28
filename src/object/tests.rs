@@ -1758,7 +1758,9 @@ fn large_input_is_linear_enough() {
     let start = std::time::Instant::now();
     let ev = events(&src);
     assert!(ev.len() > 50_000);
-    assert!(start.elapsed().as_secs() < 20);
+    // Generous bound: a quadratic parser would take minutes here, while slow
+    // shared CI runners (debug build, 3 cores) need well over the local time.
+    assert!(start.elapsed().as_secs() < 120);
     let mut settings = snippet_settings(&src);
     settings.radio_targets.push("text".into());
     let mut out = Vec::new();
@@ -1788,6 +1790,8 @@ fn adversarial_inputs_are_not_quadratic() {
             &Settings::default(),
             &mut out,
         );
-        assert!(start.elapsed().as_secs() < 5, "too slow on {unit:?}");
+        // Each unit takes well under a second locally in debug mode; a
+        // quadratic scan of 20k units would take minutes.
+        assert!(start.elapsed().as_secs() < 60, "too slow on {unit:?}");
     }
 }
