@@ -398,11 +398,15 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         if !self.eol(q) {
             return None;
         }
-        let end = if q < self.end { q + 1 } else { q };
+        // Emacs' `:end` includes the newline. The content range handed to us
+        // excludes the trailing newline of the container, so peek past it to
+        // keep the range faithful while never scanning beyond the range.
+        let newline_follows = self.bytes().get(q) == Some(&b'\n');
+        let end = if newline_follows { q + 1 } else { q };
         Some(Obj {
             begin: p,
             end,
-            after: end,
+            after: end.min(self.end),
             kind: Kind::Leaf(Event::LineBreak),
         })
     }

@@ -203,10 +203,12 @@ pub(crate) fn parse_objects<'a>(
             }
         };
         let obj = match next {
+            // A line break at the very end of the container may reach one
+            // byte past it, over the container's trailing newline.
             Some(o)
                 if o.begin >= frame.pos
                     && o.after > frame.pos
-                    && o.end <= o.after
+                    && (o.end <= o.after || (o.after == frame.end && o.end == frame.end + 1))
                     && o.after <= frame.end =>
             {
                 o
@@ -225,7 +227,7 @@ pub(crate) fn parse_objects<'a>(
         // Parsing resumes after the trailing blanks, but these belong to the
         // following text.
         frame.pos = obj.after;
-        frame.text_from = obj.end;
+        frame.text_from = obj.end.min(frame.end);
         let range = obj.begin..obj.end;
         match obj.kind {
             Kind::Leaf(ev) => out.push((ev, range)),
@@ -388,7 +390,7 @@ struct FrameCache {
     finds: RefCell<Vec<(&'static str, usize, Option<usize>)>>,
     /// Last emphasis closing search per marker (`*/_+~=`): `(from,
     /// Some((match start, marker position)))`.
-    emphasis: [Cell<Option<(usize, Option<(usize, usize)>)>>; 6],
+    emphasis: [Cell<Option<EmphasisSearch>>; 6],
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -406,6 +408,10 @@ struct RadioMatch {
 /// container, so nothing outside `start..end` is visible: line beginnings,
 /// line ends, `char-before`, word boundaries and searches all stop at the
 /// container boundaries.
+/// Cached result of a forward search for an emphasis closer: the position the
+/// search started from and the match found, if any.
+type EmphasisSearch = (usize, Option<(usize, usize)>);
+
 #[derive(Clone, Copy)]
 struct Scanner<'p, 'a, 's> {
     p: &'p ObjectParser<'a, 's>,

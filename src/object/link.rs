@@ -299,6 +299,9 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             unescape(replace_newlines(source, " ")),
             &self.p.settings.link_abbreviations,
         );
+        // Emacs' `:raw-link` is the link after unescaping and abbreviation
+        // expansion, not the source text.
+        let raw_link = raw.clone();
         let (link_type, path): (CowStr<'a>, CowStr<'a>) =
             if is_absolute(&raw) || raw.starts_with("./") || raw.starts_with("../") {
                 (CowStr::Borrowed("file"), raw)
@@ -312,12 +315,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             } else {
                 (CowStr::Borrowed("fuzzy"), raw)
             };
-        let link = self.finish_link(
-            link_type,
-            path,
-            CowStr::Borrowed(source),
-            LinkFormat::Bracket,
-        );
+        let link = self.finish_link(link_type, path, raw_link, LinkFormat::Bracket);
         Some(self.obj(
             p,
             end,

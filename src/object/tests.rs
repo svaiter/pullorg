@@ -1251,11 +1251,11 @@ fn link_fields() {
     let l = first_link("[[a\\]b]]");
     assert_eq!(
         (&*l.link_type, &*l.path, &*l.raw_link),
-        ("fuzzy", "a]b", "a\\]b")
+        ("fuzzy", "a]b", "a]b")
     );
 
     let l = first_link("[[foo\n  bar]]");
-    assert_eq!((&*l.path, &*l.raw_link), ("foo bar", "foo\n  bar"));
+    assert_eq!((&*l.path, &*l.raw_link), ("foo bar", "foo bar"));
 
     let l = first_link("x <http://c.d/e\n  f> y");
     assert_eq!(
@@ -1299,7 +1299,7 @@ fn link_abbreviation_fields() {
         .collect();
     assert_eq!(links[0].link_type, "https");
     assert_eq!(links[0].path, "//github.com/a/b");
-    assert_eq!(links[0].raw_link, "gh:a/b");
+    assert_eq!(links[0].raw_link, "https://github.com/a/b");
     assert_eq!(links[1].path, "//en.wikipedia.org/wiki/A%20B");
 }
 
@@ -1775,11 +1775,19 @@ fn large_input_is_linear_enough() {
 #[test]
 fn adversarial_inputs_are_not_quadratic() {
     // Many openings without closings: searches are cached per container.
-    for unit in ["*a ", "/a ", "=a ", "\\( ", "\\[ ", "$$a ", "@@b:a ", "{{{a(", "<<<a ", "a_{", "[[a "] {
+    for unit in [
+        "*a ", "/a ", "=a ", "\\( ", "\\[ ", "$$a ", "@@b:a ", "{{{a(", "<<<a ", "a_{", "[[a ",
+    ] {
         let src = unit.repeat(20_000);
         let start = std::time::Instant::now();
         let mut out = Vec::new();
-        parse_objects(&src, 0..src.len(), Restriction::Standard, &Settings::default(), &mut out);
+        parse_objects(
+            &src,
+            0..src.len(),
+            Restriction::Standard,
+            &Settings::default(),
+            &mut out,
+        );
         assert!(start.elapsed().as_secs() < 5, "too slow on {unit:?}");
     }
 }

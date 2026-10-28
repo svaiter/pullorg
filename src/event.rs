@@ -505,8 +505,9 @@ pub struct Link<'a> {
     pub link_type: CowStr<'a>,
     /// The path, i.e. the link without its type prefix.
     pub path: CowStr<'a>,
-    /// The full raw link (type and path), before any abbreviation expansion
-    /// or escape removal.
+    /// The full link (type and path) as Emacs' `:raw-link` reports it: for
+    /// bracket links, after removing escapes and expanding link
+    /// abbreviations; for plain and angle links, the source text.
     pub raw_link: CowStr<'a>,
     /// How the link is written.
     pub format: LinkFormat,
