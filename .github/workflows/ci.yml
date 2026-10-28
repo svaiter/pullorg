@@ -55,12 +55,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo doc --no-deps
 
-  # Regenerates the Emacs reference fixtures and fails if they drifted from
-  # what is committed, so the committed JSON always matches a known Org
-  # version.
+  # Regenerates the Emacs reference fixtures with the Org version bundled in
+  # a released Emacs and reports whether they drifted from what is committed
+  # (generated with Org 9.8.3). Informational: Org versions differ slightly.
   emacs-fixtures:
     name: Emacs fixtures up to date
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: purcell/setup-emacs@master
