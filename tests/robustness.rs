@@ -260,3 +260,15 @@ fn every_prefix_and_suffix_of_fixtures_parses() {
         }
     }
 }
+
+#[test]
+fn inline_parser_never_panics() {
+    let mut rng = Rng(0x2545_F491_4F6C_DD1D);
+    for _ in 0..2000 {
+        let text = random_document(&mut rng);
+        let _: Vec<_> = Parser::new_inline(&text).collect();
+        for (_, range) in Parser::new_inline_ext(&text, Options::default()).into_offset_iter() {
+            assert!(range.start <= range.end && range.end <= text.len());
+        }
+    }
+}

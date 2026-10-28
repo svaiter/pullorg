@@ -5,6 +5,7 @@ use std::ops::Range;
 
 use super::chars::{is_punct, is_ws, starts_with_ci};
 use super::{Kind, Obj, Restriction, Scanner};
+use crate::element::Settings;
 use crate::event::{Link, LinkFormat, Tag};
 use crate::strings::CowStr;
 
@@ -36,13 +37,16 @@ pub(crate) const LINK_TYPES: &[&str] = &[
     "elisp",
 ];
 
-/// The longest link type that is a (case-insensitive) prefix of `s`, as a
+/// The longest link type (built-in or registered through
+/// [`Settings::link_types`]) that is a (case-insensitive) prefix of `s`, as a
 /// slice of `s`.
-pub(super) fn type_prefix(s: &str) -> Option<&str> {
+pub(super) fn type_prefix<'s>(s: &'s str, settings: &Settings<'_>) -> Option<&'s str> {
     LINK_TYPES
         .iter()
-        .filter(|t| starts_with_ci(s, t))
-        .map(|t| t.len())
+        .copied()
+        .chain(settings.link_types.iter().map(|t| &**t))
+        .filter(|t| !t.is_empty() && starts_with_ci(s, t))
+        .map(str::len)
         .max()
         .map(|n| &s[..n])
 }
@@ -305,7 +309,9 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         let (link_type, path): (CowStr<'a>, CowStr<'a>) =
             if is_absolute(&raw) || raw.starts_with("./") || raw.starts_with("../") {
                 (CowStr::Borrowed("file"), raw)
-            } else if let Some(t) = type_prefix(&raw).filter(|t| raw[t.len()..].starts_with(':')) {
+            } else if let Some(t) =
+                type_prefix(&raw, self.p.settings).filter(|t| raw[t.len()..].starts_with(':'))
+            {
                 let n = t.len();
                 (sub(&raw, 0..n), sub(&raw, n + 1..raw.len()))
             } else if raw.starts_with('(') && raw.ends_with(')') && raw.len() >= 2 {
@@ -333,7 +339,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             return None;
         }
         let rest = self.rest(p);
-        let t = type_prefix(rest)?;
+        let t = type_prefix(rest, self.p.settings)?;
         if !rest[t.len()..].starts_with(':') {
             return None;
         }
@@ -415,7 +421,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             return None;
         }
         let rest = self.rest(p + 1);
-        let t = type_prefix(rest)?;
+        let t = type_prefix(rest, self.p.settings)?;
         if !rest[t.len()..].starts_with(':') {
             return None;
         }

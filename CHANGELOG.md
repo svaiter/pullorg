@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- `Options::link_types` registers link types, as `org-link-set-parameters`
+  does in Emacs: `[[media:key]]`, `<media:key>` and a plain `media:key` are
+  then links of type `media` instead of fuzzy links or text.
+- `Parser::new_inline` / `Parser::new_inline_ext` parse a string as objects
+  only (a secondary string), e.g. the parameters of a special block.
+- The HTML renderer removes the common indentation of source and example
+  blocks (`org-remove-indentation`), unless the `-i` switch is given.
+- Documented how the event stream maps to `org-element`'s `:contents-begin`
+  of items, `:post-blank`, table cell ranges and raw block parameters.
+
 Initial release.
 
 - Pull parser covering the whole Org syntax: headlines, sections, planning,

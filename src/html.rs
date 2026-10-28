@@ -31,6 +31,7 @@
 //! escaped plain text and is not parsed as Org again, and a macro must be
 //! defined before its first use. Unknown macros expand to nothing.
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt;
 use std::io;
@@ -107,6 +108,92 @@ fn escape(s: &str) -> String {
         }
     }
     out
+}
+
+/// Whether block `switches` ask to preserve indentation: `-i` as a whole
+/// word, like org-element's `(string-match-p "-i\\>" switches)`. Word
+/// constituents follow the Org buffer syntax table: letters, digits, `@`
+/// and `'`.
+fn preserves_indent(switches: Option<&str>) -> bool {
+    let is_word = |c: char| c.is_alphanumeric() || c == '@' || c == '\'';
+    switches.is_some_and(|s| {
+        s.match_indices("-i")
+            .any(|(i, _)| !s[i + 2..].chars().next().is_some_and(is_word))
+    })
+}
+
+/// Leading indentation of `line` (spaces and tabs) as `(column, bytes)`,
+/// with tab stops every 8 columns.
+fn indentation(line: &str) -> (usize, usize) {
+    let mut col = 0;
+    let mut len = 0;
+    for b in line.bytes() {
+        match b {
+            b' ' => col += 1,
+            b'\t' => col = (col / 8 + 1) * 8,
+            _ => break,
+        }
+        len += 1;
+    }
+    (col, len)
+}
+
+/// Remove the common indentation of `s`, like Emacs' `org-remove-indentation`
+/// (used by ox-html on src and example block bodies).
+///
+/// The common indentation `n` is the minimum indentation column of the lines
+/// holding a non-blank character. Nothing changes when it is 0. Otherwise a
+/// line indented by less than `n` columns is emptied when it is blank (and
+/// the whole removal is abandoned when it is not, which only happens for lines
+/// starting with `\r` or `\f`), and the other lines lose the leading
+/// whitespace characters lying within the first `n` columns. Like Emacs with
+/// its default `indent-tabs-mode`, a tab straddling column `n` is kept, and
+/// whatever follows column `n` is kept verbatim, so blank lines indented
+/// deeper than `n` keep their extra whitespace. When no line holds a
+/// non-blank character, Emacs takes the buffer size plus one as `n`.
+fn remove_indentation(s: &str) -> Cow<'_, str> {
+    let mut n = usize::MAX;
+    for line in s.split('\n') {
+        let (col, len) = indentation(line);
+        // Emacs' regexp `^[ \t]*\S-`: `\r` and `\f` are whitespace too.
+        if !matches!(line[len..].chars().next(), None | Some('\r' | '\x0c')) {
+            if col == 0 {
+                return Cow::Borrowed(s);
+            }
+            n = n.min(col);
+        }
+    }
+    if n == usize::MAX {
+        n = s.chars().count() + 1;
+    }
+    let mut out = String::with_capacity(s.len());
+    for (i, line) in s.split('\n').enumerate() {
+        if i > 0 {
+            out.push('\n');
+        }
+        let (col, len) = indentation(line);
+        if col < n {
+            if len == line.len() {
+                continue;
+            }
+            return Cow::Borrowed(s);
+        }
+        let mut c = 0;
+        let mut cut = 0;
+        for b in line[..len].bytes() {
+            let next = if b == b'\t' { (c / 8 + 1) * 8 } else { c + 1 };
+            if next > n {
+                break;
+            }
+            c = next;
+            cut += 1;
+            if c == n {
+                break;
+            }
+        }
+        out.push_str(&line[cut..]);
+    }
+    Cow::Owned(out)
 }
 
 /// Attributes derived from affiliated keywords.
@@ -260,6 +347,7 @@ struct Renderer<W: fmt::Write> {
     kw_values: HashMap<String, String>,
     counters: HashMap<String, i64>,
     src_caption: Vec<bool>,
+    preserve_indent: Vec<bool>,
     export_html: Vec<bool>,
     entries: Vec<FnEntry>,
     label_idx: HashMap<String, usize>,
@@ -330,6 +418,7 @@ impl<W: fmt::Write> Renderer<W> {
             kw_values: HashMap::new(),
             counters: HashMap::new(),
             src_caption: Vec::new(),
+            preserve_indent: Vec::new(),
             export_html: Vec::new(),
             entries: Vec::new(),
             label_idx: HashMap::new(),
@@ -813,7 +902,11 @@ impl<W: fmt::Write> Renderer<W> {
                 self.w(&aff.open("div", Some(&name)))?;
                 self.w("\n")?;
             }
-            Tag::SrcBlock { language, .. } => {
+            Tag::SrcBlock {
+                language, switches, ..
+            } => {
+                self.preserve_indent
+                    .push(preserves_indent(switches.as_deref()));
                 let cap = aff.caption.clone();
                 if let Some(c) = &cap {
                     self.w("<div class=\"org-src-container\">\n<label class=\"org-src-name\">")?;
@@ -828,7 +921,9 @@ impl<W: fmt::Write> Renderer<W> {
                 self.w(&aff.open("pre", Some(&base)))?;
                 self.bufs.push(String::new());
             }
-            Tag::ExampleBlock { .. } => {
+            Tag::ExampleBlock { switches } => {
+                self.preserve_indent
+                    .push(preserves_indent(switches.as_deref()));
                 self.w(&aff.open("pre", Some("example")))?;
                 self.bufs.push(String::new());
             }
@@ -1050,8 +1145,16 @@ impl<W: fmt::Write> Renderer<W> {
         Ok(())
     }
 
+    /// Close a src or example block: remove the common indentation of the
+    /// buffered (escaped) body unless the block preserves it, then drop one
+    /// final newline.
     fn end_verbatim(&mut self) -> fmt::Result {
         let content = self.pop_buf();
+        let content = if self.preserve_indent.pop().unwrap_or(false) {
+            Cow::Borrowed(content.as_str())
+        } else {
+            remove_indentation(&content)
+        };
         self.w(content.strip_suffix('\n').unwrap_or(&content))?;
         self.w("</pre>\n")
     }
@@ -1720,6 +1823,89 @@ mod tests {
             en(TagEnd::ExampleBlock),
         ];
         assert_eq!(render(ev), "<pre class=\"example\">a\nb</pre>\n");
+    }
+
+    #[test]
+    fn src_block_in_item_loses_indentation() {
+        let out =
+            parse_html("- item\n  #+begin_src sh\n  echo nested\n    echo more\n  #+end_src\n");
+        assert!(
+            out.contains("<pre class=\"src src-sh\">echo nested\n  echo more</pre>\n"),
+            "{out}"
+        );
+    }
+
+    #[test]
+    fn example_block_indentation_and_blank_lines() {
+        // A blank line, a whitespace-only line shorter than the common
+        // indentation (emptied) and one deeper (keeps its extra columns,
+        // as in Emacs).
+        let out = parse_html("#+begin_example\n    a\n\n  \n      \n    b\n#+end_example\n");
+        assert_eq!(out, "<pre class=\"example\">a\n\n\n  \nb</pre>\n");
+        // Escaped text is unaffected.
+        let ev = vec![
+            st(Tag::ExampleBlock { switches: None }),
+            t("  <a>\n    & b\n"),
+            en(TagEnd::ExampleBlock),
+        ];
+        assert_eq!(
+            render(ev),
+            "<pre class=\"example\">&lt;a&gt;\n  &amp; b</pre>\n"
+        );
+    }
+
+    #[test]
+    fn preserve_indentation_switch() {
+        let out = parse_html("#+begin_src sh -i\n  keep\n#+end_src\n");
+        assert_eq!(out, "<pre class=\"src src-sh\">  keep</pre>\n");
+        let out = parse_html("#+begin_src sh -n -i\n  keep\n#+end_src\n");
+        assert!(out.contains(">  keep</pre>"), "{out}");
+        let out = parse_html("#+begin_example -i\n  keep\n#+end_example\n");
+        assert_eq!(out, "<pre class=\"example\">  keep</pre>\n");
+        for sw in ["-in", "-ix", "-i2"] {
+            let ev = vec![
+                st(Tag::SrcBlock {
+                    language: Some("sh".into()),
+                    switches: Some(sw.into()),
+                    parameters: None,
+                }),
+                t("  strip\n"),
+                en(TagEnd::SrcBlock),
+            ];
+            assert_eq!(
+                render(ev),
+                "<pre class=\"src src-sh\">strip</pre>\n",
+                "{sw}"
+            );
+        }
+        assert!(preserves_indent(Some("-i")));
+        assert!(preserves_indent(Some("-n -i -r")));
+        assert!(preserves_indent(Some("-i-")));
+        assert!(!preserves_indent(Some("-in")));
+        assert!(!preserves_indent(Some("-ix -n")));
+        assert!(!preserves_indent(None));
+    }
+
+    #[test]
+    fn remove_indentation_rules() {
+        // n = 0: untouched, whitespace-only lines included, no allocation.
+        let s = "a\n    \n  b\n";
+        assert!(matches!(remove_indentation(s), Cow::Borrowed(x) if x == s));
+        // Tabs count up to the next multiple of 8.
+        assert_eq!(remove_indentation("\tfoo\n        bar\n"), "foo\nbar\n");
+        assert_eq!(remove_indentation("    a\n  b\n"), "  a\nb\n");
+        assert_eq!(remove_indentation("  a\n\n  b"), "a\n\nb");
+        // Short blank lines are emptied, deeper ones keep the excess.
+        assert_eq!(remove_indentation("   a\n \n     \n"), "a\n\n  \n");
+        // Whatever follows column n is kept verbatim, tabs included; a tab
+        // straddling column n stays (Emacs' default `indent-tabs-mode`).
+        assert_eq!(remove_indentation("  a\n  \tb\n"), "a\n\tb\n");
+        assert_eq!(remove_indentation("    a\n\tb\n"), "a\n\tb\n");
+        // Only blank lines: n is the size plus one, so they are emptied.
+        assert_eq!(remove_indentation("  \n \n"), "\n\n");
+        // A non-blank line Emacs did not count gives up entirely.
+        let s = "    a\n  \x0cb\n";
+        assert_eq!(remove_indentation(s), s);
     }
 
     #[test]

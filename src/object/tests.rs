@@ -1795,3 +1795,27 @@ fn adversarial_inputs_are_not_quadratic() {
         assert!(start.elapsed().as_secs() < 60, "too slow on {unit:?}");
     }
 }
+
+/// Link types registered through `Options::link_types`
+/// (`org-link-set-parameters`): bracket, plain and angle links, longest
+/// type first, case-insensitive; unknown types stay fuzzy.
+#[test]
+fn registered_link_types() {
+    let src = r#"[[media:key][pic]] [[lecture-pdf:doc]] [[num:thm:x]] see media:key, <lecture:y> and [[other:z]] MEDIA:ab."#;
+    let mut settings = snippet_settings(src);
+    settings.link_types = vec![
+        "media".into(),
+        "lecture".into(),
+        "lecture-pdf".into(),
+        "num".into(),
+    ];
+    assert_eq!(
+        render_with(src, &settings, Restriction::Standard),
+        r#"(link 0 18 media "key" bracket - - "pic") " " (link 19 38 lecture-pdf "doc" bracket - -) " " (link 39 52 num "thm:x" bracket - -) " see " (link 57 66 media "key" plain - -) ", " (link 68 79 lecture "y" angle - -) " and " (link 84 95 fuzzy "other:z" bracket - -) " " (link 96 104 MEDIA "ab" plain - -) ".""#,
+    );
+    // Without registration everything but the built-in types is text.
+    assert_eq!(
+        render(src),
+        r#"(link 0 18 fuzzy "media:key" bracket - - "pic") " " (link 19 38 fuzzy "lecture-pdf:doc" bracket - -) " " (link 39 52 fuzzy "num:thm:x" bracket - -) " see media:key, <lecture:y> and " (link 84 95 fuzzy "other:z" bracket - -) " MEDIA:ab.""#,
+    );
+}

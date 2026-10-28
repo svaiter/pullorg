@@ -21,6 +21,17 @@ pub struct Options {
     pub footnote_section: Option<String>,
     /// Link abbreviations (`#+LINK: key url`), as `(key, replacement)`.
     pub link_abbreviations: Vec<(String, String)>,
+    /// Additional link types, as registered in Emacs with
+    /// `org-link-set-parameters` (e.g. `["doi", "media"]` for a site that
+    /// writes `[[media:key][text]]`).
+    ///
+    /// The built-in types of a stock Emacs (`https`, `file`, `id`, `doi`,
+    /// ...) are always recognised. With `media` registered,
+    /// `[[media:key]]` is a [`Link`](crate::Link) of type `media` and path
+    /// `key` instead of a `fuzzy` link with path `media:key`, and, as in
+    /// Emacs, a plain `media:key` or `<media:key>` in text is a link too.
+    /// Types are matched case-insensitively.
+    pub link_types: Vec<String>,
 }
 
 /// Interpretation of `_` and `^` (the `^:` export option and
@@ -45,6 +56,7 @@ impl Default for Options {
             inlinetask_min_level: None,
             footnote_section: Some("Footnotes".to_string()),
             link_abbreviations: Vec::new(),
+            link_types: Vec::new(),
         }
     }
 }
