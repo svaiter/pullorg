@@ -9,6 +9,7 @@ repository = "https://github.com/svaiter/pulldown-org"
 keywords = ["org-mode", "org", "parser", "markup", "html"]
 categories = ["parser-implementations", "text-processing"]
 readme = "README.md"
+exclude = [".github", "CLAUDE.md", "rustfmt.toml"]
 
 [lib]
 name = "pulldown_org"

@@ -87,10 +87,18 @@ to settle a question about the syntax.
 
 ## Status
 
-Early. The whole Org syntax is covered (elements and objects, including
-timestamps, footnotes, citations, tables, drawers, in-buffer TODO keywords),
-but expect rough edges and API changes before 1.0. Not yet handled: macro
-expansion, `#+INCLUDE`, `#+SETUPFILE`, Babel evaluation.
+Early, but complete: every element and object of the Org syntax is parsed,
+including timestamps, footnotes, citations, tables, drawers, inline tasks and
+in-buffer TODO keywords. The event stream matches Emacs' `org-element` tree
+on the 47 checked-in fixtures and on large real-world documents (the Org
+manual, the Org guide and ORG-NEWS); the manual (900 KB) parses and renders
+in about 20 ms. Expect API changes before 1.0.
+
+Not yet handled: macro re-parsing (macros expand to plain text), `#+INCLUDE`,
+`#+SETUPFILE`, Babel evaluation, `\r\n` line endings.
+
+The library builds on Rust 1.75 or later; the CLI follows `clap`'s
+requirements.
 
 ## License
 
