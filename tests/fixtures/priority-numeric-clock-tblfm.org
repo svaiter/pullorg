@@ -1,0 +1,13 @@
+* [#10] Numeric priority
+* [#7] Digit priority
+* [#b] Lowercase letter
+* Clock lines
+CLOCK: [2024-01-01 Mon 10:00]--[2024-01-01 Mon 11:00] =>  1:00
+CLOCK: [2024-01-02 Tue 09:00]
+CLOCK: => 1:00
+
+| a | b |
+|---+---|
+| 1 | 2 |
+#+TBLFM: $2=$1*2
+#+TBLFM: $1=1

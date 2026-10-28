@@ -851,7 +851,7 @@
         "level": 1,
         "todo-keyword": "TODO",
         "todo-type": "todo",
-        "priority": "B",
+        "priority": 66,
         "tags": [],
         "commentedp": false,
         "archivedp": false,

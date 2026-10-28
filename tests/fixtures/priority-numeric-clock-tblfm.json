@@ -1,0 +1,277 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 25,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": 10,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Numeric priority",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Numeric priority"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 25,
+      "end": 47,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": 7,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Digit priority",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Digit priority"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 47,
+      "end": 71,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": 98,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Lowercase letter",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Lowercase letter"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 71,
+      "end": 255,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Clock lines",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Clock lines"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 85,
+          "end": 255,
+          "props": {},
+          "children": [
+            {
+              "type": "clock",
+              "begin": 85,
+              "end": 148,
+              "props": {
+                "status": "closed",
+                "duration": "1:00",
+                "value": {
+                  "type": "timestamp",
+                  "props": {
+                    "type": "inactive-range",
+                    "raw-value": "[2024-01-01 Mon 10:00]--[2024-01-01 Mon 11:00]",
+                    "year-start": 2024,
+                    "month-start": 1,
+                    "day-start": 1,
+                    "hour-start": 10,
+                    "minute-start": 0,
+                    "year-end": 2024,
+                    "month-end": 1,
+                    "day-end": 1,
+                    "hour-end": 11,
+                    "minute-end": 0,
+                    "repeater-type": null,
+                    "repeater-value": null,
+                    "repeater-unit": null,
+                    "warning-type": null,
+                    "warning-value": null,
+                    "warning-unit": null
+                  },
+                  "children": []
+                }
+              },
+              "children": []
+            },
+            {
+              "type": "clock",
+              "begin": 148,
+              "end": 178,
+              "props": {
+                "status": "running",
+                "duration": null,
+                "value": {
+                  "type": "timestamp",
+                  "props": {
+                    "type": "inactive",
+                    "raw-value": "[2024-01-02 Tue 09:00]",
+                    "year-start": 2024,
+                    "month-start": 1,
+                    "day-start": 2,
+                    "hour-start": 9,
+                    "minute-start": 0,
+                    "year-end": 2024,
+                    "month-end": 1,
+                    "day-end": 2,
+                    "hour-end": 9,
+                    "minute-end": 0,
+                    "repeater-type": null,
+                    "repeater-value": null,
+                    "repeater-unit": null,
+                    "warning-type": null,
+                    "warning-value": null,
+                    "warning-unit": null
+                  },
+                  "children": []
+                }
+              },
+              "children": []
+            },
+            {
+              "type": "clock",
+              "begin": 178,
+              "end": 193,
+              "props": {
+                "status": "closed",
+                "duration": "1:00",
+                "value": null
+              },
+              "children": []
+            },
+            {
+              "type": "table",
+              "begin": 194,
+              "end": 255,
+              "props": {
+                "type": "org",
+                "tblfm": [
+                  "$1=1",
+                  "$2=$1*2"
+                ],
+                "value": null
+              },
+              "children": [
+                {
+                  "type": "table-row",
+                  "begin": 194,
+                  "end": 204,
+                  "props": {
+                    "type": "standard"
+                  },
+                  "children": [
+                    {
+                      "type": "table-cell",
+                      "begin": 195,
+                      "end": 199,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "a"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "table-cell",
+                      "begin": 199,
+                      "end": 203,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "b"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "table-row",
+                  "begin": 204,
+                  "end": 214,
+                  "props": {
+                    "type": "rule"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "table-row",
+                  "begin": 214,
+                  "end": 224,
+                  "props": {
+                    "type": "standard"
+                  },
+                  "children": [
+                    {
+                      "type": "table-cell",
+                      "begin": 215,
+                      "end": 219,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "table-cell",
+                      "begin": 219,
+                      "end": 223,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "2"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

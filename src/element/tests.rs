@@ -4,7 +4,7 @@
 //! (Org 9.8) with `tools/org-parse.sh`.
 
 use super::*;
-use crate::event::{Checkbox, ClockStatus, Timestamp, TimestampKind};
+use crate::event::{Checkbox, ClockStatus, Priority, Timestamp, TimestampKind};
 use crate::options::SubSuperscripts;
 
 fn parse(text: &str) -> Document<'_> {
@@ -159,7 +159,7 @@ fn headline_with_every_component() {
     assert_eq!(data.level, 1);
     assert_eq!(data.todo_keyword.as_deref(), Some("TODO"));
     assert_eq!(data.todo_type, Some(TodoType::Todo));
-    assert_eq!(data.priority, Some('B'));
+    assert_eq!(data.priority, Some(Priority::Letter('B')));
     assert!(data.commented);
     assert!(data.archived);
     assert!(!data.footnote_section);
@@ -182,7 +182,7 @@ fn headline_edge_cases() {
         })
         .collect();
     assert_eq!(hs.len(), 4);
-    assert_eq!(hs[0].priority, Some('a'));
+    assert_eq!(hs[0].priority, Some(Priority::Letter('a')));
     assert_eq!(hs[0].raw_title, "bar");
     assert!(hs[1].footnote_section);
     assert_eq!(hs[2].todo_type, Some(TodoType::Done));
@@ -564,10 +564,10 @@ fn tables() {
     };
     assert_eq!(*kind, TableKind::Org);
     assert_eq!(formulas, &vec![Cow::Borrowed("$1=1")]);
-    // Several formula lines: Emacs' order, last line first.
+    // Several formula lines: source order (Emacs' `:tblfm` is reversed).
     let doc = parse("| a |\n#+TBLFM: $1=1\n#+TBLFM: $1=2\n");
     match &first(&doc).kind {
-        ElementKind::Table { formulas, .. } => assert_eq!(formulas, &vec!["$1=2", "$1=1"]),
+        ElementKind::Table { formulas, .. } => assert_eq!(formulas, &vec!["$1=1", "$1=2"]),
         k => panic!("{:?}", k),
     }
     assert!(value.is_none());
@@ -630,7 +630,10 @@ fn leaf_elements() {
             duration,
             status,
         } => {
-            assert_eq!(timestamp.kind, TimestampKind::InactiveRange);
+            assert_eq!(
+                timestamp.as_ref().unwrap().kind,
+                TimestampKind::InactiveRange
+            );
             assert_eq!(duration.as_deref(), Some("1:00"));
             assert_eq!(*status, ClockStatus::Closed);
         }
@@ -886,10 +889,8 @@ fn dump_tree(text: &str, els: &[Element<'_>], depth: usize, out: &mut Vec<String
                 "lvl={} todo={} prio={} tags={} com={} arch={} fns={} raw={}",
                 data.level,
                 q(data.todo_keyword.as_deref()),
-                data.priority.map_or("nil".to_string(), |c| match c {
-                    '0'..='9' => (c as u32 - '0' as u32).to_string(),
-                    c => (c as u32).to_string(),
-                }),
+                data.priority
+                    .map_or("nil".to_string(), |p| p.value().to_string()),
                 q(Some(&data.tags.join(":"))),
                 tf(data.commented),
                 tf(data.archived),
@@ -1005,11 +1006,9 @@ fn dump_tree(text: &str, els: &[Element<'_>], depth: usize, out: &mut Vec<String
                         ClockStatus::Running => "running",
                     },
                     q(duration.as_deref()),
-                    if timestamp.raw.is_empty() {
-                        "nil".to_string()
-                    } else {
-                        q(Some(&timestamp.raw))
-                    }
+                    timestamp
+                        .as_ref()
+                        .map_or("nil".to_string(), |t| q(Some(&t.raw)))
                 ),
                 Event::Planning {
                     closed,

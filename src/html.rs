@@ -15,6 +15,8 @@ use std::collections::HashMap;
 use std::fmt;
 use std::io;
 
+#[cfg(test)]
+use crate::event::Priority;
 use crate::event::{
     Checkbox, Event, Headline, Keyword, LinkFormat, ListKind, TableKind, TableRowKind, Tag, TagEnd,
     TodoType,
@@ -507,10 +509,7 @@ impl<W: fmt::Write> Renderer<W> {
             s.push_str(&format!("<span class=\"{class} {kw}\">{kw}</span> "));
         }
         if let Some(p) = h.priority {
-            s.push_str(&format!(
-                "<span class=\"priority\">[#{}]</span> ",
-                escape(&p.to_string())
-            ));
+            s.push_str(&format!("<span class=\"priority\">[#{p}]</span> "));
         }
         s
     }
@@ -1084,7 +1083,7 @@ mod tests {
         let mut h = headline(1);
         h.todo_keyword = Some("TODO".into());
         h.todo_type = Some(TodoType::Todo);
-        h.priority = Some('A');
+        h.priority = Some(Priority::Letter('A'));
         h.tags = vec!["a".into(), "b".into()];
         let mut ev = vec![
             st(Tag::Headline(h)),

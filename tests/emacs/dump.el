@@ -38,7 +38,8 @@
 ;;   text (CAPTION is not parsed); `optional' is the bracketed value of
 ;;   dual keywords (CAPTION, RESULTS), null otherwise.
 ;; - Booleans are true/false, absent values are null, symbols are strings,
-;;   the headline priority is a 1-character string.
+;;   the headline priority is an integer, as Emacs stores it (character
+;;   code for a letter, the number itself for a numeric priority).
 
 ;;; Code:
 
@@ -149,8 +150,7 @@
     `((level . ,(funcall p :level))
       (todo-keyword . ,(pulldown-org-dump--str (funcall p :todo-keyword)))
       (todo-type . ,(pulldown-org-dump--str (funcall p :todo-type)))
-      (priority . ,(let ((pr (funcall p :priority)))
-                     (if pr (char-to-string pr) :null)))
+      (priority . ,(or (funcall p :priority) :null))
       (tags . ,(pulldown-org-dump--strings (funcall p :tags)))
       (commentedp . ,(pulldown-org-dump--bool (funcall p :commentedp)))
       (archivedp . ,(pulldown-org-dump--bool (funcall p :archivedp)))

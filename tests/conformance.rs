@@ -17,8 +17,8 @@ use std::path::{Path, PathBuf};
 
 use pulldown_org::{
     Checkbox, ClockStatus, Event, Headline, Item, Keyword, Link, LinkFormat, ListKind, Parser,
-    RepeaterKind, TableKind, TableRowKind, Tag, TagEnd, TimeUnit, Timestamp, TimestampKind,
-    TodoType, WarningKind,
+    Priority, RepeaterKind, TableKind, TableRowKind, Tag, TagEnd, TimeUnit, Timestamp,
+    TimestampKind, TodoType, WarningKind,
 };
 use serde_json::{json, Map, Value};
 
@@ -115,7 +115,7 @@ fn headline_props(h: &Headline<'_>) -> Value {
         "level": h.level,
         "todo-keyword": opt(&h.todo_keyword),
         "todo-type": todo_type(&h.todo_type),
-        "priority": h.priority.map(|c| c.to_string()),
+        "priority": h.priority.map(|p| p.value()),
         "tags": h.tags.iter().map(|t| t.to_string()).collect::<Vec<_>>(),
         "commentedp": h.commented,
         "archivedp": h.archived,
@@ -292,7 +292,8 @@ fn start_node(tag: &Tag<'_>, range: &Range<usize>, src: &str) -> (FrameKind, Map
         Tag::Table { kind, formulas } => {
             let props = json!({
                 "type": match kind { TableKind::Org => "org", TableKind::TableEl => "table.el" },
-                "tblfm": formulas.iter().map(|f| f.to_string()).collect::<Vec<_>>(),
+                // Emacs' `:tblfm` holds the lines last first; ours is in source order.
+                "tblfm": formulas.iter().rev().map(|f| f.to_string()).collect::<Vec<_>>(),
                 "value": Value::Null,
             });
             let fk = if *kind == TableKind::TableEl {
@@ -504,7 +505,7 @@ fn leaf_node(event: &Event<'_>, range: &Range<usize>) -> Option<Map<String, Valu
             json!({
                 "status": match status { ClockStatus::Closed => "closed", ClockStatus::Running => "running" },
                 "duration": opt(duration),
-                "value": embedded_timestamp(&Some(timestamp.clone())),
+                "value": embedded_timestamp(timestamp),
             }),
         ),
         Event::Planning {
@@ -911,7 +912,7 @@ mod converter {
                     level: 1,
                     todo_keyword: Some(b("TODO")),
                     todo_type: Some(TodoType::Todo),
-                    priority: Some('A'),
+                    priority: Some(Priority::Letter('A')),
                     tags: vec![b("t")],
                     commented: false,
                     archived: false,
@@ -951,7 +952,7 @@ mod converter {
           "children": [{
             "type": "headline", "begin": 0, "end": 67,
             "props": {
-              "level": 1, "todo-keyword": "TODO", "todo-type": "todo", "priority": "A",
+              "level": 1, "todo-keyword": "TODO", "todo-type": "todo", "priority": 65,
               "tags": ["t"], "commentedp": false, "archivedp": false,
               "footnote-section-p": false, "raw-value": "Hi *b*",
               "title": [
@@ -1032,7 +1033,7 @@ mod converter {
             (Event::End(TagEnd::Paragraph), 48..60),
             (
                 Event::Clock {
-                    timestamp: Timestamp {
+                    timestamp: Some(Timestamp {
                         kind: TimestampKind::Inactive,
                         raw: b("[2024-01-01 Mon]"),
                         start: Some(DateTime {
@@ -1045,7 +1046,7 @@ mod converter {
                         end: None,
                         repeater: None,
                         warning: None,
-                    },
+                    }),
                     duration: None,
                     status: ClockStatus::Running,
                 },
@@ -1238,7 +1239,13 @@ mod roundtrip {
                 "todo" => TodoType::Todo,
                 _ => TodoType::Done,
             }),
-            priority: p["priority"].as_str().and_then(|x| x.chars().next()),
+            priority: p["priority"].as_u64().map(|v| {
+                if v <= 64 {
+                    Priority::Numeric(v as u8)
+                } else {
+                    Priority::Letter(char::from_u32(v as u32).unwrap())
+                }
+            }),
             tags: p["tags"].as_array().unwrap().iter().map(st).collect(),
             commented: p["commentedp"].as_bool().unwrap(),
             archived: p["archivedp"].as_bool().unwrap(),
@@ -1357,7 +1364,13 @@ mod roundtrip {
                     } else {
                         TableKind::Org
                     },
-                    formulas: p["tblfm"].as_array().unwrap().iter().map(st).collect(),
+                    formulas: p["tblfm"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .rev()
+                        .map(st)
+                        .collect(),
                 };
                 if el {
                     raw(tag, n, out)
@@ -1564,7 +1577,7 @@ mod roundtrip {
             "diary-sexp" => leaf(Event::DiarySexp(st(&p["value"])), out),
             "clock" => leaf(
                 Event::Clock {
-                    timestamp: opt_ts(&p["value"]).unwrap(),
+                    timestamp: opt_ts(&p["value"]),
                     duration: ost(&p["duration"]),
                     status: if p["status"] == "running" {
                         ClockStatus::Running

@@ -15,7 +15,9 @@ mod timestamp;
 use std::borrow::Cow;
 use std::ops::Range;
 
-use crate::event::{Event, Headline, Item, Keyword, ListKind, TableKind, TableRowKind, TodoType};
+use crate::event::{
+    Event, Headline, Item, Keyword, ListKind, Priority, TableKind, TableRowKind, TodoType,
+};
 use crate::options::{Options, SubSuperscripts};
 use crate::strings::CowStr;
 
@@ -62,7 +64,8 @@ pub(crate) enum ElementKind<'a> {
         tag: Option<Range<usize>>,
     },
     /// `value` is the raw text of a `table.el` table (`None` for Org tables).
-    /// `formulas` follows Emacs' `:tblfm`: the last `#+TBLFM:` line first.
+    /// `formulas` lists the `#+TBLFM:` lines in source order (Emacs'
+    /// `:tblfm` holds them last line first).
     Table {
         kind: TableKind,
         formulas: Vec<CowStr<'a>>,
@@ -404,14 +407,14 @@ pub(crate) fn headline_info<'a>(
             let c = src.at(v);
             let mut hit = None;
             if c.is_ascii_alphabetic() && src.at(v + 1) == b']' {
-                hit = Some((c as char, v + 2));
+                hit = Some((Priority::Letter(c as char), v + 2));
             } else if c.is_ascii_digit() {
                 if src.at(v + 1) == b']' {
-                    hit = Some((c as char, v + 2));
+                    hit = Some((Priority::Numeric(c - b'0'), v + 2));
                 } else if src.at(v + 1).is_ascii_digit() && src.at(v + 2) == b']' {
-                    let n = (c - b'0') as u32 * 10 + (src.at(v + 1) - b'0') as u32;
+                    let n = (c - b'0') * 10 + (src.at(v + 1) - b'0');
                     if (10..=64).contains(&n) {
-                        hit = char::from_u32(n).map(|ch| (ch, v + 3));
+                        hit = Some((Priority::Numeric(n), v + 3));
                     }
                 }
             }

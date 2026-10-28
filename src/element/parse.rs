@@ -11,7 +11,6 @@ use super::timestamp::parse_timestamp;
 use super::{Element, ElementKind};
 use crate::event::{
     Checkbox, ClockStatus, Event, Headline, Item, Keyword, ListKind, TableKind, TableRowKind,
-    Timestamp, TimestampKind,
 };
 use crate::options::Options;
 use crate::strings::CowStr;
@@ -711,18 +710,10 @@ impl<'a> ElemParser<'a> {
         } else {
             ClockStatus::Running
         };
-        let timestamp = ts.unwrap_or(Timestamp {
-            kind: TimestampKind::Inactive,
-            raw: Cow::Borrowed(""),
-            start: None,
-            end: None,
-            repeater: None,
-            warning: None,
-        });
         let end = self.line_end_blank(p, limit);
         self.leaf(
             Event::Clock {
-                timestamp,
+                timestamp: ts,
                 duration,
                 status,
             },
@@ -1368,7 +1359,8 @@ impl<'a> ElemParser<'a> {
         }
         // `org-element-table-parser` pushes each line onto `:tblfm`, so the
         // last formula line comes first. Keep Emacs' order.
-        formulas.reverse();
+        // Kept in source order; Emacs' `:tblfm` is reversed, the conformance
+        // harness accounts for it.
         let end = s.after_blank(q, limit);
         let (kind, value, contents) = if org {
             (TableKind::Org, None, Some(p..table_end))

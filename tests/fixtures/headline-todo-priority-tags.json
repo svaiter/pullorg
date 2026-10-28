@@ -9,7 +9,7 @@
         "level": 1,
         "todo-keyword": "TODO",
         "todo-type": "todo",
-        "priority": "A",
+        "priority": 65,
         "tags": [
           "work",
           "rust"
@@ -58,7 +58,7 @@
         "level": 1,
         "todo-keyword": null,
         "todo-type": null,
-        "priority": "C",
+        "priority": 67,
         "tags": [],
         "commentedp": false,
         "archivedp": false,
@@ -174,7 +174,7 @@
         "level": 1,
         "todo-keyword": "TODO",
         "todo-type": "todo",
-        "priority": "B",
+        "priority": 66,
         "tags": [
           "x"
         ],

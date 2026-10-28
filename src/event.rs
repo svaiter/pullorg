@@ -134,8 +134,9 @@ pub enum Event<'a> {
     DiarySexp(CowStr<'a>),
     /// A `CLOCK:` line.
     Clock {
-        /// The clock timestamp (inactive, possibly a range).
-        timestamp: Timestamp<'a>,
+        /// The clock timestamp (inactive, possibly a range). `None` for a
+        /// malformed line such as `CLOCK: => 1:00`.
+        timestamp: Option<Timestamp<'a>>,
         /// The `=> HH:MM` duration, if the clock is closed.
         duration: Option<CowStr<'a>>,
         /// Whether the clock is still running.
@@ -397,8 +398,8 @@ pub struct Headline<'a> {
     pub todo_keyword: Option<CowStr<'a>>,
     /// Whether the TODO keyword is of type "todo" or "done".
     pub todo_type: Option<TodoType>,
-    /// The priority cookie, e.g. `'A'` for `[#A]`.
-    pub priority: Option<char>,
+    /// The priority cookie: `[#A]` or a numeric `[#7]` / `[#10]`.
+    pub priority: Option<Priority>,
     /// The tags, without colons.
     pub tags: Vec<CowStr<'a>>,
     /// Whether the headline is commented out (`COMMENT` keyword).
@@ -410,6 +411,39 @@ pub struct Headline<'a> {
     /// The raw title text, before object parsing. Does not include the TODO
     /// keyword, priority, `COMMENT` keyword or tags.
     pub raw_title: CowStr<'a>,
+}
+
+/// A headline priority cookie.
+///
+/// Emacs stores a letter priority as its character code and a numeric one as
+/// the number itself (`org-priority-to-value`), which is what
+/// [`Priority::value`] returns.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Priority {
+    /// `[#A]`, `[#b]`: a single letter, as written.
+    Letter(char),
+    /// `[#7]`, `[#10]`: a number from 0 to 64.
+    Numeric(u8),
+}
+
+impl Priority {
+    /// The value Emacs' `org-element` reports for this priority: the
+    /// character code of a letter, or the number itself.
+    pub fn value(self) -> u32 {
+        match self {
+            Priority::Letter(c) => c as u32,
+            Priority::Numeric(n) => u32::from(n),
+        }
+    }
+}
+
+impl std::fmt::Display for Priority {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Priority::Letter(c) => write!(f, "{c}"),
+            Priority::Numeric(n) => write!(f, "{n}"),
+        }
+    }
 }
 
 /// Whether a TODO keyword denotes an open or a closed task.
