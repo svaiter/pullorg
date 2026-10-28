@@ -1,0 +1,105 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 100,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Task",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Task"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 7,
+          "end": 100,
+          "props": {},
+          "children": [
+            {
+              "type": "clock",
+              "begin": 7,
+              "end": 70,
+              "props": {
+                "status": "closed",
+                "duration": "2:30",
+                "value": {
+                  "type": "timestamp",
+                  "props": {
+                    "type": "inactive-range",
+                    "raw-value": "[2024-01-01 Mon 10:00]--[2024-01-01 Mon 12:30]",
+                    "year-start": 2024,
+                    "month-start": 1,
+                    "day-start": 1,
+                    "hour-start": 10,
+                    "minute-start": 0,
+                    "year-end": 2024,
+                    "month-end": 1,
+                    "day-end": 1,
+                    "hour-end": 12,
+                    "minute-end": 30,
+                    "repeater-type": null,
+                    "repeater-value": null,
+                    "repeater-unit": null,
+                    "warning-type": null,
+                    "warning-value": null,
+                    "warning-unit": null
+                  },
+                  "children": []
+                }
+              },
+              "children": []
+            },
+            {
+              "type": "clock",
+              "begin": 70,
+              "end": 100,
+              "props": {
+                "status": "running",
+                "duration": null,
+                "value": {
+                  "type": "timestamp",
+                  "props": {
+                    "type": "inactive",
+                    "raw-value": "[2024-01-02 Tue 08:00]",
+                    "year-start": 2024,
+                    "month-start": 1,
+                    "day-start": 2,
+                    "hour-start": 8,
+                    "minute-start": 0,
+                    "year-end": 2024,
+                    "month-end": 1,
+                    "day-end": 2,
+                    "hour-end": 8,
+                    "minute-end": 0,
+                    "repeater-type": null,
+                    "repeater-value": null,
+                    "repeater-unit": null,
+                    "warning-type": null,
+                    "warning-value": null,
+                    "warning-unit": null
+                  },
+                  "children": []
+                }
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

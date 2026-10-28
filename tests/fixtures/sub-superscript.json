@@ -1,0 +1,183 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 105,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 105,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "H"
+            },
+            {
+              "type": "subscript",
+              "begin": 1,
+              "end": 4,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "2O"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and E = mc"
+            },
+            {
+              "type": "superscript",
+              "begin": 15,
+              "end": 17,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\na"
+            },
+            {
+              "type": "subscript",
+              "begin": 20,
+              "end": 32,
+              "props": {
+                "use-brackets-p": true
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "bracketed"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and b"
+            },
+            {
+              "type": "superscript",
+              "begin": 38,
+              "end": 43,
+              "props": {
+                "use-brackets-p": true
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "up"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nx"
+            },
+            {
+              "type": "superscript",
+              "begin": 46,
+              "end": 48,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "*"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and y"
+            },
+            {
+              "type": "subscript",
+              "begin": 54,
+              "end": 57,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "-1"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and z"
+            },
+            {
+              "type": "superscript",
+              "begin": 63,
+              "end": 68,
+              "props": {
+                "use-brackets-p": true
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "-1"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nword"
+            },
+            {
+              "type": "subscript",
+              "begin": 74,
+              "end": 79,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "with"
+                }
+              ]
+            },
+            {
+              "type": "subscript",
+              "begin": 79,
+              "end": 91,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "underscores"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and _ alone.\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

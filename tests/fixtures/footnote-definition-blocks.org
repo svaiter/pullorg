@@ -1,0 +1,8 @@
+Ref[fn:x].
+
+[fn:x] Definition with a list:
+- a
+- b
+
+Paragraph after the definition list.
+[fn:y] Second definition.

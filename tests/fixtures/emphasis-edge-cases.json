@@ -1,0 +1,329 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 210,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 210,
+          "props": {},
+          "children": [
+            {
+              "type": "bold",
+              "begin": 0,
+              "end": 6,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "bold"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "italic",
+              "begin": 7,
+              "end": 15,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "italic"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "underline",
+              "begin": 16,
+              "end": 27,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "underline"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "strike-through",
+              "begin": 28,
+              "end": 36,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "strike"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "verbatim",
+              "begin": 37,
+              "end": 47,
+              "props": {
+                "value": "verbatim"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "code",
+              "begin": 48,
+              "end": 54,
+              "props": {
+                "value": "code"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            },
+            {
+              "type": "bold",
+              "begin": 55,
+              "end": 79,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "nested "
+                },
+                {
+                  "type": "italic",
+                  "begin": 63,
+                  "end": 71,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "italic"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " inside"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\nnot*bold* and "
+            },
+            {
+              "type": "bold",
+              "begin": 94,
+              "end": 123,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "not bold *\n*multi\nline bold"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\na*b*c and ("
+            },
+            {
+              "type": "bold",
+              "begin": 135,
+              "end": 143,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "parens"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ") and \""
+            },
+            {
+              "type": "bold",
+              "begin": 150,
+              "end": 158,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "quoted"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\".\n"
+            },
+            {
+              "type": "verbatim",
+              "begin": 161,
+              "end": 184,
+              "props": {
+                "value": "verbatim *no nesting*"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "code",
+              "begin": 189,
+              "end": 209,
+              "props": {
+                "value": "code with = inside"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 210,
+      "end": 297,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "bold with leading space* and *trailing space *",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "bold with leading space* and *trailing space *"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 259,
+          "end": 297,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 259,
+              "end": 297,
+              "props": {},
+              "children": [
+                {
+                  "type": "bold",
+                  "begin": 259,
+                  "end": 269,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "bold",
+                      "begin": 260,
+                      "end": 268,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "double"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": "\n"
+                },
+                {
+                  "type": "bold",
+                  "begin": 270,
+                  "end": 276,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": ", "
+                },
+                {
+                  "type": "italic",
+                  "begin": 278,
+                  "end": 286,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "italic"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": ". "
+                },
+                {
+                  "type": "underline",
+                  "begin": 288,
+                  "end": 295,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "under"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": "!\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

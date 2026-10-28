@@ -1,0 +1,10 @@
+#+MACRO: greet Hello, $1!
+
+Macro {{{greet(World)}}} and {{{date}}} and {{{title()}}}.
+Args with escaped comma {{{greet(a\, b, c)}}}.
+Export snippet @@html:<b>@@bold@@html:</b>@@ and @@latex:\LaTeX{}@@.
+Inline src src_python{print(1)} and src_sh[:results raw]{echo hi}.
+Inline call call_square(4) and call_f[:x 1](a=2)[:results raw].
+
+#+CALL: square(n=4)
+#+call: other[:session s](x=1)[:results output]

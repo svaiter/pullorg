@@ -1,0 +1,171 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 68,
+      "props": {},
+      "children": [
+        {
+          "type": "keyword",
+          "begin": 0,
+          "end": 35,
+          "props": {
+            "key": "TODO",
+            "value": "TODO NEXT | DONE CANCELLED"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 35,
+          "end": 68,
+          "props": {
+            "key": "TYP_TODO",
+            "value": "Fred Sara | COMPLETE"
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 69,
+      "end": 97,
+      "props": {
+        "level": 1,
+        "todo-keyword": "NEXT",
+        "todo-type": "todo",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Something to do next",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Something to do next"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 97,
+      "end": 123,
+      "props": {
+        "level": 1,
+        "todo-keyword": "CANCELLED",
+        "todo-type": "done",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Not happening",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Not happening"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 123,
+      "end": 138,
+      "props": {
+        "level": 1,
+        "todo-keyword": "TODO",
+        "todo-type": "todo",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Classic",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Classic"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 138,
+      "end": 162,
+      "props": {
+        "level": 1,
+        "todo-keyword": "Fred",
+        "todo-type": "todo",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Assigned to Fred",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Assigned to Fred"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 162,
+      "end": 183,
+      "props": {
+        "level": 1,
+        "todo-keyword": "COMPLETE",
+        "todo-type": "done",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Completed",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Completed"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 183,
+      "end": 212,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "WAITING not a keyword here",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "WAITING not a keyword here"
+          }
+        ]
+      },
+      "children": []
+    }
+  ]
+}

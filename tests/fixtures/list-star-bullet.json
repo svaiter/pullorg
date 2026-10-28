@@ -1,0 +1,108 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 53,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 11,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Paragraph.\n"
+            }
+          ]
+        },
+        {
+          "type": "plain-list",
+          "begin": 11,
+          "end": 53,
+          "props": {
+            "type": "unordered"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 11,
+              "end": 32,
+              "props": {
+                "bullet": "* ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 15,
+                  "end": 32,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "star bullet item\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 32,
+              "end": 53,
+              "props": {
+                "bullet": "* ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 36,
+                  "end": 53,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "second star item\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 53,
+      "end": 69,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "real headline",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "real headline"
+          }
+        ]
+      },
+      "children": []
+    }
+  ]
+}

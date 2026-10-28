@@ -1,0 +1,12 @@
+:LOGBOOK:
+- Note taken on [2024-01-01 Mon 10:00]
+:END:
+
+:MYDRAWER:
+Content of a custom drawer.
+
+With two paragraphs.
+:END:
+
+:NOT_CLOSED:
+text

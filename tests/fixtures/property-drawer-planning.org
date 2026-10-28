@@ -1,0 +1,19 @@
+* TODO Task
+DEADLINE: <2024-05-01 Wed> SCHEDULED: <2024-04-20 Sat 9:00 +1w>
+:PROPERTIES:
+:ID:       0a1b2c
+:CUSTOM_ID: task
+:EMPTY:
+:Effort+:  1:00
+:END:
+Body text.
+
+* DONE Finished
+CLOSED: [2024-04-21 Sun 18:00]
+:PROPERTIES:
+:CATEGORY: misc
+:END:
+:LOGBOOK:
+CLOCK: [2024-04-21 Sun 16:00]--[2024-04-21 Sun 18:00] =>  2:00
+CLOCK: [2024-04-22 Mon 09:00]
+:END:

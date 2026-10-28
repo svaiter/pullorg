@@ -1,0 +1,49 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 137,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 30,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "First paragraph\non two lines.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 31,
+          "end": 70,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Second paragraph after one blank line.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 72,
+          "end": 137,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Third paragraph after two blank lines.\n   Indented continuation.\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

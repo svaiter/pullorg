@@ -1,0 +1,85 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 124,
+      "props": {},
+      "children": [
+        {
+          "type": "keyword",
+          "begin": 0,
+          "end": 19,
+          "props": {
+            "key": "TITLE",
+            "value": "The title"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 19,
+          "end": 37,
+          "props": {
+            "key": "AUTHOR",
+            "value": "Someone"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 37,
+          "end": 56,
+          "props": {
+            "key": "OPTIONS",
+            "value": "toc:nil"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 56,
+          "end": 78,
+          "props": {
+            "key": "DATE",
+            "value": "lowercase key"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 78,
+          "end": 87,
+          "props": {
+            "key": "EMPTY",
+            "value": ""
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 87,
+          "end": 117,
+          "props": {
+            "key": "CUSTOM_KEY",
+            "value": "with   spaces"
+          },
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "begin": 118,
+          "end": 124,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Text.\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

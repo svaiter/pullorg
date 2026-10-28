@@ -1,0 +1,2 @@
+* Headline
+Paragraph without a final newline

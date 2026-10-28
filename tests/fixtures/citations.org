@@ -1,0 +1,4 @@
+Simple [cite:@key] and styled [cite/t:@key].
+Multiple [cite:@a; @b; @c].
+With affixes [cite/n/b:common prefix; see @key p. 10; and @other; common suffix].
+Key chars [cite:@doe_2020-x].

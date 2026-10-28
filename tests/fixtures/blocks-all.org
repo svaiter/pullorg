@@ -1,0 +1,35 @@
+#+begin_example -n
+example text
+  indented
+#+end_example
+
+#+BEGIN_EXPORT html
+<div>raw</div>
+#+END_EXPORT
+
+#+begin_comment
+hidden
+#+end_comment
+
+#+begin_center
+Centered *text*.
+#+end_center
+
+#+begin_quote
+A quote.
+
+With two paragraphs.
+#+end_quote
+
+#+begin_verse
+  Roses are red,
+    violets /blue/.
+#+end_verse
+
+#+begin_note :title Important
+A special block.
+#+end_note
+
+#+BEGIN: clocktable :scope file :maxlevel 2
+dynamic content
+#+END:

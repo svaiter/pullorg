@@ -1,0 +1,5 @@
+Greek \alpha and \beta{} and \Gamma.
+Arrows \rightarrow and \to.
+Spaces a\nbsp{}b and \_ and \_  .
+Unknown \notanentity stays text.
+Copyright \copy 2024.

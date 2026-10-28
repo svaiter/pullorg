@@ -1,0 +1,7 @@
+* Café crème :français:
+Héllo *wörld* and /日本語/ text.
+Ünïcödé =vérbatim= ~cödé~ and 😀 emoji *😀*.
+- élément :: définition
+| ä | ö |
+| 中 | 文 |
+Liens [[https://exemple.fr/é][vers là]] — fin.

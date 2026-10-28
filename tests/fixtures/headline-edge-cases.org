@@ -1,0 +1,8 @@
+*not a headline
+*bold* at line start
+* 
+*  Title with leading spaces
+* Title with *markup* and a [[https://orgmode.org][link]]
+* Title with trailing spaces   
+**** Deep headline
+* Statistics cookie [1/2]

@@ -1,0 +1,316 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 165,
+      "props": {
+        "level": 1,
+        "todo-keyword": "TODO",
+        "todo-type": "todo",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Task",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Task"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 12,
+          "end": 165,
+          "props": {},
+          "children": [
+            {
+              "type": "planning",
+              "begin": 12,
+              "end": 76,
+              "props": {
+                "closed": null,
+                "scheduled": {
+                  "type": "timestamp",
+                  "props": {
+                    "type": "active",
+                    "raw-value": "<2024-04-20 Sat 9:00 +1w>",
+                    "year-start": 2024,
+                    "month-start": 4,
+                    "day-start": 20,
+                    "hour-start": 9,
+                    "minute-start": 0,
+                    "year-end": 2024,
+                    "month-end": 4,
+                    "day-end": 20,
+                    "hour-end": 9,
+                    "minute-end": 0,
+                    "repeater-type": "cumulate",
+                    "repeater-value": 1,
+                    "repeater-unit": "week",
+                    "warning-type": null,
+                    "warning-value": null,
+                    "warning-unit": null
+                  },
+                  "children": []
+                },
+                "deadline": {
+                  "type": "timestamp",
+                  "props": {
+                    "type": "active",
+                    "raw-value": "<2024-05-01 Wed>",
+                    "year-start": 2024,
+                    "month-start": 5,
+                    "day-start": 1,
+                    "hour-start": null,
+                    "minute-start": null,
+                    "year-end": 2024,
+                    "month-end": 5,
+                    "day-end": 1,
+                    "hour-end": null,
+                    "minute-end": null,
+                    "repeater-type": null,
+                    "repeater-value": null,
+                    "repeater-unit": null,
+                    "warning-type": null,
+                    "warning-value": null,
+                    "warning-unit": null
+                  },
+                  "children": []
+                }
+              },
+              "children": []
+            },
+            {
+              "type": "property-drawer",
+              "begin": 76,
+              "end": 154,
+              "props": {},
+              "children": [
+                {
+                  "type": "node-property",
+                  "begin": 89,
+                  "end": 107,
+                  "props": {
+                    "key": "ID",
+                    "value": "0a1b2c"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "node-property",
+                  "begin": 107,
+                  "end": 124,
+                  "props": {
+                    "key": "CUSTOM_ID",
+                    "value": "task"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "node-property",
+                  "begin": 124,
+                  "end": 132,
+                  "props": {
+                    "key": "EMPTY",
+                    "value": ""
+                  },
+                  "children": []
+                },
+                {
+                  "type": "node-property",
+                  "begin": 132,
+                  "end": 148,
+                  "props": {
+                    "key": "Effort+",
+                    "value": "1:00"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "begin": 154,
+              "end": 165,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Body text.\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 166,
+      "end": 357,
+      "props": {
+        "level": 1,
+        "todo-keyword": "DONE",
+        "todo-type": "done",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Finished",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Finished"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 182,
+          "end": 357,
+          "props": {},
+          "children": [
+            {
+              "type": "planning",
+              "begin": 182,
+              "end": 213,
+              "props": {
+                "closed": {
+                  "type": "timestamp",
+                  "props": {
+                    "type": "inactive",
+                    "raw-value": "[2024-04-21 Sun 18:00]",
+                    "year-start": 2024,
+                    "month-start": 4,
+                    "day-start": 21,
+                    "hour-start": 18,
+                    "minute-start": 0,
+                    "year-end": 2024,
+                    "month-end": 4,
+                    "day-end": 21,
+                    "hour-end": 18,
+                    "minute-end": 0,
+                    "repeater-type": null,
+                    "repeater-value": null,
+                    "repeater-unit": null,
+                    "warning-type": null,
+                    "warning-value": null,
+                    "warning-unit": null
+                  },
+                  "children": []
+                },
+                "scheduled": null,
+                "deadline": null
+              },
+              "children": []
+            },
+            {
+              "type": "property-drawer",
+              "begin": 213,
+              "end": 248,
+              "props": {},
+              "children": [
+                {
+                  "type": "node-property",
+                  "begin": 226,
+                  "end": 242,
+                  "props": {
+                    "key": "CATEGORY",
+                    "value": "misc"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "drawer",
+              "begin": 248,
+              "end": 357,
+              "props": {
+                "drawer-name": "LOGBOOK"
+              },
+              "children": [
+                {
+                  "type": "clock",
+                  "begin": 258,
+                  "end": 321,
+                  "props": {
+                    "status": "closed",
+                    "duration": "2:00",
+                    "value": {
+                      "type": "timestamp",
+                      "props": {
+                        "type": "inactive-range",
+                        "raw-value": "[2024-04-21 Sun 16:00]--[2024-04-21 Sun 18:00]",
+                        "year-start": 2024,
+                        "month-start": 4,
+                        "day-start": 21,
+                        "hour-start": 16,
+                        "minute-start": 0,
+                        "year-end": 2024,
+                        "month-end": 4,
+                        "day-end": 21,
+                        "hour-end": 18,
+                        "minute-end": 0,
+                        "repeater-type": null,
+                        "repeater-value": null,
+                        "repeater-unit": null,
+                        "warning-type": null,
+                        "warning-value": null,
+                        "warning-unit": null
+                      },
+                      "children": []
+                    }
+                  },
+                  "children": []
+                },
+                {
+                  "type": "clock",
+                  "begin": 321,
+                  "end": 351,
+                  "props": {
+                    "status": "running",
+                    "duration": null,
+                    "value": {
+                      "type": "timestamp",
+                      "props": {
+                        "type": "inactive",
+                        "raw-value": "[2024-04-22 Mon 09:00]",
+                        "year-start": 2024,
+                        "month-start": 4,
+                        "day-start": 22,
+                        "hour-start": 9,
+                        "minute-start": 0,
+                        "year-end": 2024,
+                        "month-end": 4,
+                        "day-end": 22,
+                        "hour-end": 9,
+                        "minute-end": 0,
+                        "repeater-type": null,
+                        "repeater-value": null,
+                        "repeater-unit": null,
+                        "warning-type": null,
+                        "warning-value": null,
+                        "warning-unit": null
+                      },
+                      "children": []
+                    }
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

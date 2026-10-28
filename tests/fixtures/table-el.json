@@ -1,0 +1,24 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 70,
+      "props": {},
+      "children": [
+        {
+          "type": "table",
+          "begin": 0,
+          "end": 70,
+          "props": {
+            "type": "table.el",
+            "tblfm": [],
+            "value": "+-----+-----+\n| a   | b   |\n+-----+-----+\n| c   | d   |\n+-----+-----+\n"
+          },
+          "children": []
+        }
+      ]
+    }
+  ]
+}

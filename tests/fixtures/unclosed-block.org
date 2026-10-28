@@ -1,0 +1,7 @@
+#+begin_src python
+print("never closed")
+
+Still a paragraph?
+
+#+begin_quote
+also unclosed

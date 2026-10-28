@@ -1,0 +1,184 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 439,
+      "props": {},
+      "children": [
+        {
+          "type": "example-block",
+          "begin": 0,
+          "end": 57,
+          "props": {
+            "switches": "-n",
+            "value": "example text\n  indented\n"
+          },
+          "children": []
+        },
+        {
+          "type": "export-block",
+          "begin": 58,
+          "end": 106,
+          "props": {
+            "type": "HTML",
+            "value": "<div>raw</div>\n"
+          },
+          "children": []
+        },
+        {
+          "type": "comment-block",
+          "begin": 107,
+          "end": 144,
+          "props": {
+            "value": "hidden\n"
+          },
+          "children": []
+        },
+        {
+          "type": "center-block",
+          "begin": 145,
+          "end": 190,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 160,
+              "end": 177,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Centered "
+                },
+                {
+                  "type": "bold",
+                  "begin": 169,
+                  "end": 175,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "text"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": ".\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "quote-block",
+          "begin": 191,
+          "end": 248,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 205,
+              "end": 214,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "A quote.\n"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "begin": 215,
+              "end": 236,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "With two paragraphs.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "verse-block",
+          "begin": 249,
+          "end": 312,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "  Roses are red,\n    violets "
+            },
+            {
+              "type": "italic",
+              "begin": 292,
+              "end": 298,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "blue"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        },
+        {
+          "type": "special-block",
+          "begin": 313,
+          "end": 371,
+          "props": {
+            "type": "note",
+            "parameters": ":title Important"
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 343,
+              "end": 360,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "A special block.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "dynamic-block",
+          "begin": 372,
+          "end": 439,
+          "props": {
+            "block-name": "clocktable",
+            "arguments": ":scope file :maxlevel 2"
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 416,
+              "end": 432,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "dynamic content\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

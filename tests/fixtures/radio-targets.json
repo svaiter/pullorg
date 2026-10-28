@@ -1,0 +1,144 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 151,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 40,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "This defines a "
+            },
+            {
+              "type": "radio-target",
+              "begin": 15,
+              "end": 33,
+              "props": {
+                "value": "radio target"
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "radio target"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " here.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 41,
+          "end": 105,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Later, the "
+            },
+            {
+              "type": "link",
+              "begin": 52,
+              "end": 64,
+              "props": {
+                "type": "radio",
+                "path": "radio target",
+                "format": "plain",
+                "raw-link": "radio target",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "radio target"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " is mentioned, and a "
+            },
+            {
+              "type": "link",
+              "begin": 85,
+              "end": 97,
+              "props": {
+                "type": "radio",
+                "path": "Radio Target",
+                "format": "plain",
+                "raw-link": "Radio Target",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Radio Target"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " again.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 106,
+          "end": 151,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "A plain "
+            },
+            {
+              "type": "target",
+              "begin": 114,
+              "end": 124,
+              "props": {
+                "value": "target"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and a link to "
+            },
+            {
+              "type": "link",
+              "begin": 139,
+              "end": 149,
+              "props": {
+                "type": "fuzzy",
+                "path": "target",
+                "format": "bracket",
+                "raw-link": "target",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

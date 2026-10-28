@@ -1,0 +1,8 @@
+Inline $x^2$ and $$y = mx + b$$.
+Parens \(a + b\) and brackets \[c = d\].
+Command \frac{1}{2} and \enlargethispage{2cm}.
+Not math: $5 and $10.
+
+\begin{equation}
+E = mc^2
+\end{equation}

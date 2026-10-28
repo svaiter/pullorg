@@ -1,0 +1,12 @@
+#+BEGIN_SRC python -n :results output :exports both
+def f(x):
+    return x + 1
+#+END_SRC
+
+#+begin_src
+no language
+#+end_src
+
+#+begin_src emacs-lisp -n 10 -r -l "(ref:%s)"
+(message "hi") (ref:hi)
+#+end_src

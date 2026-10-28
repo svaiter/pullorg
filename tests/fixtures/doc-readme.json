@@ -1,0 +1,570 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 58,
+      "props": {},
+      "children": [
+        {
+          "type": "keyword",
+          "begin": 0,
+          "end": 22,
+          "props": {
+            "key": "TITLE",
+            "value": "pulldown-org"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 22,
+          "end": 41,
+          "props": {
+            "key": "AUTHOR",
+            "value": "Jane Doe"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 41,
+          "end": 58,
+          "props": {
+            "key": "OPTIONS",
+            "value": "toc:2"
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 59,
+      "end": 448,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Introduction",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Introduction"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 74,
+          "end": 211,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 74,
+              "end": 211,
+              "props": {},
+              "children": [
+                {
+                  "type": "verbatim",
+                  "begin": 74,
+                  "end": 88,
+                  "props": {
+                    "value": "pulldown-org"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "plain-text",
+                  "value": " is a "
+                },
+                {
+                  "type": "italic",
+                  "begin": 94,
+                  "end": 107,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "pull parser"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " for "
+                },
+                {
+                  "type": "link",
+                  "begin": 112,
+                  "end": 145,
+                  "props": {
+                    "type": "https",
+                    "path": "//orgmode.org",
+                    "format": "bracket",
+                    "raw-link": "https://orgmode.org",
+                    "search-option": null,
+                    "application": null
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "Org-mode"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": ",\nmodelled on "
+                },
+                {
+                  "type": "link",
+                  "begin": 159,
+                  "end": 209,
+                  "props": {
+                    "type": "https",
+                    "path": "//docs.rs/pulldown-cmark",
+                    "format": "bracket",
+                    "raw-link": "https://docs.rs/pulldown-cmark",
+                    "search-option": null,
+                    "application": null
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "pulldown-cmark"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": ".\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "begin": 212,
+          "end": 336,
+          "props": {
+            "level": 2,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Features",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Features"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 224,
+              "end": 336,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-list",
+                  "begin": 224,
+                  "end": 336,
+                  "props": {
+                    "type": "descriptive"
+                  },
+                  "children": [
+                    {
+                      "type": "item",
+                      "begin": 224,
+                      "end": 265,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": null,
+                        "counter": null,
+                        "tag": [
+                          {
+                            "type": "plain-text",
+                            "value": "Fast"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 234,
+                          "end": 265,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "no allocations for most events\n"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "item",
+                      "begin": 265,
+                      "end": 304,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": null,
+                        "counter": null,
+                        "tag": [
+                          {
+                            "type": "plain-text",
+                            "value": "Faithful"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 279,
+                          "end": 304,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "follows "
+                            },
+                            {
+                              "type": "verbatim",
+                              "begin": 287,
+                              "end": 303,
+                              "props": {
+                                "value": "org-element.el"
+                              },
+                              "children": []
+                            },
+                            {
+                              "type": "plain-text",
+                              "value": "\n"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "item",
+                      "begin": 304,
+                      "end": 336,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": null,
+                        "counter": null,
+                        "tag": [
+                          {
+                            "type": "plain-text",
+                            "value": "Small"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 315,
+                          "end": 336,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "one dependency"
+                            },
+                            {
+                              "type": "footnote-reference",
+                              "begin": 329,
+                              "end": 335,
+                              "props": {
+                                "label": "1",
+                                "type": "standard"
+                              },
+                              "children": []
+                            },
+                            {
+                              "type": "plain-text",
+                              "value": "\n"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "begin": 337,
+          "end": 448,
+          "props": {
+            "level": 2,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Installation",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Installation"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 353,
+              "end": 448,
+              "props": {},
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 353,
+                  "end": 384,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "Add this to your "
+                    },
+                    {
+                      "type": "verbatim",
+                      "begin": 370,
+                      "end": 382,
+                      "props": {
+                        "value": "Cargo.toml"
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "plain-text",
+                      "value": ":\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "src-block",
+                  "begin": 385,
+                  "end": 448,
+                  "props": {
+                    "language": "toml",
+                    "switches": null,
+                    "parameters": null,
+                    "value": "[dependencies]\npulldown-org = \"0.1\"\n"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 449,
+      "end": 733,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Usage",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Usage"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 457,
+          "end": 733,
+          "props": {},
+          "children": [
+            {
+              "type": "src-block",
+              "begin": 457,
+              "end": 651,
+              "props": {
+                "language": "rust",
+                "switches": null,
+                "parameters": null,
+                "value": "use pulldown_org::{html, Parser};\n\nlet parser = Parser::new(\"* Hello\\n*world*\");\nlet mut out = String::new();\nhtml::push_html(&mut out, parser);\n",
+                "affiliated": [
+                  {
+                    "key": "NAME",
+                    "value": "example-usage",
+                    "optional": null
+                  }
+                ]
+              },
+              "children": []
+            },
+            {
+              "type": "paragraph",
+              "begin": 652,
+              "end": 667,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "The output is:\n"
+                }
+              ]
+            },
+            {
+              "type": "example-block",
+              "begin": 668,
+              "end": 733,
+              "props": {
+                "switches": null,
+                "value": "<h1>Hello</h1>\n<p><b>world</b></p>\n"
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 734,
+      "end": 799,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "License",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "License"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 744,
+          "end": 799,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 744,
+              "end": 799,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Dual-licensed under MIT or Apache-2.0, at your option.\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 800,
+      "end": 854,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": true,
+        "raw-value": "Footnotes",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Footnotes"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 812,
+          "end": 854,
+          "props": {},
+          "children": [
+            {
+              "type": "footnote-definition",
+              "begin": 812,
+              "end": 854,
+              "props": {
+                "label": "1"
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 819,
+                  "end": 854,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "Only "
+                    },
+                    {
+                      "type": "verbatim",
+                      "begin": 824,
+                      "end": 830,
+                      "props": {
+                        "value": "clap"
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "plain-text",
+                      "value": ", and only for the CLI.\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

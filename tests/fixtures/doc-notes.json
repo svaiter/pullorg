@@ -1,0 +1,982 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 89,
+      "props": {},
+      "children": [
+        {
+          "type": "keyword",
+          "begin": 0,
+          "end": 24,
+          "props": {
+            "key": "TITLE",
+            "value": "Research notes"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 24,
+          "end": 69,
+          "props": {
+            "key": "TODO",
+            "value": "TODO STARTED WAITING | DONE CANCELED"
+          },
+          "children": []
+        },
+        {
+          "type": "keyword",
+          "begin": 69,
+          "end": 89,
+          "props": {
+            "key": "STARTUP",
+            "value": "overview"
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 90,
+      "end": 884,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [
+          "projects"
+        ],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Projects",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Projects"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "headline",
+          "begin": 169,
+          "end": 650,
+          "props": {
+            "level": 2,
+            "todo-keyword": "STARTED",
+            "todo-type": "todo",
+            "priority": "A",
+            "tags": [
+              "rust"
+            ],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Conformance harness",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Conformance harness"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 245,
+              "end": 650,
+              "props": {},
+              "children": [
+                {
+                  "type": "planning",
+                  "begin": 245,
+                  "end": 310,
+                  "props": {
+                    "closed": null,
+                    "scheduled": {
+                      "type": "timestamp",
+                      "props": {
+                        "type": "active",
+                        "raw-value": "<2026-10-28 Wed 09:00>",
+                        "year-start": 2026,
+                        "month-start": 10,
+                        "day-start": 28,
+                        "hour-start": 9,
+                        "minute-start": 0,
+                        "year-end": 2026,
+                        "month-end": 10,
+                        "day-end": 28,
+                        "hour-end": 9,
+                        "minute-end": 0,
+                        "repeater-type": null,
+                        "repeater-value": null,
+                        "repeater-unit": null,
+                        "warning-type": null,
+                        "warning-value": null,
+                        "warning-unit": null
+                      },
+                      "children": []
+                    },
+                    "deadline": {
+                      "type": "timestamp",
+                      "props": {
+                        "type": "active",
+                        "raw-value": "<2026-11-01 Sun -2d>",
+                        "year-start": 2026,
+                        "month-start": 11,
+                        "day-start": 1,
+                        "hour-start": null,
+                        "minute-start": null,
+                        "year-end": 2026,
+                        "month-end": 11,
+                        "day-end": 1,
+                        "hour-end": null,
+                        "minute-end": null,
+                        "repeater-type": null,
+                        "repeater-value": null,
+                        "repeater-unit": null,
+                        "warning-type": "all",
+                        "warning-value": 2,
+                        "warning-unit": "day"
+                      },
+                      "children": []
+                    }
+                  },
+                  "children": []
+                },
+                {
+                  "type": "property-drawer",
+                  "begin": 310,
+                  "end": 358,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "node-property",
+                      "begin": 323,
+                      "end": 339,
+                      "props": {
+                        "key": "EFFORT",
+                        "value": "4:00"
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "node-property",
+                      "begin": 339,
+                      "end": 352,
+                      "props": {
+                        "key": "ORDERED",
+                        "value": "t"
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "type": "drawer",
+                  "begin": 358,
+                  "end": 562,
+                  "props": {
+                    "drawer-name": "LOGBOOK"
+                  },
+                  "children": [
+                    {
+                      "type": "clock",
+                      "begin": 368,
+                      "end": 431,
+                      "props": {
+                        "status": "closed",
+                        "duration": "2:30",
+                        "value": {
+                          "type": "timestamp",
+                          "props": {
+                            "type": "inactive-range",
+                            "raw-value": "[2026-10-27 Tue 14:00]--[2026-10-27 Tue 16:30]",
+                            "year-start": 2026,
+                            "month-start": 10,
+                            "day-start": 27,
+                            "hour-start": 14,
+                            "minute-start": 0,
+                            "year-end": 2026,
+                            "month-end": 10,
+                            "day-end": 27,
+                            "hour-end": 16,
+                            "minute-end": 30,
+                            "repeater-type": null,
+                            "repeater-value": null,
+                            "repeater-unit": null,
+                            "warning-type": null,
+                            "warning-value": null,
+                            "warning-unit": null
+                          },
+                          "children": []
+                        }
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "clock",
+                      "begin": 431,
+                      "end": 494,
+                      "props": {
+                        "status": "closed",
+                        "duration": "1:15",
+                        "value": {
+                          "type": "timestamp",
+                          "props": {
+                            "type": "inactive-range",
+                            "raw-value": "[2026-10-28 Wed 09:00]--[2026-10-28 Wed 10:15]",
+                            "year-start": 2026,
+                            "month-start": 10,
+                            "day-start": 28,
+                            "hour-start": 9,
+                            "minute-start": 0,
+                            "year-end": 2026,
+                            "month-end": 10,
+                            "day-end": 28,
+                            "hour-end": 10,
+                            "minute-end": 15,
+                            "repeater-type": null,
+                            "repeater-value": null,
+                            "repeater-unit": null,
+                            "warning-type": null,
+                            "warning-value": null,
+                            "warning-unit": null
+                          },
+                          "children": []
+                        }
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "plain-list",
+                      "begin": 494,
+                      "end": 556,
+                      "props": {
+                        "type": "unordered"
+                      },
+                      "children": [
+                        {
+                          "type": "item",
+                          "begin": 494,
+                          "end": 556,
+                          "props": {
+                            "bullet": "- ",
+                            "checkbox": null,
+                            "counter": null,
+                            "tag": null
+                          },
+                          "children": [
+                            {
+                              "type": "paragraph",
+                              "begin": 496,
+                              "end": 556,
+                              "props": {},
+                              "children": [
+                                {
+                                  "type": "plain-text",
+                                  "value": "State \"STARTED\"    from \"TODO\"       "
+                                },
+                                {
+                                  "type": "timestamp",
+                                  "begin": 533,
+                                  "end": 555,
+                                  "props": {
+                                    "type": "inactive",
+                                    "raw-value": "[2026-10-27 Tue 14:00]",
+                                    "year-start": 2026,
+                                    "month-start": 10,
+                                    "day-start": 27,
+                                    "hour-start": 14,
+                                    "minute-start": 0,
+                                    "year-end": 2026,
+                                    "month-end": 10,
+                                    "day-end": 27,
+                                    "hour-end": 14,
+                                    "minute-end": 0,
+                                    "repeater-type": null,
+                                    "repeater-value": null,
+                                    "repeater-unit": null,
+                                    "warning-type": null,
+                                    "warning-value": null,
+                                    "warning-unit": null
+                                  },
+                                  "children": []
+                                },
+                                {
+                                  "type": "plain-text",
+                                  "value": "\n"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "paragraph",
+                  "begin": 563,
+                  "end": 576,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "Tasks "
+                    },
+                    {
+                      "type": "statistics-cookie",
+                      "begin": 569,
+                      "end": 574,
+                      "props": {
+                        "value": "[1/3]"
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "plain-text",
+                      "value": ":\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-list",
+                  "begin": 576,
+                  "end": 650,
+                  "props": {
+                    "type": "unordered"
+                  },
+                  "children": [
+                    {
+                      "type": "item",
+                      "begin": 576,
+                      "end": 599,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": "on",
+                        "counter": null,
+                        "tag": null
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 582,
+                          "end": 599,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "Write the dumper\n"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "item",
+                      "begin": 599,
+                      "end": 625,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": "off",
+                        "counter": null,
+                        "tag": null
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 605,
+                          "end": 625,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "Write the converter\n"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "item",
+                      "begin": 625,
+                      "end": 650,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": "off",
+                        "counter": null,
+                        "tag": null
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 631,
+                          "end": 650,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "Write the fixtures\n"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "begin": 651,
+          "end": 744,
+          "props": {
+            "level": 2,
+            "todo-keyword": "WAITING",
+            "todo-type": "todo",
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Review from Bob",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Review from Bob"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 678,
+              "end": 744,
+              "props": {},
+              "children": [
+                {
+                  "type": "property-drawer",
+                  "begin": 678,
+                  "end": 712,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "node-property",
+                      "begin": 691,
+                      "end": 706,
+                      "props": {
+                        "key": "ASSIGNEE",
+                        "value": "bob"
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "type": "paragraph",
+                  "begin": 712,
+                  "end": 744,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "Waiting since "
+                    },
+                    {
+                      "type": "timestamp",
+                      "begin": 726,
+                      "end": 742,
+                      "props": {
+                        "type": "inactive",
+                        "raw-value": "[2026-10-20 Tue]",
+                        "year-start": 2026,
+                        "month-start": 10,
+                        "day-start": 20,
+                        "hour-start": null,
+                        "minute-start": null,
+                        "year-end": 2026,
+                        "month-end": 10,
+                        "day-end": 20,
+                        "hour-end": null,
+                        "minute-end": null,
+                        "repeater-type": null,
+                        "repeater-value": null,
+                        "repeater-unit": null,
+                        "warning-type": null,
+                        "warning-value": null,
+                        "warning-unit": null
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "plain-text",
+                      "value": ".\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "begin": 745,
+          "end": 804,
+          "props": {
+            "level": 2,
+            "todo-keyword": "DONE",
+            "todo-type": "done",
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Read org-element.el",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Read org-element.el"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 773,
+              "end": 804,
+              "props": {},
+              "children": [
+                {
+                  "type": "planning",
+                  "begin": 773,
+                  "end": 804,
+                  "props": {
+                    "closed": {
+                      "type": "timestamp",
+                      "props": {
+                        "type": "inactive",
+                        "raw-value": "[2026-10-15 Thu 18:00]",
+                        "year-start": 2026,
+                        "month-start": 10,
+                        "day-start": 15,
+                        "hour-start": 18,
+                        "minute-start": 0,
+                        "year-end": 2026,
+                        "month-end": 10,
+                        "day-end": 15,
+                        "hour-end": 18,
+                        "minute-end": 0,
+                        "repeater-type": null,
+                        "repeater-value": null,
+                        "repeater-unit": null,
+                        "warning-type": null,
+                        "warning-value": null,
+                        "warning-unit": null
+                      },
+                      "children": []
+                    },
+                    "scheduled": null,
+                    "deadline": null
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "begin": 805,
+          "end": 884,
+          "props": {
+            "level": 2,
+            "todo-keyword": "CANCELED",
+            "todo-type": "done",
+            "priority": null,
+            "tags": [
+              "ARCHIVE"
+            ],
+            "commentedp": false,
+            "archivedp": true,
+            "footnote-section-p": false,
+            "raw-value": "Port to Haskell",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Port to Haskell"
+              }
+            ]
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 885,
+      "end": 1035,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Meetings",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Meetings"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "headline",
+          "begin": 896,
+          "end": 1035,
+          "props": {
+            "level": 2,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Weekly sync <2026-10-26 Mon 10:00-11:00 +1w>",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Weekly sync "
+              },
+              {
+                "type": "timestamp",
+                "begin": 911,
+                "end": 943,
+                "props": {
+                  "type": "active-range",
+                  "raw-value": "<2026-10-26 Mon 10:00-11:00 +1w>",
+                  "year-start": 2026,
+                  "month-start": 10,
+                  "day-start": 26,
+                  "hour-start": 10,
+                  "minute-start": 0,
+                  "year-end": 2026,
+                  "month-end": 10,
+                  "day-end": 26,
+                  "hour-end": 11,
+                  "minute-end": 0,
+                  "repeater-type": "cumulate",
+                  "repeater-value": 1,
+                  "repeater-unit": "week",
+                  "warning-type": null,
+                  "warning-value": null,
+                  "warning-unit": null
+                },
+                "children": []
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 944,
+              "end": 1035,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-list",
+                  "begin": 944,
+                  "end": 1035,
+                  "props": {
+                    "type": "descriptive"
+                  },
+                  "children": [
+                    {
+                      "type": "item",
+                      "begin": 944,
+                      "end": 970,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": null,
+                        "counter": null,
+                        "tag": [
+                          {
+                            "type": "plain-text",
+                            "value": "Attendees"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 959,
+                          "end": 970,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "Alice, Bob\n"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "item",
+                      "begin": 970,
+                      "end": 1035,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": null,
+                        "counter": null,
+                        "tag": [
+                          {
+                            "type": "plain-text",
+                            "value": "Notes"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "type": "plain-list",
+                          "begin": 981,
+                          "end": 1035,
+                          "props": {
+                            "type": "ordered"
+                          },
+                          "children": [
+                            {
+                              "type": "item",
+                              "begin": 981,
+                              "end": 1000,
+                              "props": {
+                                "bullet": "1. ",
+                                "checkbox": null,
+                                "counter": null,
+                                "tag": null
+                              },
+                              "children": [
+                                {
+                                  "type": "paragraph",
+                                  "begin": 986,
+                                  "end": 1000,
+                                  "props": {},
+                                  "children": [
+                                    {
+                                      "type": "plain-text",
+                                      "value": "Parser status\n"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "item",
+                              "begin": 1000,
+                              "end": 1035,
+                              "props": {
+                                "bullet": "2. ",
+                                "checkbox": null,
+                                "counter": null,
+                                "tag": null
+                              },
+                              "children": [
+                                {
+                                  "type": "paragraph",
+                                  "begin": 1005,
+                                  "end": 1035,
+                                  "props": {},
+                                  "children": [
+                                    {
+                                      "type": "plain-text",
+                                      "value": "Next release "
+                                    },
+                                    {
+                                      "type": "timestamp",
+                                      "begin": 1018,
+                                      "end": 1034,
+                                      "props": {
+                                        "type": "active",
+                                        "raw-value": "<2026-11-15 Sun>",
+                                        "year-start": 2026,
+                                        "month-start": 11,
+                                        "day-start": 15,
+                                        "hour-start": null,
+                                        "minute-start": null,
+                                        "year-end": 2026,
+                                        "month-end": 11,
+                                        "day-end": 15,
+                                        "hour-end": null,
+                                        "minute-end": null,
+                                        "repeater-type": null,
+                                        "repeater-value": null,
+                                        "repeater-unit": null,
+                                        "warning-type": null,
+                                        "warning-value": null,
+                                        "warning-unit": null
+                                      },
+                                      "children": []
+                                    },
+                                    {
+                                      "type": "plain-text",
+                                      "value": "\n"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 1036,
+      "end": 1211,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Journal",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Journal"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "headline",
+          "begin": 1046,
+          "end": 1211,
+          "props": {
+            "level": 2,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "[2026-10-28 Wed]",
+            "title": [
+              {
+                "type": "timestamp",
+                "begin": 1049,
+                "end": 1065,
+                "props": {
+                  "type": "inactive",
+                  "raw-value": "[2026-10-28 Wed]",
+                  "year-start": 2026,
+                  "month-start": 10,
+                  "day-start": 28,
+                  "hour-start": null,
+                  "minute-start": null,
+                  "year-end": 2026,
+                  "month-end": 10,
+                  "day-end": 28,
+                  "hour-end": null,
+                  "minute-end": null,
+                  "repeater-type": null,
+                  "repeater-value": null,
+                  "repeater-unit": null,
+                  "warning-type": null,
+                  "warning-value": null,
+                  "warning-unit": null
+                },
+                "children": []
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 1066,
+              "end": 1211,
+              "props": {},
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 1066,
+                  "end": 1127,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "Worked on the harness. Ratio: 3/4 done -- see "
+                    },
+                    {
+                      "type": "link",
+                      "begin": 1112,
+                      "end": 1125,
+                      "props": {
+                        "type": "fuzzy",
+                        "path": "*Projects",
+                        "format": "bracket",
+                        "raw-link": "*Projects",
+                        "search-option": null,
+                        "application": null
+                      },
+                      "children": []
+                    },
+                    {
+                      "type": "plain-text",
+                      "value": ".\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "quote-block",
+                  "begin": 1128,
+                  "end": 1211,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 1142,
+                      "end": 1199,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "Simplicity is prerequisite for reliability. --- Dijkstra\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

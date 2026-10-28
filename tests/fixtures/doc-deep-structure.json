@@ -1,0 +1,352 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 21,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 21,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Before any headline.\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 22,
+      "end": 223,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Level 1",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Level 1"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 32,
+          "end": 40,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 32,
+              "end": 40,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Text 1.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "begin": 40,
+          "end": 223,
+          "props": {
+            "level": 2,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Level 2",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Level 2"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "headline",
+              "begin": 51,
+              "end": 209,
+              "props": {
+                "level": 3,
+                "todo-keyword": null,
+                "todo-type": null,
+                "priority": null,
+                "tags": [],
+                "commentedp": false,
+                "archivedp": false,
+                "footnote-section-p": false,
+                "raw-value": "Level 3",
+                "title": [
+                  {
+                    "type": "plain-text",
+                    "value": "Level 3"
+                  }
+                ]
+              },
+              "children": [
+                {
+                  "type": "section",
+                  "begin": 63,
+                  "end": 71,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 63,
+                      "end": 71,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "Text 3.\n"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "headline",
+                  "begin": 71,
+                  "end": 209,
+                  "props": {
+                    "level": 4,
+                    "todo-keyword": null,
+                    "todo-type": null,
+                    "priority": null,
+                    "tags": [],
+                    "commentedp": false,
+                    "archivedp": false,
+                    "footnote-section-p": false,
+                    "raw-value": "Level 4",
+                    "title": [
+                      {
+                        "type": "plain-text",
+                        "value": "Level 4"
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "type": "section",
+                      "begin": 84,
+                      "end": 209,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-list",
+                          "begin": 84,
+                          "end": 209,
+                          "props": {
+                            "type": "unordered"
+                          },
+                          "children": [
+                            {
+                              "type": "item",
+                              "begin": 84,
+                              "end": 153,
+                              "props": {
+                                "bullet": "- ",
+                                "checkbox": null,
+                                "counter": null,
+                                "tag": null
+                              },
+                              "children": [
+                                {
+                                  "type": "paragraph",
+                                  "begin": 86,
+                                  "end": 102,
+                                  "props": {},
+                                  "children": [
+                                    {
+                                      "type": "plain-text",
+                                      "value": "list in level 4\n"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "src-block",
+                                  "begin": 102,
+                                  "end": 153,
+                                  "props": {
+                                    "language": "sh",
+                                    "switches": null,
+                                    "parameters": null,
+                                    "value": "  echo nested in item\n"
+                                  },
+                                  "children": []
+                                }
+                              ]
+                            },
+                            {
+                              "type": "item",
+                              "begin": 153,
+                              "end": 209,
+                              "props": {
+                                "bullet": "- ",
+                                "checkbox": null,
+                                "counter": null,
+                                "tag": null
+                              },
+                              "children": [
+                                {
+                                  "type": "paragraph",
+                                  "begin": 155,
+                                  "end": 162,
+                                  "props": {},
+                                  "children": [
+                                    {
+                                      "type": "plain-text",
+                                      "value": "second\n"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "quote-block",
+                                  "begin": 163,
+                                  "end": 209,
+                                  "props": {},
+                                  "children": [
+                                    {
+                                      "type": "paragraph",
+                                      "begin": 179,
+                                      "end": 195,
+                                      "props": {},
+                                      "children": [
+                                        {
+                                          "type": "plain-text",
+                                          "value": "  quote in item\n"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "headline",
+              "begin": 209,
+              "end": 223,
+              "props": {
+                "level": 3,
+                "todo-keyword": null,
+                "todo-type": null,
+                "priority": null,
+                "tags": [],
+                "commentedp": false,
+                "archivedp": false,
+                "footnote-section-p": false,
+                "raw-value": "Back to 3",
+                "title": [
+                  {
+                    "type": "plain-text",
+                    "value": "Back to 3"
+                  }
+                ]
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 223,
+      "end": 283,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Another level 1",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Another level 1"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "headline",
+          "begin": 241,
+          "end": 283,
+          "props": {
+            "level": 2,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": true,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Commented subtree",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Commented subtree"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "section",
+              "begin": 270,
+              "end": 283,
+              "props": {},
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 270,
+                  "end": 283,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "Hidden text.\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

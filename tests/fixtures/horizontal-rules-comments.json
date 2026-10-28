@@ -1,0 +1,95 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 168,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 8,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Before.\n"
+            }
+          ]
+        },
+        {
+          "type": "horizontal-rule",
+          "begin": 8,
+          "end": 14,
+          "props": {},
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "begin": 14,
+          "end": 47,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "After.\n----\nFour dashes is text.\n"
+            }
+          ]
+        },
+        {
+          "type": "comment",
+          "begin": 48,
+          "end": 77,
+          "props": {
+            "value": "A comment\nspanning lines"
+          },
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "begin": 77,
+          "end": 92,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "#not a comment\n"
+            }
+          ]
+        },
+        {
+          "type": "fixed-width",
+          "begin": 93,
+          "end": 114,
+          "props": {
+            "value": "fixed width\narea"
+          },
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "begin": 114,
+          "end": 125,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": ":not fixed\n"
+            }
+          ]
+        },
+        {
+          "type": "diary-sexp",
+          "begin": 126,
+          "end": 168,
+          "props": {
+            "value": "%%(diary-anniversary 10 31 1948) Birthday"
+          },
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 49,
+      "props": {},
+      "children": [
+        {
+          "type": "plain-list",
+          "begin": 0,
+          "end": 49,
+          "props": {
+            "type": "unordered"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 0,
+              "end": 6,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 2,
+                  "end": 6,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "one\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 6,
+              "end": 12,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 8,
+                  "end": 12,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "two\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 12,
+              "end": 20,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 14,
+                  "end": 20,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "three\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 21,
+              "end": 30,
+              "props": {
+                "bullet": "1. ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 24,
+                  "end": 30,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "first\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 30,
+              "end": 40,
+              "props": {
+                "bullet": "2. ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 33,
+                  "end": 40,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "second\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 40,
+              "end": 49,
+              "props": {
+                "bullet": "3) ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 43,
+                  "end": 49,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "third\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

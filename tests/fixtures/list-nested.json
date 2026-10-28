@@ -1,0 +1,205 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 135,
+      "props": {},
+      "children": [
+        {
+          "type": "plain-list",
+          "begin": 0,
+          "end": 135,
+          "props": {
+            "type": "unordered"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 0,
+              "end": 62,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 2,
+                  "end": 6,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "top\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-list",
+                  "begin": 6,
+                  "end": 62,
+                  "props": {
+                    "type": "unordered"
+                  },
+                  "children": [
+                    {
+                      "type": "item",
+                      "begin": 6,
+                      "end": 21,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": null,
+                        "counter": null,
+                        "tag": null
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 10,
+                          "end": 21,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "nested one\n"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "item",
+                      "begin": 21,
+                      "end": 62,
+                      "props": {
+                        "bullet": "- ",
+                        "checkbox": null,
+                        "counter": null,
+                        "tag": null
+                      },
+                      "children": [
+                        {
+                          "type": "paragraph",
+                          "begin": 25,
+                          "end": 36,
+                          "props": {},
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "nested two\n"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "plain-list",
+                          "begin": 36,
+                          "end": 62,
+                          "props": {
+                            "type": "ordered"
+                          },
+                          "children": [
+                            {
+                              "type": "item",
+                              "begin": 36,
+                              "end": 48,
+                              "props": {
+                                "bullet": "1. ",
+                                "checkbox": null,
+                                "counter": null,
+                                "tag": null
+                              },
+                              "children": [
+                                {
+                                  "type": "paragraph",
+                                  "begin": 43,
+                                  "end": 48,
+                                  "props": {},
+                                  "children": [
+                                    {
+                                      "type": "plain-text",
+                                      "value": "deep\n"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "item",
+                              "begin": 48,
+                              "end": 62,
+                              "props": {
+                                "bullet": "2. ",
+                                "checkbox": null,
+                                "counter": null,
+                                "tag": null
+                              },
+                              "children": [
+                                {
+                                  "type": "paragraph",
+                                  "begin": 55,
+                                  "end": 62,
+                                  "props": {},
+                                  "children": [
+                                    {
+                                      "type": "plain-text",
+                                      "value": "deeper\n"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 62,
+              "end": 135,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 64,
+                  "end": 103,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "back to top\n  continuation of the item\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "paragraph",
+                  "begin": 104,
+                  "end": 135,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "  second paragraph of the item\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

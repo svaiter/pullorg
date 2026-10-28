@@ -1,0 +1,220 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 37,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 37,
+          "props": {},
+          "children": [
+            {
+              "type": "bold",
+              "begin": 0,
+              "end": 22,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "not a headline\n*bold"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " at line start\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 37,
+      "end": 40,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": ""
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 40,
+      "end": 69,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Title with leading spaces",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Title with leading spaces"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 69,
+      "end": 127,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Title with *markup* and a [[https://orgmode.org][link]]",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Title with "
+          },
+          {
+            "type": "bold",
+            "begin": 82,
+            "end": 90,
+            "props": {},
+            "children": [
+              {
+                "type": "plain-text",
+                "value": "markup"
+              }
+            ]
+          },
+          {
+            "type": "plain-text",
+            "value": " and a "
+          },
+          {
+            "type": "link",
+            "begin": 97,
+            "end": 126,
+            "props": {
+              "type": "https",
+              "path": "//orgmode.org",
+              "format": "bracket",
+              "raw-link": "https://orgmode.org",
+              "search-option": null,
+              "application": null
+            },
+            "children": [
+              {
+                "type": "plain-text",
+                "value": "link"
+              }
+            ]
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 127,
+      "end": 178,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Title with trailing spaces",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Title with trailing spaces"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "headline",
+          "begin": 159,
+          "end": 178,
+          "props": {
+            "level": 4,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Deep headline",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Deep headline"
+              }
+            ]
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 178,
+      "end": 204,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Statistics cookie [1/2]",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Statistics cookie "
+          },
+          {
+            "type": "statistics-cookie",
+            "begin": 198,
+            "end": 203,
+            "props": {
+              "value": "[1/2]"
+            },
+            "children": []
+          }
+        ]
+      },
+      "children": []
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+Plain https://orgmode.org/manual and mailto:me@example.com links.
+Angle <https://example.com/a b> link.
+Bracket [[https://example.com][with description]] and [[https://example.com]].
+Fuzzy [[Some heading]], custom-id [[#my-id]], id [[id:abc-123]].
+File [[file:notes.org::*Heading][file link]] and [[./image.png]] and [[file+emacs:foo.org]].
+Coderef [[(ref)]] and internal [[*Heading]].
+Description with markup [[https://x.y][*bold* =code=]].
+Escaped [[https://example.com/a\]b][esc]].

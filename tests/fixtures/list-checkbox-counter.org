@@ -1,0 +1,6 @@
+- [ ] off
+- [X] on
+- [-] partial
+1. [@3] counter three
+2. [@c] letter counter
+3. [@5] [X] counter and checkbox

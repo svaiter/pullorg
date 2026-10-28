@@ -1,0 +1,208 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 48,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Project [1/3]",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Project "
+          },
+          {
+            "type": "statistics-cookie",
+            "begin": 10,
+            "end": 15,
+            "props": {
+              "value": "[1/3]"
+            },
+            "children": []
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 16,
+          "end": 48,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-list",
+              "begin": 16,
+              "end": 48,
+              "props": {
+                "type": "unordered"
+              },
+              "children": [
+                {
+                  "type": "item",
+                  "begin": 16,
+                  "end": 26,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": "on",
+                    "counter": null,
+                    "tag": null
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 22,
+                      "end": 26,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "one\n"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "item",
+                  "begin": 26,
+                  "end": 36,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": "off",
+                    "counter": null,
+                    "tag": null
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 32,
+                      "end": 36,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "two\n"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "item",
+                  "begin": 36,
+                  "end": 48,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": "off",
+                    "counter": null,
+                    "tag": null
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 42,
+                      "end": 48,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "three\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 48,
+      "end": 64,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Percent [33%]",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Percent "
+          },
+          {
+            "type": "statistics-cookie",
+            "begin": 58,
+            "end": 63,
+            "props": {
+              "value": "[33%]"
+            },
+            "children": []
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 64,
+      "end": 88,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Empty cookies [/] [%]",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Empty cookies "
+          },
+          {
+            "type": "statistics-cookie",
+            "begin": 80,
+            "end": 83,
+            "props": {
+              "value": "[/]"
+            },
+            "children": []
+          },
+          {
+            "type": "plain-text",
+            "value": " "
+          },
+          {
+            "type": "statistics-cookie",
+            "begin": 84,
+            "end": 87,
+            "props": {
+              "value": "[%]"
+            },
+            "children": []
+          }
+        ]
+      },
+      "children": []
+    }
+  ]
+}

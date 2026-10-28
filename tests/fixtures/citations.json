@@ -1,0 +1,193 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 185,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 185,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Simple "
+            },
+            {
+              "type": "citation",
+              "begin": 7,
+              "end": 18,
+              "props": {
+                "style": null,
+                "prefix": null,
+                "suffix": null
+              },
+              "children": [
+                {
+                  "type": "citation-reference",
+                  "begin": 13,
+                  "end": 17,
+                  "props": {
+                    "key": "key",
+                    "prefix": null,
+                    "suffix": null
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and styled "
+            },
+            {
+              "type": "citation",
+              "begin": 30,
+              "end": 43,
+              "props": {
+                "style": "t",
+                "prefix": null,
+                "suffix": null
+              },
+              "children": [
+                {
+                  "type": "citation-reference",
+                  "begin": 38,
+                  "end": 42,
+                  "props": {
+                    "key": "key",
+                    "prefix": null,
+                    "suffix": null
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nMultiple "
+            },
+            {
+              "type": "citation",
+              "begin": 54,
+              "end": 71,
+              "props": {
+                "style": null,
+                "prefix": null,
+                "suffix": null
+              },
+              "children": [
+                {
+                  "type": "citation-reference",
+                  "begin": 60,
+                  "end": 63,
+                  "props": {
+                    "key": "a",
+                    "prefix": null,
+                    "suffix": null
+                  },
+                  "children": []
+                },
+                {
+                  "type": "citation-reference",
+                  "begin": 63,
+                  "end": 67,
+                  "props": {
+                    "key": "b",
+                    "prefix": " ",
+                    "suffix": null
+                  },
+                  "children": []
+                },
+                {
+                  "type": "citation-reference",
+                  "begin": 67,
+                  "end": 70,
+                  "props": {
+                    "key": "c",
+                    "prefix": " ",
+                    "suffix": null
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nWith affixes "
+            },
+            {
+              "type": "citation",
+              "begin": 86,
+              "end": 153,
+              "props": {
+                "style": "n/b",
+                "prefix": "common prefix",
+                "suffix": " common suffix"
+              },
+              "children": [
+                {
+                  "type": "citation-reference",
+                  "begin": 110,
+                  "end": 126,
+                  "props": {
+                    "key": "key",
+                    "prefix": " see ",
+                    "suffix": " p. 10"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "citation-reference",
+                  "begin": 126,
+                  "end": 138,
+                  "props": {
+                    "key": "other",
+                    "prefix": " and ",
+                    "suffix": null
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nKey chars "
+            },
+            {
+              "type": "citation",
+              "begin": 165,
+              "end": 183,
+              "props": {
+                "style": null,
+                "prefix": null,
+                "suffix": null
+              },
+              "children": [
+                {
+                  "type": "citation-reference",
+                  "begin": 171,
+                  "end": 182,
+                  "props": {
+                    "key": "doe_2020-x",
+                    "prefix": null,
+                    "suffix": null
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

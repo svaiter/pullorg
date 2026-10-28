@@ -1,0 +1,119 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 62,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "First headline",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "First headline"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 17,
+          "end": 28,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 17,
+              "end": 28,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Some text.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "begin": 29,
+          "end": 62,
+          "props": {
+            "level": 2,
+            "todo-keyword": null,
+            "todo-type": null,
+            "priority": null,
+            "tags": [],
+            "commentedp": false,
+            "archivedp": false,
+            "footnote-section-p": false,
+            "raw-value": "Child headline",
+            "title": [
+              {
+                "type": "plain-text",
+                "value": "Child headline"
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "headline",
+              "begin": 47,
+              "end": 62,
+              "props": {
+                "level": 3,
+                "todo-keyword": null,
+                "todo-type": null,
+                "priority": null,
+                "tags": [],
+                "commentedp": false,
+                "archivedp": false,
+                "footnote-section-p": false,
+                "raw-value": "Grandchild",
+                "title": [
+                  {
+                    "type": "plain-text",
+                    "value": "Grandchild"
+                  }
+                ]
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 63,
+      "end": 81,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Second headline",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Second headline"
+          }
+        ]
+      },
+      "children": []
+    }
+  ]
+}

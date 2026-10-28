@@ -1,0 +1,152 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 142,
+      "props": {},
+      "children": [
+        {
+          "type": "drawer",
+          "begin": 0,
+          "end": 55,
+          "props": {
+            "drawer-name": "LOGBOOK"
+          },
+          "children": [
+            {
+              "type": "plain-list",
+              "begin": 10,
+              "end": 49,
+              "props": {
+                "type": "unordered"
+              },
+              "children": [
+                {
+                  "type": "item",
+                  "begin": 10,
+                  "end": 49,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": null,
+                    "counter": null,
+                    "tag": null
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 12,
+                      "end": 49,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "Note taken on "
+                        },
+                        {
+                          "type": "timestamp",
+                          "begin": 26,
+                          "end": 48,
+                          "props": {
+                            "type": "inactive",
+                            "raw-value": "[2024-01-01 Mon 10:00]",
+                            "year-start": 2024,
+                            "month-start": 1,
+                            "day-start": 1,
+                            "hour-start": 10,
+                            "minute-start": 0,
+                            "year-end": 2024,
+                            "month-end": 1,
+                            "day-end": 1,
+                            "hour-end": 10,
+                            "minute-end": 0,
+                            "repeater-type": null,
+                            "repeater-value": null,
+                            "repeater-unit": null,
+                            "warning-type": null,
+                            "warning-value": null,
+                            "warning-unit": null
+                          },
+                          "children": []
+                        },
+                        {
+                          "type": "plain-text",
+                          "value": "\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "drawer",
+          "begin": 56,
+          "end": 123,
+          "props": {
+            "drawer-name": "MYDRAWER"
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 67,
+              "end": 95,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Content of a custom drawer.\n"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "begin": 96,
+              "end": 117,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "With two paragraphs.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 124,
+          "end": 142,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": ":NOT"
+            },
+            {
+              "type": "subscript",
+              "begin": 128,
+              "end": 135,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "CLOSED"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ":\ntext\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

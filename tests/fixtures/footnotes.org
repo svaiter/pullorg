@@ -1,0 +1,10 @@
+Text with a reference[fn:1] and a named one[fn:note].
+Inline[fn:inl: with *definition*] and anonymous[fn:: anonymous def].
+
+[fn:1] The first footnote.
+
+[fn:note] A named footnote
+spanning two lines.
+
+* Footnotes
+[fn:2] In the footnote section.

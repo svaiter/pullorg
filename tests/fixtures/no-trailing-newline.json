@@ -1,0 +1,49 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 44,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Headline",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Headline"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 11,
+          "end": 44,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 11,
+              "end": 44,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Paragraph without a final newline"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

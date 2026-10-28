@@ -1,0 +1,280 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 225,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [
+          "français"
+        ],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Café crème",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Café crème"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 27,
+          "end": 225,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 27,
+              "end": 121,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Héllo "
+                },
+                {
+                  "type": "bold",
+                  "begin": 34,
+                  "end": 42,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "wörld"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " and "
+                },
+                {
+                  "type": "italic",
+                  "begin": 47,
+                  "end": 58,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "日本語"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " text.\nÜnïcödé "
+                },
+                {
+                  "type": "verbatim",
+                  "begin": 77,
+                  "end": 88,
+                  "props": {
+                    "value": "vérbatim"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "plain-text",
+                  "value": " "
+                },
+                {
+                  "type": "code",
+                  "begin": 89,
+                  "end": 97,
+                  "props": {
+                    "value": "cödé"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "plain-text",
+                  "value": " and 😀 emoji "
+                },
+                {
+                  "type": "bold",
+                  "begin": 113,
+                  "end": 119,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "😀"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": ".\n"
+                }
+              ]
+            },
+            {
+              "type": "plain-list",
+              "begin": 121,
+              "end": 148,
+              "props": {
+                "type": "descriptive"
+              },
+              "children": [
+                {
+                  "type": "item",
+                  "begin": 121,
+                  "end": 148,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": null,
+                    "counter": null,
+                    "tag": [
+                      {
+                        "type": "plain-text",
+                        "value": "élément"
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 136,
+                      "end": 148,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "définition\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "table",
+              "begin": 148,
+              "end": 174,
+              "props": {
+                "type": "org",
+                "tblfm": [],
+                "value": null
+              },
+              "children": [
+                {
+                  "type": "table-row",
+                  "begin": 148,
+                  "end": 160,
+                  "props": {
+                    "type": "standard"
+                  },
+                  "children": [
+                    {
+                      "type": "table-cell",
+                      "begin": 149,
+                      "end": 154,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "ä"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "table-cell",
+                      "begin": 154,
+                      "end": 159,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "ö"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "table-row",
+                  "begin": 160,
+                  "end": 174,
+                  "props": {
+                    "type": "standard"
+                  },
+                  "children": [
+                    {
+                      "type": "table-cell",
+                      "begin": 161,
+                      "end": 167,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "中"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "table-cell",
+                      "begin": 167,
+                      "end": 173,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "文"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "begin": 174,
+              "end": 225,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Liens "
+                },
+                {
+                  "type": "link",
+                  "begin": 180,
+                  "end": 215,
+                  "props": {
+                    "type": "https",
+                    "path": "//exemple.fr/é",
+                    "format": "bracket",
+                    "raw-link": "https://exemple.fr/é",
+                    "search-option": null,
+                    "application": null
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "vers là"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " — fin.\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

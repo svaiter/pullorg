@@ -1,0 +1,445 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 459,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 459,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Active "
+            },
+            {
+              "type": "timestamp",
+              "begin": 7,
+              "end": 23,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and inactive "
+            },
+            {
+              "type": "timestamp",
+              "begin": 37,
+              "end": 53,
+              "props": {
+                "type": "inactive",
+                "raw-value": "[2024-03-15 Fri]",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nWith time "
+            },
+            {
+              "type": "timestamp",
+              "begin": 65,
+              "end": 87,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri 10:30>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": 10,
+                "minute-start": 30,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": 10,
+                "minute-end": 30,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and time range "
+            },
+            {
+              "type": "timestamp",
+              "begin": 103,
+              "end": 131,
+              "props": {
+                "type": "active-range",
+                "raw-value": "<2024-03-15 Fri 10:30-12:00>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": 10,
+                "minute-start": 30,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": 12,
+                "minute-end": 0,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nDate range "
+            },
+            {
+              "type": "timestamp",
+              "begin": 144,
+              "end": 178,
+              "props": {
+                "type": "active-range",
+                "raw-value": "<2024-03-15 Fri>--<2024-03-17 Sun>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 17,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nInactive range "
+            },
+            {
+              "type": "timestamp",
+              "begin": 195,
+              "end": 241,
+              "props": {
+                "type": "inactive-range",
+                "raw-value": "[2024-03-15 Fri 09:00]--[2024-03-16 Sat 17:00]",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": 9,
+                "minute-start": 0,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 16,
+                "hour-end": 17,
+                "minute-end": 0,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nRepeaters "
+            },
+            {
+              "type": "timestamp",
+              "begin": 253,
+              "end": 273,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri +1w>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": "cumulate",
+                "repeater-value": 1,
+                "repeater-unit": "week",
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "timestamp",
+              "begin": 274,
+              "end": 295,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri ++2m>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": "catch-up",
+                "repeater-value": 2,
+                "repeater-unit": "month",
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "timestamp",
+              "begin": 296,
+              "end": 317,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri .+1d>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": "restart",
+                "repeater-value": 1,
+                "repeater-unit": "day",
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nWarnings "
+            },
+            {
+              "type": "timestamp",
+              "begin": 328,
+              "end": 348,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri -3d>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": "all",
+                "warning-value": 3,
+                "warning-unit": "day"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "timestamp",
+              "begin": 349,
+              "end": 370,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri --1w>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": "first",
+                "warning-value": 1,
+                "warning-unit": "week"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " "
+            },
+            {
+              "type": "timestamp",
+              "begin": 371,
+              "end": 400,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15 Fri 8:00 +1y -2h>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": 8,
+                "minute-start": 0,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": 8,
+                "minute-end": 0,
+                "repeater-type": "cumulate",
+                "repeater-value": 1,
+                "repeater-unit": "year",
+                "warning-type": "all",
+                "warning-value": 2,
+                "warning-unit": "hour"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nDiary "
+            },
+            {
+              "type": "timestamp",
+              "begin": 408,
+              "end": 431,
+              "props": {
+                "type": "diary",
+                "raw-value": "<%%(diary-float t 4 2)>",
+                "year-start": null,
+                "month-start": null,
+                "day-start": null,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": null,
+                "month-end": null,
+                "day-end": null,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nNo day name "
+            },
+            {
+              "type": "timestamp",
+              "begin": 445,
+              "end": 457,
+              "props": {
+                "type": "active",
+                "raw-value": "<2024-03-15>",
+                "year-start": 2024,
+                "month-start": 3,
+                "day-start": 15,
+                "hour-start": null,
+                "minute-start": null,
+                "year-end": 2024,
+                "month-end": 3,
+                "day-end": 15,
+                "hour-end": null,
+                "minute-end": null,
+                "repeater-type": null,
+                "repeater-value": null,
+                "repeater-unit": null,
+                "warning-type": null,
+                "warning-value": null,
+                "warning-unit": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

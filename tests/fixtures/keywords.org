@@ -1,0 +1,8 @@
+#+TITLE: The title
+#+AUTHOR: Someone
+#+OPTIONS: toc:nil
+#+date: lowercase key
+#+EMPTY:
+#+custom_key: with   spaces  
+
+Text.

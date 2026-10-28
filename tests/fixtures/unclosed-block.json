@@ -1,0 +1,85 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 90,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 41,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "#+begin"
+            },
+            {
+              "type": "subscript",
+              "begin": 7,
+              "end": 11,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "src"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " python\nprint(\"never closed\")\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 42,
+          "end": 61,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Still a paragraph?\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 62,
+          "end": 90,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "#+begin"
+            },
+            {
+              "type": "subscript",
+              "begin": 69,
+              "end": 75,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "quote"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\nalso unclosed\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

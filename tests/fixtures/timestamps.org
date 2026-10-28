@@ -1,0 +1,8 @@
+Active <2024-03-15 Fri> and inactive [2024-03-15 Fri].
+With time <2024-03-15 Fri 10:30> and time range <2024-03-15 Fri 10:30-12:00>.
+Date range <2024-03-15 Fri>--<2024-03-17 Sun>.
+Inactive range [2024-03-15 Fri 09:00]--[2024-03-16 Sat 17:00].
+Repeaters <2024-03-15 Fri +1w> <2024-03-15 Fri ++2m> <2024-03-15 Fri .+1d>.
+Warnings <2024-03-15 Fri -3d> <2024-03-15 Fri --1w> <2024-03-15 Fri 8:00 +1y -2h>.
+Diary <%%(diary-float t 4 2)>.
+No day name <2024-03-15>.

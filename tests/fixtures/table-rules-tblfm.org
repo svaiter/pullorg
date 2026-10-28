@@ -1,0 +1,12 @@
+#+NAME: data
+| x | y |
+|---+---|
+| 1 | 2 |
+| 3 | 4 |
+|---+---|
+|   |   |
+#+TBLFM: @>$1=vsum(@2..@3)
+#+TBLFM: @>$2=vsum(@2..@3)
+
+| empty | cells | |
+| *markup* | =code= | [[https://a.b]] |

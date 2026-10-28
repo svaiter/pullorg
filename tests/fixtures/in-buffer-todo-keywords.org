@@ -1,0 +1,9 @@
+#+TODO: TODO NEXT | DONE CANCELLED
+#+TYP_TODO: Fred Sara | COMPLETE
+
+* NEXT Something to do next
+* CANCELLED Not happening
+* TODO Classic
+* Fred Assigned to Fred
+* COMPLETE Completed
+* WAITING not a keyword here

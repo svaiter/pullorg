@@ -1,0 +1,28 @@
+#+NAME: my-table
+#+CAPTION[Short]: A long *caption*
+#+CAPTION: second caption
+#+ATTR_HTML: :border 2 :rules all
+#+ATTR_LATEX: :environment longtable
+| a | b |
+
+#+name: src-name
+#+header: :var x=1
+#+headers: :exports code
+#+begin_src sh
+echo $x
+#+end_src
+
+#+RESULTS[abc123]: src-name
+: 1
+
+#+TBLNAME: old-style
+#+PLOT: title:"x"
+| 1 |
+
+#+NAME: orphan
+
+#+CAPTION: before paragraph
+A captioned paragraph.
+
+#+ATTR_ORG: :width 10
+[[file:image.png]]

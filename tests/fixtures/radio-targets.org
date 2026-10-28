@@ -1,0 +1,5 @@
+This defines a <<<radio target>>> here.
+
+Later, the radio target is mentioned, and a Radio Target again.
+
+A plain <<target>> and a link to [[target]].

@@ -1,0 +1,4 @@
+H_2O and E = mc^2.
+a_{bracketed} and b^{up}.
+x^* and y_-1 and z^{-1}.
+word_with_underscores and _ alone.

@@ -1,0 +1,69 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 74,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 74,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Jump to "
+            },
+            {
+              "type": "target",
+              "begin": 8,
+              "end": 16,
+              "props": {
+                "value": "here"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " anchor.\n"
+            },
+            {
+              "type": "target",
+              "begin": 25,
+              "end": 43,
+              "props": {
+                "value": "another target"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " at line start.\nLink "
+            },
+            {
+              "type": "link",
+              "begin": 64,
+              "end": 72,
+              "props": {
+                "type": "fuzzy",
+                "path": "here",
+                "format": "bracket",
+                "raw-link": "here",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

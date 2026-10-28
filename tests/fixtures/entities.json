@@ -1,0 +1,164 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 154,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 154,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Greek "
+            },
+            {
+              "type": "entity",
+              "begin": 6,
+              "end": 12,
+              "props": {
+                "name": "alpha",
+                "use-brackets-p": false
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "entity",
+              "begin": 17,
+              "end": 24,
+              "props": {
+                "name": "beta",
+                "use-brackets-p": true
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "entity",
+              "begin": 29,
+              "end": 35,
+              "props": {
+                "name": "Gamma",
+                "use-brackets-p": false
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nArrows "
+            },
+            {
+              "type": "entity",
+              "begin": 44,
+              "end": 55,
+              "props": {
+                "name": "rightarrow",
+                "use-brackets-p": false
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "entity",
+              "begin": 60,
+              "end": 63,
+              "props": {
+                "name": "to",
+                "use-brackets-p": false
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nSpaces a"
+            },
+            {
+              "type": "entity",
+              "begin": 73,
+              "end": 80,
+              "props": {
+                "name": "nbsp",
+                "use-brackets-p": true
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "b and "
+            },
+            {
+              "type": "entity",
+              "begin": 86,
+              "end": 89,
+              "props": {
+                "name": "_ ",
+                "use-brackets-p": false
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "and "
+            },
+            {
+              "type": "entity",
+              "begin": 93,
+              "end": 97,
+              "props": {
+                "name": "_  ",
+                "use-brackets-p": false
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nUnknown "
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 107,
+              "end": 119,
+              "props": {
+                "value": "\\notanentity"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " stays text.\nCopyright "
+            },
+            {
+              "type": "entity",
+              "begin": 142,
+              "end": 147,
+              "props": {
+                "name": "copy",
+                "use-brackets-p": false
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " 2024.\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

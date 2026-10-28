@@ -1,0 +1,155 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 115,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 11,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Ref"
+            },
+            {
+              "type": "footnote-reference",
+              "begin": 3,
+              "end": 9,
+              "props": {
+                "label": "x",
+                "type": "standard"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        },
+        {
+          "type": "footnote-definition",
+          "begin": 12,
+          "end": 89,
+          "props": {
+            "label": "x"
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 19,
+              "end": 43,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Definition with a list:\n"
+                }
+              ]
+            },
+            {
+              "type": "plain-list",
+              "begin": 43,
+              "end": 51,
+              "props": {
+                "type": "unordered"
+              },
+              "children": [
+                {
+                  "type": "item",
+                  "begin": 43,
+                  "end": 47,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": null,
+                    "counter": null,
+                    "tag": null
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 45,
+                      "end": 47,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "a\n"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "item",
+                  "begin": 47,
+                  "end": 51,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": null,
+                    "counter": null,
+                    "tag": null
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 49,
+                      "end": 51,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "b\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "begin": 52,
+              "end": 89,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Paragraph after the definition list.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "footnote-definition",
+          "begin": 89,
+          "end": 115,
+          "props": {
+            "label": "y"
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 96,
+              "end": 115,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "Second definition.\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 92,
+      "props": {},
+      "children": [
+        {
+          "type": "plain-list",
+          "begin": 0,
+          "end": 22,
+          "props": {
+            "type": "unordered"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 0,
+              "end": 11,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 2,
+                  "end": 11,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "item one\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 11,
+              "end": 22,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 13,
+                  "end": 22,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "item two\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "plain-list",
+          "begin": 24,
+          "end": 92,
+          "props": {
+            "type": "unordered"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 24,
+              "end": 57,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 26,
+                  "end": 57,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "new list after two blank lines\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 58,
+              "end": 92,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 60,
+                  "end": 92,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "item with one blank line before\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 92,
+      "end": 127,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Headline ends the list",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Headline ends the list"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 117,
+          "end": 127,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-list",
+              "begin": 117,
+              "end": 127,
+              "props": {
+                "type": "unordered"
+              },
+              "children": [
+                {
+                  "type": "item",
+                  "begin": 117,
+                  "end": 127,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": null,
+                    "counter": null,
+                    "tag": null
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 119,
+                      "end": 127,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "another\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

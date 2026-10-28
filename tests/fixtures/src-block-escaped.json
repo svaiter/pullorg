@@ -1,0 +1,25 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 99,
+      "props": {},
+      "children": [
+        {
+          "type": "src-block",
+          "begin": 0,
+          "end": 99,
+          "props": {
+            "language": "org",
+            "switches": null,
+            "parameters": null,
+            "value": "* Not a headline\n#+begin_example\ninner\n#+end_example\n,* double comma\n"
+          },
+          "children": []
+        }
+      ]
+    }
+  ]
+}

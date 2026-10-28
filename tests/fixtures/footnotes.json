@@ -1,0 +1,201 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 199,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 123,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Text with a reference"
+            },
+            {
+              "type": "footnote-reference",
+              "begin": 21,
+              "end": 27,
+              "props": {
+                "label": "1",
+                "type": "standard"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and a named one"
+            },
+            {
+              "type": "footnote-reference",
+              "begin": 43,
+              "end": 52,
+              "props": {
+                "label": "note",
+                "type": "standard"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nInline"
+            },
+            {
+              "type": "footnote-reference",
+              "begin": 60,
+              "end": 87,
+              "props": {
+                "label": "inl",
+                "type": "inline"
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": " with "
+                },
+                {
+                  "type": "bold",
+                  "begin": 74,
+                  "end": 86,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "definition"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and anonymous"
+            },
+            {
+              "type": "footnote-reference",
+              "begin": 101,
+              "end": 121,
+              "props": {
+                "label": null,
+                "type": "inline"
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": " anonymous def"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        },
+        {
+          "type": "footnote-definition",
+          "begin": 124,
+          "end": 151,
+          "props": {
+            "label": "1"
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 131,
+              "end": 151,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "The first footnote.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "footnote-definition",
+          "begin": 152,
+          "end": 199,
+          "props": {
+            "label": "note"
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 162,
+              "end": 199,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "A named footnote\nspanning two lines.\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 200,
+      "end": 244,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": true,
+        "raw-value": "Footnotes",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Footnotes"
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 212,
+          "end": 244,
+          "props": {},
+          "children": [
+            {
+              "type": "footnote-definition",
+              "begin": 212,
+              "end": 244,
+              "props": {
+                "label": "2"
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 219,
+                  "end": 244,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "In the footnote section.\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

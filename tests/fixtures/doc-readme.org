@@ -1,0 +1,43 @@
+#+TITLE: pulldown-org
+#+AUTHOR: Jane Doe
+#+OPTIONS: toc:2
+
+* Introduction
+=pulldown-org= is a /pull parser/ for [[https://orgmode.org][Org-mode]],
+modelled on [[https://docs.rs/pulldown-cmark][pulldown-cmark]].
+
+** Features
+- Fast :: no allocations for most events
+- Faithful :: follows =org-element.el=
+- Small :: one dependency[fn:1]
+
+** Installation
+Add this to your =Cargo.toml=:
+
+#+begin_src toml
+[dependencies]
+pulldown-org = "0.1"
+#+end_src
+
+* Usage
+#+NAME: example-usage
+#+begin_src rust
+use pulldown_org::{html, Parser};
+
+let parser = Parser::new("* Hello\n*world*");
+let mut out = String::new();
+html::push_html(&mut out, parser);
+#+end_src
+
+The output is:
+
+#+begin_example
+<h1>Hello</h1>
+<p><b>world</b></p>
+#+end_example
+
+* License
+Dual-licensed under MIT or Apache-2.0, at your option.
+
+* Footnotes
+[fn:1] Only =clap=, and only for the CLI.

@@ -1,0 +1,176 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 111,
+      "props": {},
+      "children": [
+        {
+          "type": "plain-list",
+          "begin": 0,
+          "end": 111,
+          "props": {
+            "type": "descriptive"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 0,
+              "end": 21,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": [
+                  {
+                    "type": "plain-text",
+                    "value": "term"
+                  }
+                ]
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 10,
+                  "end": 21,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "definition\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 21,
+              "end": 50,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": [
+                  {
+                    "type": "bold",
+                    "begin": 23,
+                    "end": 34,
+                    "props": {},
+                    "children": [
+                      {
+                        "type": "plain-text",
+                        "value": "bold term"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 38,
+                  "end": 50,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "with markup\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 50,
+              "end": 64,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 52,
+                  "end": 64,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "no tag here\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 64,
+              "end": 81,
+              "props": {
+                "bullet": "+ ",
+                "checkbox": null,
+                "counter": null,
+                "tag": [
+                  {
+                    "type": "plain-text",
+                    "value": "plus"
+                  }
+                ]
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 74,
+                  "end": 81,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "bullet\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 81,
+              "end": 111,
+              "props": {
+                "bullet": "- ",
+                "checkbox": "on",
+                "counter": null,
+                "tag": [
+                  {
+                    "type": "plain-text",
+                    "value": "checked term"
+                  }
+                ]
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 103,
+                  "end": 111,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "and tag\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

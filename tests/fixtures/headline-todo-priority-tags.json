@@ -1,0 +1,241 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "headline",
+      "begin": 0,
+      "end": 41,
+      "props": {
+        "level": 1,
+        "todo-keyword": "TODO",
+        "todo-type": "todo",
+        "priority": "A",
+        "tags": [
+          "work",
+          "rust"
+        ],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Write the parser",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Write the parser"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 41,
+      "end": 56,
+      "props": {
+        "level": 1,
+        "todo-keyword": "DONE",
+        "todo-type": "done",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Ship it",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Ship it"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 56,
+      "end": 79,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": "C",
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Only a priority",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Only a priority"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 79,
+      "end": 158,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [
+          "a",
+          "b_c",
+          "@home"
+        ],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Tags only",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Tags only"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 158,
+      "end": 165,
+      "props": {
+        "level": 1,
+        "todo-keyword": "TODO",
+        "todo-type": "todo",
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "",
+        "title": []
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 165,
+      "end": 198,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": true,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Commented out headline",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Commented out headline"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 198,
+      "end": 219,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [
+          "ARCHIVE"
+        ],
+        "commentedp": false,
+        "archivedp": true,
+        "footnote-section-p": false,
+        "raw-value": "Archived",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Archived"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 219,
+      "end": 262,
+      "props": {
+        "level": 1,
+        "todo-keyword": "TODO",
+        "todo-type": "todo",
+        "priority": "B",
+        "tags": [
+          "x"
+        ],
+        "commentedp": true,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Everything at once",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Everything at once"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 262,
+      "end": 286,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "NOTTODO not a keyword",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "NOTTODO not a keyword"
+          }
+        ]
+      },
+      "children": []
+    },
+    {
+      "type": "headline",
+      "begin": 286,
+      "end": 298,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": true,
+        "raw-value": "Footnotes",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Footnotes"
+          }
+        ]
+      },
+      "children": []
+    }
+  ]
+}

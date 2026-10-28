@@ -1,0 +1,241 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 443,
+      "props": {},
+      "children": [
+        {
+          "type": "table",
+          "begin": 0,
+          "end": 159,
+          "props": {
+            "type": "org",
+            "tblfm": [],
+            "value": null,
+            "affiliated": [
+              {
+                "key": "ATTR_HTML",
+                "value": ":border 2 :rules all",
+                "optional": null
+              },
+              {
+                "key": "ATTR_LATEX",
+                "value": ":environment longtable",
+                "optional": null
+              },
+              {
+                "key": "CAPTION",
+                "value": "A long *caption*",
+                "optional": "Short"
+              },
+              {
+                "key": "CAPTION",
+                "value": "second caption",
+                "optional": null
+              },
+              {
+                "key": "NAME",
+                "value": "my-table",
+                "optional": null
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "table-row",
+              "begin": 149,
+              "end": 159,
+              "props": {
+                "type": "standard"
+              },
+              "children": [
+                {
+                  "type": "table-cell",
+                  "begin": 150,
+                  "end": 154,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "a"
+                    }
+                  ]
+                },
+                {
+                  "type": "table-cell",
+                  "begin": 154,
+                  "end": 158,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "b"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "src-block",
+          "begin": 160,
+          "end": 254,
+          "props": {
+            "language": "sh",
+            "switches": null,
+            "parameters": null,
+            "value": "echo $x\n",
+            "affiliated": [
+              {
+                "key": "HEADER",
+                "value": ":exports code",
+                "optional": null
+              },
+              {
+                "key": "HEADER",
+                "value": ":var x=1",
+                "optional": null
+              },
+              {
+                "key": "NAME",
+                "value": "src-name",
+                "optional": null
+              }
+            ]
+          },
+          "children": []
+        },
+        {
+          "type": "fixed-width",
+          "begin": 255,
+          "end": 287,
+          "props": {
+            "value": "1",
+            "affiliated": [
+              {
+                "key": "RESULTS",
+                "value": "src-name",
+                "optional": "abc123"
+              }
+            ]
+          },
+          "children": []
+        },
+        {
+          "type": "table",
+          "begin": 288,
+          "end": 333,
+          "props": {
+            "type": "org",
+            "tblfm": [],
+            "value": null,
+            "affiliated": [
+              {
+                "key": "NAME",
+                "value": "old-style",
+                "optional": null
+              },
+              {
+                "key": "PLOT",
+                "value": "title:\"x\"",
+                "optional": null
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "table-row",
+              "begin": 327,
+              "end": 333,
+              "props": {
+                "type": "standard"
+              },
+              "children": [
+                {
+                  "type": "table-cell",
+                  "begin": 328,
+                  "end": 332,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "keyword",
+          "begin": 334,
+          "end": 349,
+          "props": {
+            "key": "NAME",
+            "value": "orphan"
+          },
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "begin": 350,
+          "end": 401,
+          "props": {
+            "affiliated": [
+              {
+                "key": "CAPTION",
+                "value": "before paragraph",
+                "optional": null
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "A captioned paragraph.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 402,
+          "end": 443,
+          "props": {
+            "affiliated": [
+              {
+                "key": "ATTR_ORG",
+                "value": ":width 10",
+                "optional": null
+              }
+            ]
+          },
+          "children": [
+            {
+              "type": "link",
+              "begin": 424,
+              "end": 442,
+              "props": {
+                "type": "file",
+                "path": "image.png",
+                "format": "bracket",
+                "raw-link": "file:image.png",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

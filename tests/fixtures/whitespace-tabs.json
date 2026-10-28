@@ -1,0 +1,72 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 73,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 25,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "\tTab-indented paragraph.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 28,
+          "end": 57,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Line with trailing spaces   \n"
+            }
+          ]
+        },
+        {
+          "type": "plain-list",
+          "begin": 57,
+          "end": 73,
+          "props": {
+            "type": "unordered"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 57,
+              "end": 73,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 59,
+                  "end": 73,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "item\twith tab\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

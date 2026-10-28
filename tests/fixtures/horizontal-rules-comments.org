@@ -1,0 +1,15 @@
+Before.
+-----
+After.
+----
+Four dashes is text.
+
+# A comment
+# spanning lines
+#not a comment
+
+: fixed width
+: area
+:not fixed
+
+%%(diary-anniversary 10 31 1948) Birthday

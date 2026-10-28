@@ -1,0 +1,336 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 485,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 485,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Plain "
+            },
+            {
+              "type": "link",
+              "begin": 6,
+              "end": 32,
+              "props": {
+                "type": "https",
+                "path": "//orgmode.org/manual",
+                "format": "plain",
+                "raw-link": "https://orgmode.org/manual",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "link",
+              "begin": 37,
+              "end": 58,
+              "props": {
+                "type": "mailto",
+                "path": "me@example.com",
+                "format": "plain",
+                "raw-link": "mailto:me@example.com",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " links.\nAngle "
+            },
+            {
+              "type": "link",
+              "begin": 72,
+              "end": 97,
+              "props": {
+                "type": "https",
+                "path": "//example.com/a b",
+                "format": "angle",
+                "raw-link": "https://example.com/a b",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " link.\nBracket "
+            },
+            {
+              "type": "link",
+              "begin": 112,
+              "end": 153,
+              "props": {
+                "type": "https",
+                "path": "//example.com",
+                "format": "bracket",
+                "raw-link": "https://example.com",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "with description"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "link",
+              "begin": 158,
+              "end": 181,
+              "props": {
+                "type": "https",
+                "path": "//example.com",
+                "format": "bracket",
+                "raw-link": "https://example.com",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nFuzzy "
+            },
+            {
+              "type": "link",
+              "begin": 189,
+              "end": 205,
+              "props": {
+                "type": "fuzzy",
+                "path": "Some heading",
+                "format": "bracket",
+                "raw-link": "Some heading",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ", custom-id "
+            },
+            {
+              "type": "link",
+              "begin": 217,
+              "end": 227,
+              "props": {
+                "type": "custom-id",
+                "path": "my-id",
+                "format": "bracket",
+                "raw-link": "#my-id",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ", id "
+            },
+            {
+              "type": "link",
+              "begin": 232,
+              "end": 246,
+              "props": {
+                "type": "id",
+                "path": "abc-123",
+                "format": "bracket",
+                "raw-link": "id:abc-123",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nFile "
+            },
+            {
+              "type": "link",
+              "begin": 253,
+              "end": 292,
+              "props": {
+                "type": "file",
+                "path": "notes.org",
+                "format": "bracket",
+                "raw-link": "file:notes.org::*Heading",
+                "search-option": "*Heading",
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "file link"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "link",
+              "begin": 297,
+              "end": 312,
+              "props": {
+                "type": "file",
+                "path": "./image.png",
+                "format": "bracket",
+                "raw-link": "./image.png",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "link",
+              "begin": 317,
+              "end": 339,
+              "props": {
+                "type": "file",
+                "path": "foo.org",
+                "format": "bracket",
+                "raw-link": "file+emacs:foo.org",
+                "search-option": null,
+                "application": "emacs"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nCoderef "
+            },
+            {
+              "type": "link",
+              "begin": 349,
+              "end": 358,
+              "props": {
+                "type": "coderef",
+                "path": "ref",
+                "format": "bracket",
+                "raw-link": "(ref)",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and internal "
+            },
+            {
+              "type": "link",
+              "begin": 372,
+              "end": 384,
+              "props": {
+                "type": "fuzzy",
+                "path": "*Heading",
+                "format": "bracket",
+                "raw-link": "*Heading",
+                "search-option": null,
+                "application": null
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nDescription with markup "
+            },
+            {
+              "type": "link",
+              "begin": 410,
+              "end": 440,
+              "props": {
+                "type": "https",
+                "path": "//x.y",
+                "format": "bracket",
+                "raw-link": "https://x.y",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "bold",
+                  "begin": 425,
+                  "end": 431,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " "
+                },
+                {
+                  "type": "verbatim",
+                  "begin": 432,
+                  "end": 438,
+                  "props": {
+                    "value": "code"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nEscaped "
+            },
+            {
+              "type": "link",
+              "begin": 450,
+              "end": 483,
+              "props": {
+                "type": "https",
+                "path": "//example.com/a]b",
+                "format": "bracket",
+                "raw-link": "https://example.com/a]b",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "esc"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

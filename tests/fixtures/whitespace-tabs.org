@@ -1,0 +1,4 @@
+	Tab-indented paragraph.
+  
+Line with trailing spaces   
+- item	with tab

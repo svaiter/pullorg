@@ -1,0 +1,5 @@
+- term :: definition
+- *bold term* :: with markup
+- no tag here
++ plus :: bullet
+- [X] checked term :: and tag

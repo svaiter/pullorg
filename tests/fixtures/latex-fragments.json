@@ -1,0 +1,112 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 185,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 143,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Inline "
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 7,
+              "end": 12,
+              "props": {
+                "value": "$x^2$"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 17,
+              "end": 31,
+              "props": {
+                "value": "$$y = mx + b$$"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nParens "
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 40,
+              "end": 49,
+              "props": {
+                "value": "\\(a + b\\)"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and brackets "
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 63,
+              "end": 72,
+              "props": {
+                "value": "\\[c = d\\]"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nCommand "
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 82,
+              "end": 93,
+              "props": {
+                "value": "\\frac{1}{2}"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": " and "
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 98,
+              "end": 119,
+              "props": {
+                "value": "\\enlargethispage{2cm}"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\nNot math: $5 and $10.\n"
+            }
+          ]
+        },
+        {
+          "type": "latex-environment",
+          "begin": 144,
+          "end": 185,
+          "props": {
+            "value": "\\begin{equation}\nE = mc^2\n\\end{equation}\n"
+          },
+          "children": []
+        }
+      ]
+    }
+  ]
+}
