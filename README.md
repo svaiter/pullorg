@@ -11,6 +11,15 @@ document and, where the two differ, the reference implementation in Emacs
 the event stream with the parse tree produced by `org-element-parse-buffer` on
 a corpus of fixtures.
 
+## Provenance
+
+This project was bootstrapped entirely by AI. The initial code base, tests,
+tooling and documentation were written by Claude (Claude Fable 5.1, through
+Claude Code) from a short specification, with the Emacs implementation as the
+behavioural reference. Human review of the code is ongoing; treat the first
+releases accordingly and read the test suite as the most reliable statement of
+what is verified.
+
 ## Library
 
 ```rust
