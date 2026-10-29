@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Benchmark suite under `benches/`: Criterion targets for parsing, HTML
+  rendering, each element and object kind, and scaling on adversarial
+  inputs, plus a deterministic allocation report (`cargo bench --bench
+  alloc`). `tools/bench-compare.sh` compares the working tree with a git
+  ref. Replaces the rough timing example.
 - `Options::link_types` registers link types, as `org-link-set-parameters`
   does in Emacs: `[[media:key]]`, `<media:key>` and a plain `media:key` are
   then links of type `media` instead of fuzzy links or text.

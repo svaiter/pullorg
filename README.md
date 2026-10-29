@@ -126,6 +126,14 @@ its git tag and fails if the committed trees drift. `tools/org-parse.sh 'snippet
 prints the raw `org-element` tree for any snippet, which is the quickest way
 to settle a question about the syntax.
 
+## Benchmarks
+
+`cargo bench` runs a Criterion suite over generated corpora (a realistic
+notes file, plain prose, markup-dense paragraphs, element-heavy documents,
+adversarial inputs at several sizes) and `cargo bench --bench alloc` prints
+a deterministic allocation report. `benches/README.md` describes the
+targets, the corpora, and how to compare two commits.
+
 ## Status
 
 Early, but complete: every element and object of the Org syntax is parsed,
