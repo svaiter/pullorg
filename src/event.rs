@@ -20,6 +20,7 @@ use crate::strings::CowStr;
 /// Containers produce a `Start(Tag)` event, followed by their content, then an
 /// `End(TagEnd)` event. All other variants are leaves.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum Event<'a> {
     /// Start of a container (element or object).
     Start(Tag<'a>),
@@ -168,6 +169,7 @@ pub enum Event<'a> {
 
 /// Tags for container events.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum Tag<'a> {
     // ---- Elements -------------------------------------------------------
     /// A headline. Its content is: a [`Tag::Title`] holding the title
@@ -369,6 +371,7 @@ impl<'a> Tag<'a> {
 /// container is being closed. Variants mirror [`Tag`].
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum TagEnd {
     Headline,
     Title,

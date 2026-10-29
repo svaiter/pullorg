@@ -11,6 +11,10 @@ document and, where the two differ, the reference implementation in Emacs
 the event stream with the parse tree produced by `org-element-parse-buffer` on
 a corpus of fixtures.
 
+**Human note**: This is a fully vibecoded crate that does the job for my
+personal website. It is in very early stage, so expect breakage as I
+experiment with it.
+
 ## Provenance
 
 This project was bootstrapped entirely by AI. The initial code base, tests,
@@ -63,10 +67,8 @@ use pullorg::{Options, Parser};
 // Like `org-link-set-parameters`: `[[media:key]]` is now a link of type
 // `media` with path `key` (instead of a `fuzzy` link), and so is a plain
 // `media:key` in text.
-let options = Options {
-    link_types: vec!["media".to_string()],
-    ..Options::default()
-};
+let mut options = Options::default();
+options.link_types = vec!["media".to_string()];
 let parser = Parser::new_ext("[[media:key][a picture]]", options);
 ```
 

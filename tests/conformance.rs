@@ -409,6 +409,8 @@ fn start_node(tag: &Tag<'_>, range: &Range<usize>, src: &str) -> (FrameKind, Map
                 json!({"style": opt(style), "prefix": opt(prefix), "suffix": opt(suffix)}),
             ),
         ),
+        // `Tag` is non-exhaustive: a new variant fails here until it is mapped.
+        _ => panic!("no conversion for {tag:?}"),
     }
 }
 
@@ -525,6 +527,8 @@ fn leaf_node(event: &Event<'_>, range: &Range<usize>) -> Option<Map<String, Valu
             json!({"key": key.as_ref(), "value": value.as_ref()}),
         ),
         Event::Start(_) | Event::End(_) | Event::Text(_) | Event::SoftBreak => None,
+        // `Event` is non-exhaustive: a new variant fails here until it is mapped.
+        _ => panic!("no conversion for {event:?}"),
     }
 }
 

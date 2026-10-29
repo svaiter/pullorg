@@ -129,38 +129,34 @@ fn objects(c: &mut Criterion) {
 /// The same `mixed` input under the options that change object parsing.
 fn options(c: &mut Criterion) {
     let text = common::markup(SIZE);
+    // `Options` is non-exhaustive: start from the defaults and set fields.
+    let with = |set: fn(&mut Options)| {
+        let mut options = Options::default();
+        set(&mut options);
+        options
+    };
     let cases: Vec<(&str, Options)> = vec![
         ("default", Options::default()),
         (
             "sub-superscripts-braces",
-            Options {
-                sub_superscripts: SubSuperscripts::Braces,
-                ..Options::default()
-            },
+            with(|o| o.sub_superscripts = SubSuperscripts::Braces),
         ),
         (
             "sub-superscripts-never",
-            Options {
-                sub_superscripts: SubSuperscripts::Never,
-                ..Options::default()
-            },
+            with(|o| o.sub_superscripts = SubSuperscripts::Never),
         ),
         (
             "link-abbreviations",
-            Options {
-                link_abbreviations: vec![
+            with(|o| {
+                o.link_abbreviations = vec![
                     ("gh".into(), "https://github.com/".into()),
                     ("doi".into(), "https://doi.org/%s".into()),
-                ],
-                ..Options::default()
-            },
+                ]
+            }),
         ),
         (
             "link-types",
-            Options {
-                link_types: vec!["media".into(), "lecture".into(), "lecture-pdf".into()],
-                ..Options::default()
-            },
+            with(|o| o.link_types = vec!["media".into(), "lecture".into(), "lecture-pdf".into()]),
         ),
     ];
     let mut group = c.benchmark_group("objects-options");

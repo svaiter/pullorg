@@ -1,21 +1,6 @@
 # Changelog
 
-## Unreleased
-
-- Benchmark suite under `benches/`: Criterion targets for parsing, HTML
-  rendering, each element and object kind, and scaling on adversarial
-  inputs, plus a deterministic allocation report (`cargo bench --bench
-  alloc`). `tools/bench-compare.sh` compares the working tree with a git
-  ref. Replaces the rough timing example.
-- `Options::link_types` registers link types, as `org-link-set-parameters`
-  does in Emacs: `[[media:key]]`, `<media:key>` and a plain `media:key` are
-  then links of type `media` instead of fuzzy links or text.
-- `Parser::new_inline` / `Parser::new_inline_ext` parse a string as objects
-  only (a secondary string), e.g. the parameters of a special block.
-- The HTML renderer removes the common indentation of source and example
-  blocks (`org-remove-indentation`), unless the `-i` switch is given.
-- Documented how the event stream maps to `org-element`'s `:contents-begin`
-  of items, `:post-blank`, table cell ranges and raw block parameters.
+## 0.1.0 — 2026-10-29
 
 Initial release.
 
@@ -33,3 +18,20 @@ Initial release.
 - Conformance suite comparing the event stream with Emacs'
   `org-element-parse-buffer` (Org 9.8.3) on 47 fixtures; also verified on
   the Org manual, the Org guide and ORG-NEWS.
+- `Event`, `Tag`, `TagEnd` and `Options` are `#[non_exhaustive]`, so new
+  syntax and options can be added without a breaking release: match them
+  with a `_` arm, and build `Options` from `Options::default()`.
+- Benchmark suite under `benches/`: Criterion targets for parsing, HTML
+  rendering, each element and object kind, and scaling on adversarial
+  inputs, plus a deterministic allocation report (`cargo bench --bench
+  alloc`). `tools/bench-compare.sh` compares the working tree with a git
+  ref.
+- `Options::link_types` registers link types, as `org-link-set-parameters`
+  does in Emacs: `[[media:key]]`, `<media:key>` and a plain `media:key` are
+  then links of type `media` instead of fuzzy links or text.
+- `Parser::new_inline` / `Parser::new_inline_ext` parse a string as objects
+  only (a secondary string), e.g. the parameters of a special block.
+- The HTML renderer removes the common indentation of source and example
+  blocks (`org-remove-indentation`), unless the `-i` switch is given.
+- Documented how the event stream maps to `org-element`'s `:contents-begin`
+  of items, `:post-blank`, table cell ranges and raw block parameters.
