@@ -6,6 +6,7 @@
 /// settings (`#+TODO:`, `#+OPTIONS:`, `#+LINK:`, ...) found in the document
 /// override these defaults, exactly as Emacs does.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Options {
     /// TODO keywords denoting open tasks. Default: `["TODO"]`.
     pub todo_keywords: Vec<String>,

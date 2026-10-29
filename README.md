@@ -63,10 +63,8 @@ use pullorg::{Options, Parser};
 // Like `org-link-set-parameters`: `[[media:key]]` is now a link of type
 // `media` with path `key` (instead of a `fuzzy` link), and so is a plain
 // `media:key` in text.
-let options = Options {
-    link_types: vec!["media".to_string()],
-    ..Options::default()
-};
+let mut options = Options::default();
+options.link_types = vec!["media".to_string()];
 let parser = Parser::new_ext("[[media:key][a picture]]", options);
 ```
 
