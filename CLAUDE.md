@@ -16,6 +16,9 @@ secondary. When they disagree, Emacs wins.
 - `src/entities.rs` generated: `emacs --batch -Q -l org -l tools/gen-entities.el > src/entities.rs`.
 - `tests/conformance.rs` + `tests/fixtures/*.org|json` comparison with Emacs.
 - `tests/robustness.rs` random-input no-panic tests.
+- `benches/` Criterion suite (`parse`, `html`, `elements`, `objects`,
+  `scaling`) and `alloc`, a deterministic allocation report; corpora are
+  generated in `benches/common/mod.rs`. See `benches/README.md`.
 
 ## Conventions
 
@@ -36,5 +39,10 @@ secondary. When they disagree, Emacs wins.
   `ORG_LOAD_PATH` pointing at a checkout of it), commit both files. `PULLORG_FIXTURE=name cargo test
   --test conformance` runs one. Never hand-edit the `.json`.
 - Before committing: `cargo fmt`, `cargo test`, `cargo clippy --all-targets`.
+- For a change that touches a hot path: `cargo bench --bench alloc` before
+  and after (exact counts, no noise), then `sh tools/bench-compare.sh main
+  --bench parse` for timings. New syntax gets a line in `benches/elements.rs`
+  or `benches/objects.rs`; a new pathological pattern goes in
+  `common::adversarial`.
 - `ref/` (gitignored) may hold a local copy of the GPL Org Elisp sources for
   reading; never copy code or docstrings from it into the repo.
