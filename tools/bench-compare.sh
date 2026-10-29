@@ -8,10 +8,13 @@
 # a Criterion baseline named after the ref; the working tree is then
 # benchmarked against that baseline. The benchmark sources, Cargo.toml and
 # Cargo.lock of the working tree are used on both sides, so only src/
-# differs. Both runs share the target directory
-# (CARGO_TARGET_DIR or ./target), so the baseline is kept under
-# target/criterion and can be reused later with
-# `cargo bench -- --baseline NAME`. The working tree itself is not touched.
+# differs. REF is compiled in its own target directory (target/baseline),
+# never in the working tree's: Cargo names artifacts by the path relative
+# to the workspace root, so two checkouts sharing a target directory
+# silently reuse each other's stale builds. Criterion's data does go to the
+# shared target/criterion (CRITERION_HOME), so the baseline can be reused
+# later with `cargo bench -- --baseline NAME`. The working tree itself is
+# not touched.
 #
 # Arguments before `--` go to cargo (e.g. `--bench parse`); arguments after
 # it go to the benchmark binary (e.g. a filter, `--quick`).
@@ -63,8 +66,10 @@ cp "$root/Cargo.toml" "$root/Cargo.lock" "$worktree/"
 rm -rf "$worktree/tests/fixtures"
 cp -R "$root/tests/fixtures" "$worktree/tests/fixtures"
 # shellcheck disable=SC2086
-(cd "$worktree" && CARGO_TARGET_DIR="$target" cargo bench $cargo_args -- --save-baseline "$name" $bench_args)
+(cd "$worktree" && CARGO_TARGET_DIR="$target/baseline" CRITERION_HOME="$target/criterion" \
+    cargo bench $cargo_args -- --save-baseline "$name" $bench_args)
 
 echo "==> working tree against '$name'"
 # shellcheck disable=SC2086
-(cd "$root" && CARGO_TARGET_DIR="$target" cargo bench $cargo_args -- --baseline "$name" $bench_args)
+(cd "$root" && CARGO_TARGET_DIR="$target" CRITERION_HOME="$target/criterion" \
+    cargo bench $cargo_args -- --baseline "$name" $bench_args)
