@@ -11,7 +11,7 @@ cargo bench --bench parse                # one target
 cargo bench --bench parse -- parse/notes # one benchmark (the filter is a regex)
 cargo bench -- --quick                   # fewer samples, a rough first look
 cargo bench --bench alloc                # allocation report (seconds)
-cargo test --benches                     # run every benchmark once, as CI does
+cargo test --benches                     # run every benchmark once, no timing
 ```
 
 Results land in `target/criterion/`; Criterion prints each estimate with a
@@ -122,6 +122,7 @@ increments two atomics.
 - A new document shape: add a generator to `common/mod.rs` and list it in
   `documents()`; it then runs in `parse`, `html`, `scaling` and `alloc`.
 
-Every benchmark must run under `cargo test --benches` (CI does) and must be
+Every benchmark must run under `cargo test --benches` (CI compiles them, run
+this before pushing) and must be
 deterministic: no randomness outside `common::Rng`, no clock, no files
 outside `tests/fixtures` unless opted in through `PULLORG_BENCH_CORPUS`.
