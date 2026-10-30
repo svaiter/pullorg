@@ -554,6 +554,15 @@ pub mod adversarial {
         vec![
             Corpus::new("unclosed-emphasis", repeat("*a /b _c +d =e ~f ", size)),
             Corpus::new("unclosed-links", repeat("[[a [b [fn:c [cite:@d ", size)),
+            Corpus::new(
+                "backslash-heavy-link",
+                format!("[[{}a]]", "\\".repeat(size)),
+            ),
+            Corpus::new(
+                "escaped-brackets-in-link",
+                format!("[[{}z]]", repeat("a\\]", size)),
+            ),
+            Corpus::new("failed-bracket-openers", repeat("[[a\\[", size)),
             Corpus::new("unclosed-latex", repeat("\\( \\[ $$a $b {{{m( @@h: ", size)),
             Corpus::new("emphasis-pairs", repeat("*a* /b/ _c_ +d+ =e= ~f~ ", size)),
             Corpus::new("one-long-line", long_line(size)),

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Scan backslash runs in bracket links once, avoiding quadratic work on long
+  runs. Follow Emacs' endpoint preference when an even-length run permits
+  either closing the link or consuming an escaped closing bracket.
 - Index closing delimiters lazily and share their positions across element
   searches, avoiding repeated suffix scans for unterminated blocks, drawers
   and LaTeX environments, including openers inside lists.

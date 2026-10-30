@@ -67,3 +67,52 @@ fn unterminated_delimiters_inside_a_list_do_not_rescan_the_suffix() {
         assert_eq!(items, 2, "{opener}");
     }
 }
+
+#[test]
+fn long_backslash_runs_preserve_link_paths_and_ranges() {
+    for n in [40_000, 40_001] {
+        for bracket in [false, true] {
+            let text = format!(
+                "[[{}{}",
+                "\\".repeat(n),
+                if bracket { "]]]" } else { "a]]" }
+            );
+            let expected = if bracket {
+                format!(
+                    "{}{}",
+                    "\\".repeat(n / 2),
+                    if n % 2 == 1 { "]" } else { "" }
+                )
+            } else {
+                format!("{}a", "\\".repeat(n))
+            };
+            let links: Vec<_> = Parser::new_inline(&text)
+                .into_offset_iter()
+                .filter_map(|(event, range)| match event {
+                    Event::Start(Tag::Link(link)) => Some((link.path, range)),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(links.len(), 1);
+            assert!(links[0].0 == expected, "link unescaping changed");
+            assert_eq!(
+                links[0].1,
+                0..text.len() - usize::from(bracket && n % 2 == 0)
+            );
+        }
+    }
+}
+
+#[test]
+fn failed_link_openers_do_not_hide_the_final_valid_link() {
+    for unit in ["[[a", "[[a\\["] {
+        let text = format!("{} [[valid][description]]", unit.repeat(30_000));
+        let links: Vec<_> = Parser::new_inline(&text)
+            .filter_map(|event| match event {
+                Event::Start(Tag::Link(link)) => Some(link.path),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(links, ["valid"]);
+    }
+}

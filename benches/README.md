@@ -65,6 +65,8 @@ Org's supported sub/superscript depth.
 The unterminated-delimiter cases also cover distinct block names, openers
 inside lists, and LaTeX environments, so caching only one failed block name
 cannot hide repeated suffix scans.
+Link cases include long backslash runs, escaped brackets throughout a URI,
+and repeated failed bracket-link openers.
 
 To benchmark real documents, point `PULLORG_BENCH_CORPUS` at a directory:
 every `.org` file in it is added to `parse/<name>`, `html/<name>` and the
