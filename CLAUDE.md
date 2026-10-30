@@ -8,9 +8,9 @@ secondary. When they disagree, Emacs wins.
 ## Layout
 
 - `src/event.rs` public `Event`/`Tag`/`TagEnd` vocabulary and data structs.
-- `src/element/` block-level parser: builds the element tree (`parse_document`).
+- `src/element/` block-level parser: builds the element arena (`parse_document`).
 - `src/object/` inline parser: `parse_objects(text, range, restriction, settings, out)`.
-- `src/parser.rs` the `Parser` iterator: flattens the element tree, parses objects lazily.
+- `src/parser.rs` the `Parser` iterator: walks the element arena, parses objects lazily.
 - `src/html.rs` renderer (`push_html`, `write_html_fmt`, `write_html_io`).
 - `src/bin/main.rs` CLI.
 - `src/entities.rs` generated: `emacs --batch -Q -l org -l tools/gen-entities.el > src/entities.rs`.

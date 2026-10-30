@@ -1,6 +1,6 @@
 //! Element (block level) parsing.
 //!
-//! This pass turns the whole document into a tree of [`Element`]s. Containers
+//! This pass turns the whole document into a flat arena of [`Element`]s. Containers
 //! holding objects (paragraphs, verse blocks, table cells, headline titles,
 //! item tags) only record the byte range of their content: objects are parsed
 //! lazily by [`crate::object`] when the events are pulled.
@@ -24,7 +24,7 @@ use crate::strings::CowStr;
 use parse::{ElemParser, Mode};
 use text::Src;
 
-/// A parsed element and its children.
+/// A parsed element in the document arena.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Element<'a> {
     pub kind: ElementKind<'a>,
@@ -34,8 +34,8 @@ pub(crate) struct Element<'a> {
     pub range: Range<usize>,
     /// Affiliated keywords attached to this element, in source order.
     pub affiliated: Vec<(Keyword<'a>, Range<usize>)>,
-    /// Child elements (for greater elements).
-    pub children: Vec<Element<'a>>,
+    /// Indices of child elements in the document arena (for greater elements).
+    pub children: Vec<usize>,
 }
 
 /// The kind of an element.
@@ -140,11 +140,14 @@ pub(crate) struct Settings<'a> {
 /// The parsed document.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Document<'a> {
-    pub elements: Vec<Element<'a>>,
+    /// All elements in depth-first, pre-order. Children are indices, so building,
+    /// walking, cloning and dropping the document do not recurse.
+    pub nodes: Vec<Element<'a>>,
+    pub roots: Vec<usize>,
     pub settings: Settings<'a>,
 }
 
-/// Parse the whole document into an element tree.
+/// Parse the whole document into an element arena.
 ///
 /// Line endings: only `\n` is a line separator. A `\r` before it is kept as
 /// part of the line, which is what Emacs does when a buffer is visited with
@@ -157,37 +160,29 @@ pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'
     let cb = src.bol(src.skip_ws(0, src.len()));
     let parse = |odd: bool| {
         if cb < src.len() {
-            ElemParser::new(src, options, odd).parse_elements(
-                cb,
-                src.len(),
-                Mode::FirstSection,
-                None,
-            )
+            ElemParser::new(src, options, odd).parse_elements(cb, src.len(), Mode::FirstSection)
         } else {
-            Vec::new()
+            (Vec::new(), Vec::new())
         }
     };
-    let mut elements = parse(false);
-    let (mut settings, odd) = collect_settings(&elements, options);
+    let (mut nodes, mut roots) = parse(false);
+    let (mut settings, odd) = collect_settings(&nodes, options);
     if odd && options.inlinetask_min_level.is_some() {
         // `#+STARTUP: odd` changes which headlines are inline tasks.
-        elements = parse(true);
-        settings = collect_settings(&elements, options).0;
+        (nodes, roots) = parse(true);
+        settings = collect_settings(&nodes, options).0;
     }
-    fix_headlines(src, &mut elements, &settings, options, odd);
-    settings.radio_targets = collect_radio_targets(src, &elements);
-    Document { elements, settings }
+    fix_headlines(src, &mut nodes, &settings, options, odd);
+    settings.radio_targets = collect_radio_targets(src, &nodes);
+    Document {
+        nodes,
+        roots,
+        settings,
+    }
 }
 
 // ---------------------------------------------------------------------------
 // In-buffer settings (`org-set-regexps-and-options`).
-
-fn walk<'e, 'a>(elements: &'e [Element<'a>], f: &mut impl FnMut(&'e Element<'a>)) {
-    for e in elements {
-        f(e);
-        walk(&e.children, f);
-    }
-}
 
 /// Name of a TODO keyword without its fast access key: `TODO(t)` -> `TODO`.
 fn todo_name(tok: &str) -> &str {
@@ -243,7 +238,7 @@ pub(crate) fn collect_settings<'a>(
     let mut opts: Vec<&'a str> = Vec::new();
     let mut links: Vec<&'a str> = Vec::new();
     let mut odd = false;
-    walk(elements, &mut |e| {
+    for e in elements {
         if let ElementKind::Leaf(Event::Keyword(k)) = &e.kind {
             if let Cow::Borrowed(v) = k.value {
                 match &*k.key {
@@ -265,7 +260,7 @@ pub(crate) fn collect_settings<'a>(
                 }
             }
         }
-    });
+    }
     let mut settings = Settings {
         sub_superscripts: options.sub_superscripts,
         ..Settings::default()
@@ -510,7 +505,6 @@ fn fix_headlines<'a>(
             }
             _ => {}
         }
-        fix_headlines(src, &mut e.children, settings, options, odd);
     }
 }
 
@@ -551,14 +545,18 @@ fn collect_radio_targets<'a>(src: Src<'a>, elements: &[Element<'a>]) -> Vec<CowS
             }
         }
     };
-    walk(elements, &mut |e| match &e.kind {
-        ElementKind::Paragraph { content }
-        | ElementKind::VerseBlock { content }
-        | ElementKind::TableCell { content } => scan(content),
-        ElementKind::Headline { title, .. } | ElementKind::Inlinetask { title, .. } => scan(title),
-        ElementKind::Item { tag: Some(t), .. } => scan(t),
-        _ => {}
-    });
+    for e in elements {
+        match &e.kind {
+            ElementKind::Paragraph { content }
+            | ElementKind::VerseBlock { content }
+            | ElementKind::TableCell { content } => scan(content),
+            ElementKind::Headline { title, .. } | ElementKind::Inlinetask { title, .. } => {
+                scan(title)
+            }
+            ElementKind::Item { tag: Some(t), .. } => scan(t),
+            _ => {}
+        }
+    }
     // `org-update-radio-target-regexp`: most recent first, then longest
     // first (stable sort).
     found.reverse();

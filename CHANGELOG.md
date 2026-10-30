@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Build and traverse block structure with an explicit stack and flat element
+  arena, avoiding stack overflows for deeply nested blocks without imposing a
+  block depth limit. Subscript and superscript validation now stops at Org's
+  existing supported depth before recursing further.
+
 ## 0.1.0 — 2026-10-29
 
 Initial release.

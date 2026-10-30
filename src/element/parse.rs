@@ -29,7 +29,7 @@ pub(super) enum Mode {
     TableRow,
 }
 
-/// Element type, as far as mode switching and recursion are concerned.
+/// Element type, as far as mode switching and nesting are concerned.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Ty {
     Headline,
@@ -106,7 +106,7 @@ struct Parsed<'a> {
     ty: Ty,
     /// Emacs `:end`, where parsing resumes.
     end: usize,
-    /// Contents to parse recursively as elements.
+    /// Contents to parse as child elements.
     contents: Option<Range<usize>>,
     structure: Option<Struct>,
 }
@@ -265,36 +265,71 @@ impl<'a> ElemParser<'a> {
         &self,
         beg: usize,
         end: usize,
-        mut mode: Mode,
-        structure: Option<&Struct>,
-    ) -> Vec<Element<'a>> {
-        let mut out = Vec::new();
-        let mut pos = beg;
-        while pos < end {
-            let mut p = self.current_element(pos, end, mode, structure);
-            if let Some(c) = p.contents.clone() {
-                let child_struct = match p.ty {
-                    Ty::PlainList | Ty::Item => p.structure.clone().or_else(|| structure.cloned()),
-                    _ => None,
-                };
-                p.elem.children = self.parse_elements(
-                    c.start,
-                    c.end,
-                    next_mode(mode, p.ty, true),
-                    child_struct.as_ref(),
-                );
+        mode: Mode,
+    ) -> (Vec<Element<'a>>, Vec<usize>) {
+        // Suspend a parent's scan while visiting its contents. The arena is
+        // built in pre-order, the same order used by the settings passes.
+        struct Frame {
+            pos: usize,
+            end: usize,
+            mode: Mode,
+            structure: Option<Struct>,
+            parent: Option<usize>,
+        }
+
+        let mut nodes: Vec<Element<'a>> = Vec::new();
+        let mut roots = Vec::new();
+        let mut stack = vec![Frame {
+            pos: beg,
+            end,
+            mode,
+            structure: None,
+            parent: None,
+        }];
+        while let Some(frame) = stack.last_mut() {
+            if frame.pos >= frame.end {
+                stack.pop();
+                continue;
             }
-            let next = if p.end > pos {
+            let pos = frame.pos;
+            let p = self.current_element(pos, frame.end, frame.mode, frame.structure.as_ref());
+            let idx = nodes.len();
+            let child_frame = p.contents.map(|c| Frame {
+                pos: c.start,
+                end: c.end,
+                mode: next_mode(frame.mode, p.ty, true),
+                structure: match p.ty {
+                    Ty::PlainList | Ty::Item => p.structure.or_else(|| frame.structure.clone()),
+                    _ => None,
+                },
+                parent: Some(idx),
+            });
+            frame.pos = if p.end > pos {
                 p.end
             } else {
                 // Safety net: always make progress.
                 self.src.next_line(pos).max(pos + 1)
             };
-            out.push(p.elem);
-            mode = next_mode(mode, p.ty, false);
-            pos = next;
+            frame.mode = next_mode(frame.mode, p.ty, false);
+            if let Some(parent) = frame.parent {
+                nodes[parent].children.push(idx);
+            } else {
+                roots.push(idx);
+            }
+            nodes.push(p.elem);
+            if matches!(
+                nodes[idx].kind,
+                ElementKind::TableRow {
+                    kind: TableRowKind::Standard
+                }
+            ) {
+                self.table_cells(idx, &mut nodes);
+            }
+            if let Some(child) = child_frame {
+                stack.push(child);
+            }
         }
-        out
+        (nodes, roots)
     }
 
     fn leaf(&self, ev: Event<'a>, ty: Ty, begin: usize, end: usize) -> Parsed<'a> {
@@ -1393,7 +1428,7 @@ impl<'a> ElemParser<'a> {
         let i = s.skip_blank(p);
         let rule = s.at(i) == b'|' && s.at(i + 1) == b'-';
         let end = s.next_line(p);
-        let mut el = Element {
+        let el = Element {
             kind: ElementKind::TableRow {
                 kind: if rule {
                     TableRowKind::Rule
@@ -1405,47 +1440,53 @@ impl<'a> ElemParser<'a> {
             affiliated: Vec::new(),
             children: Vec::new(),
         };
-        if !rule {
-            let e = s.eol(p);
-            if let Some(k) = s.s(p..e).find('|') {
-                let cb = p + k + 1;
-                let ce = s.skip_blank_back(e, cb);
-                let mut pos = cb;
-                while pos < ce {
-                    // `[ \t]*(.*?)[ \t]*(?:|\|$)` within cb..ce.
-                    let cs = s.skip_blank_to(pos, ce);
-                    let mut x = cs;
-                    let (content_end, cell_end) = loop {
-                        let f = s.skip_blank_to(x, ce);
-                        if f >= ce {
-                            break (x, ce);
-                        }
-                        if s.b[f] == b'|' {
-                            break (x, f + 1);
-                        }
-                        x += s.char_at(x).map_or(1, char::len_utf8);
-                    };
-                    el.children.push(Element {
-                        kind: ElementKind::TableCell {
-                            content: cs..content_end,
-                        },
-                        range: pos..cell_end,
-                        affiliated: Vec::new(),
-                        children: Vec::new(),
-                    });
-                    if cell_end <= pos {
-                        break;
-                    }
-                    pos = cell_end;
-                }
-            }
-        }
         Parsed {
             elem: el,
             ty: Ty::Other,
             end,
             contents: None,
             structure: None,
+        }
+    }
+
+    /// Append table cells immediately after their row, preserving pre-order.
+    fn table_cells(&self, row: usize, nodes: &mut Vec<Element<'a>>) {
+        let s = self.src;
+        let p = nodes[row].range.start;
+        let e = s.eol(p);
+        if let Some(k) = s.s(p..e).find('|') {
+            let cb = p + k + 1;
+            let ce = s.skip_blank_back(e, cb);
+            let mut pos = cb;
+            while pos < ce {
+                // `[ \t]*(.*?)[ \t]*(?:|\|$)` within cb..ce.
+                let cs = s.skip_blank_to(pos, ce);
+                let mut x = cs;
+                let (content_end, cell_end) = loop {
+                    let f = s.skip_blank_to(x, ce);
+                    if f >= ce {
+                        break (x, ce);
+                    }
+                    if s.b[f] == b'|' {
+                        break (x, f + 1);
+                    }
+                    x += s.char_at(x).map_or(1, char::len_utf8);
+                };
+                let idx = nodes.len();
+                nodes[row].children.push(idx);
+                nodes.push(Element {
+                    kind: ElementKind::TableCell {
+                        content: cs..content_end,
+                    },
+                    range: pos..cell_end,
+                    affiliated: Vec::new(),
+                    children: Vec::new(),
+                });
+                if cell_end <= pos {
+                    break;
+                }
+                pos = cell_end;
+            }
         }
     }
 

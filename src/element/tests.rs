@@ -16,20 +16,36 @@ fn parse(text: &str) -> Document<'_> {
 fn shape(text: &str) -> String {
     let doc = parse(text);
     let mut out = String::new();
-    fn go(e: &[Element<'_>], depth: usize, out: &mut String) {
-        for el in e {
-            out.push_str(&"  ".repeat(depth));
-            out.push_str(&format!(
-                "{} {}..{}\n",
-                kind_name(&el.kind),
-                el.range.start,
-                el.range.end
-            ));
-            go(&el.children, depth + 1, out);
-        }
+    for (depth, el) in walk(&doc) {
+        out.push_str(&"  ".repeat(depth));
+        out.push_str(&format!(
+            "{} {}..{}\n",
+            kind_name(&el.kind),
+            el.range.start,
+            el.range.end
+        ));
     }
-    go(&doc.elements, 0, &mut out);
     out
+}
+
+/// Follow child indices so the shape checks also verify the arena's edges.
+fn walk<'d, 'a>(doc: &'d Document<'a>) -> impl Iterator<Item = (usize, &'d Element<'a>)> {
+    let mut stack: Vec<_> = doc.roots.iter().rev().map(|&i| (0, i)).collect();
+    std::iter::from_fn(move || {
+        let (depth, idx) = stack.pop()?;
+        let el = &doc.nodes[idx];
+        stack.extend(el.children.iter().rev().map(|&i| (depth + 1, i)));
+        Some((depth, el))
+    })
+}
+
+/// Element addressed by root index followed by child indices.
+fn at<'d, 'a>(doc: &'d Document<'a>, path: &[usize]) -> &'d Element<'a> {
+    let mut idx = doc.roots[path[0]];
+    for &child in &path[1..] {
+        idx = doc.nodes[idx].children[child];
+    }
+    &doc.nodes[idx]
 }
 
 fn kind_name(k: &ElementKind<'_>) -> &'static str {
@@ -99,13 +115,13 @@ fn leaf<'d, 'a>(e: &'d Element<'a>) -> &'d Event<'a> {
 
 /// First element of a section.
 fn first<'d, 'a>(doc: &'d Document<'a>) -> &'d Element<'a> {
-    &doc.elements[0].children[0]
+    at(doc, &[0, 0])
 }
 
 #[test]
 fn empty_and_blank_documents() {
-    assert!(parse("").elements.is_empty());
-    assert!(parse("\n\n  \n").elements.is_empty());
+    assert!(parse("").nodes.is_empty());
+    assert!(parse("\n\n  \n").nodes.is_empty());
     check(
         "\n\n  \nText\n",
         "
@@ -127,7 +143,7 @@ fn no_trailing_newline() {
         ",
     );
     let doc = parse(text);
-    match &doc.elements[0].children[0].children[0].kind {
+    match &at(&doc, &[0, 0, 0]).kind {
         ElementKind::Paragraph { content } => assert_eq!(&text[content.clone()], "body"),
         k => panic!("{:?}", k),
     }
@@ -137,10 +153,10 @@ fn no_trailing_newline() {
 fn paragraph_content_excludes_newline() {
     let text = "line one\nline two\n\n\nnext\n";
     let doc = parse(text);
-    let sec = &doc.elements[0];
+    let sec = at(&doc, &[0]);
     assert_eq!(sec.children.len(), 2);
-    assert_eq!(sec.children[0].range, 0..18);
-    match &sec.children[0].kind {
+    assert_eq!(doc.nodes[sec.children[0]].range, 0..18);
+    match &doc.nodes[sec.children[0]].kind {
         ElementKind::Paragraph { content } => {
             assert_eq!(&text[content.clone()], "line one\nline two")
         }
@@ -153,7 +169,7 @@ fn headline_with_every_component() {
     let text = "* TODO [#B] COMMENT My title :a:ARCHIVE:\n";
     check(text, "headline 0..41");
     let doc = parse(text);
-    let ElementKind::Headline { data, title } = &doc.elements[0].kind else {
+    let ElementKind::Headline { data, title } = &at(&doc, &[0]).kind else {
         panic!()
     };
     assert_eq!(data.level, 1);
@@ -174,8 +190,9 @@ fn headline_edge_cases() {
     // some text (Emacs' `org-priority-regexp` starts with `.*?`).
     let doc = parse("* Foo [#a] bar\n*bold*\n* Footnotes\n* DONE\n* TODOx y\n");
     let hs: Vec<&Headline<'_>> = doc
-        .elements
+        .roots
         .iter()
+        .map(|&i| &doc.nodes[i])
         .filter_map(|e| match &e.kind {
             ElementKind::Headline { data, .. } => Some(data),
             _ => None,
@@ -207,8 +224,8 @@ fn planning_and_property_drawer() {
         ",
     );
     let doc = parse(text);
-    let sec = &doc.elements[0].children[0];
-    match leaf(&sec.children[0]) {
+    let sec = at(&doc, &[0, 0]);
+    match leaf(&doc.nodes[sec.children[0]]) {
         Event::Planning {
             scheduled: Some(ts),
             deadline: None,
@@ -220,16 +237,16 @@ fn planning_and_property_drawer() {
         }
         e => panic!("{:?}", e),
     }
-    let props = &sec.children[1].children;
+    let props = &doc.nodes[sec.children[1]].children;
     assert_eq!(
-        leaf(&props[0]),
+        leaf(&doc.nodes[props[0]]),
         &Event::NodeProperty {
             key: "ID".into(),
             value: "42".into()
         }
     );
     assert_eq!(
-        leaf(&props[1]),
+        leaf(&doc.nodes[props[1]]),
         &Event::NodeProperty {
             key: "EMPTY".into(),
             value: "".into()
@@ -238,7 +255,7 @@ fn planning_and_property_drawer() {
     // Not directly after the headline: a plain drawer and a paragraph.
     let doc = parse("* H\n\nSCHEDULED: <2024-01-01 Mon>\n");
     assert!(matches!(
-        doc.elements[0].children[0].children[0].kind,
+        at(&doc, &[0, 0, 0]).kind,
         ElementKind::Paragraph { .. }
     ));
 }
@@ -277,7 +294,7 @@ fn nested_lists() {
         ",
     );
     let doc = parse(text);
-    let ElementKind::Item { data, tag } = &first(&doc).children[0].kind else {
+    let ElementKind::Item { data, tag } = &doc.nodes[first(&doc).children[0]].kind else {
         panic!()
     };
     assert_eq!(data.bullet, "- ");
@@ -320,8 +337,8 @@ fn list_indentation_edge_cases() {
     );
     // `*` bullets need indentation; tabs count as 8 columns.
     let doc = parse("- a\n\tb\n* c\n");
-    assert_eq!(doc.elements.len(), 2);
-    assert_eq!(doc.elements[0].children[0].range, 0..7);
+    assert_eq!(doc.roots.len(), 2);
+    assert_eq!(at(&doc, &[0, 0]).range, 0..7);
 }
 
 #[test]
@@ -346,13 +363,13 @@ fn item_metadata() {
             kind: ListKind::Ordered
         }
     ));
-    let ElementKind::Item { data, .. } = &list.children[0].kind else {
+    let ElementKind::Item { data, .. } = &doc.nodes[list.children[0]].kind else {
         panic!()
     };
     assert_eq!(data.bullet, "1. ");
     assert_eq!(data.counter.as_deref(), Some("3"));
     assert_eq!(data.checkbox, Some(Checkbox::On));
-    let ElementKind::Item { data, .. } = &list.children[1].kind else {
+    let ElementKind::Item { data, .. } = &doc.nodes[list.children[1]].kind else {
         panic!()
     };
     assert_eq!(data.checkbox, Some(Checkbox::Trans));
@@ -380,7 +397,7 @@ fn descriptive_list() {
             kind: ListKind::Descriptive
         }
     ));
-    let ElementKind::Item { tag: Some(tag), .. } = &list.children[0].kind else {
+    let ElementKind::Item { tag: Some(tag), .. } = &doc.nodes[list.children[0]].kind else {
         panic!()
     };
     assert_eq!(&text[tag.clone()], "term");
@@ -442,20 +459,20 @@ fn blocks() {
         ",
     );
     let doc = parse(text);
-    let c = &doc.elements[0].children;
-    match &c[1].kind {
+    let c = &at(&doc, &[0]).children;
+    match &doc.nodes[c[1]].kind {
         ElementKind::VerseBlock { content } => assert_eq!(&text[content.clone()], " v"),
         k => panic!("{:?}", k),
     }
     assert_eq!(
-        c[2].kind,
+        doc.nodes[c[2]].kind,
         ElementKind::SpecialBlock {
             name: "aside".into(),
             parameters: Some("x".into())
         }
     );
     assert_eq!(
-        c[3].kind,
+        doc.nodes[c[3]].kind,
         ElementKind::SrcBlock {
             language: Some("python".into()),
             switches: Some("-n".into()),
@@ -464,7 +481,7 @@ fn blocks() {
         }
     );
     assert_eq!(
-        c[4].kind,
+        doc.nodes[c[4]].kind,
         ElementKind::ExportBlock {
             backend: "HTML".into(),
             value: "<b/>".into()
@@ -472,13 +489,13 @@ fn blocks() {
     );
     // Comment blocks are not unescaped (`org-element--substring`).
     assert_eq!(
-        c[5].kind,
+        doc.nodes[c[5]].kind,
         ElementKind::CommentBlock {
             value: ",* raw".into()
         }
     );
     assert_eq!(
-        c[6].kind,
+        doc.nodes[c[6]].kind,
         ElementKind::ExampleBlock {
             switches: None,
             value: "#+x".into()
@@ -565,19 +582,19 @@ fn tables() {
     assert_eq!(*kind, TableKind::Org);
     assert_eq!(formulas, &vec![Cow::Borrowed("$1=1")]);
     // Several formula lines: source order (Emacs' `:tblfm` is reversed).
-    let doc = parse("| a |\n#+TBLFM: $1=1\n#+TBLFM: $1=2\n");
-    match &first(&doc).kind {
+    let formulas_doc = parse("| a |\n#+TBLFM: $1=1\n#+TBLFM: $1=2\n");
+    match &first(&formulas_doc).kind {
         ElementKind::Table { formulas, .. } => assert_eq!(formulas, &vec!["$1=1", "$1=2"]),
         k => panic!("{:?}", k),
     }
     assert!(value.is_none());
     assert_eq!(
-        t.children[1].kind,
+        doc.nodes[t.children[1]].kind,
         ElementKind::TableRow {
             kind: TableRowKind::Rule
         }
     );
-    match &t.children[0].children[1].kind {
+    match &doc.nodes[doc.nodes[t.children[0]].children[1]].kind {
         ElementKind::TableCell { content } => assert_eq!(&text[content.clone()], "b"),
         k => panic!("{:?}", k),
     }
@@ -611,12 +628,15 @@ fn leaf_elements() {
         ",
     );
     let doc = parse(text);
-    let c = &doc.elements[0].children;
-    assert_eq!(leaf(&c[0]), &Event::Comment("a\nb".into()));
-    assert_eq!(leaf(&c[1]), &Event::FixedWidth("f1\nf2".into()));
-    assert_eq!(leaf(&c[3]), &Event::DiarySexp("%%(diary)".into()));
+    let c = &at(&doc, &[0]).children;
+    assert_eq!(leaf(&doc.nodes[c[0]]), &Event::Comment("a\nb".into()));
+    assert_eq!(leaf(&doc.nodes[c[1]]), &Event::FixedWidth("f1\nf2".into()));
     assert_eq!(
-        leaf(&c[4]),
+        leaf(&doc.nodes[c[3]]),
+        &Event::DiarySexp("%%(diary)".into())
+    );
+    assert_eq!(
+        leaf(&doc.nodes[c[4]]),
         &Event::BabelCall {
             call: "f".into(),
             inside_header: None,
@@ -624,7 +644,7 @@ fn leaf_elements() {
             end_header: None
         }
     );
-    match leaf(&c[5]) {
+    match leaf(&doc.nodes[c[5]]) {
         Event::Clock {
             timestamp,
             duration,
@@ -640,11 +660,11 @@ fn leaf_elements() {
         e => panic!("{:?}", e),
     }
     assert_eq!(
-        leaf(&c[6]),
+        leaf(&doc.nodes[c[6]]),
         &Event::LatexEnvironment("\\begin{eq}\nx\n\\end{eq}\n".into())
     );
     assert_eq!(
-        leaf(&c[7]),
+        leaf(&doc.nodes[c[7]]),
         &Event::Keyword(Keyword {
             key: "TITLE".into(),
             value: "T".into(),
@@ -727,8 +747,9 @@ fn in_buffer_settings() {
     );
     assert_eq!(s.radio_targets, vec!["radio"]);
     let types: Vec<_> = doc
-        .elements
+        .roots
         .iter()
+        .map(|&i| &doc.nodes[i])
         .filter_map(|e| match &e.kind {
             ElementKind::Headline { data, .. } => Some(data.todo_type),
             _ => None,
@@ -750,8 +771,9 @@ fn in_buffer_settings() {
     };
     let doc = parse_document("* WAIT x\n* TODO y\n", &opts);
     let kws: Vec<_> = doc
-        .elements
+        .roots
         .iter()
+        .map(|&i| &doc.nodes[i])
         .map(|e| match &e.kind {
             ElementKind::Headline { data, .. } => data.todo_keyword.clone(),
             _ => None,
@@ -784,9 +806,9 @@ fn inline_tasks() {
         ..Options::default()
     };
     let doc = parse_document(text, &opts);
-    let sec = &doc.elements[0].children[0];
+    let sec = at(&doc, &[0, 0]);
     assert_eq!(sec.range, 4..61);
-    let task = &sec.children[0];
+    let task = &doc.nodes[sec.children[0]];
     assert_eq!(task.range, 4..55);
     let ElementKind::Inlinetask { data, title } = &task.kind else {
         panic!("{:?}", task.kind)
@@ -795,8 +817,8 @@ fn inline_tasks() {
     assert_eq!(data.todo_keyword.as_deref(), Some("TODO"));
     assert_eq!(&text[title.clone()], "task");
     assert_eq!(task.children.len(), 1);
-    assert_eq!(task.children[0].range, 30..35);
-    assert_eq!(sec.children[1].range, 55..61);
+    assert_eq!(doc.nodes[task.children[0]].range, 30..35);
+    assert_eq!(doc.nodes[sec.children[1]].range, 55..61);
 }
 
 #[test]
@@ -814,7 +836,7 @@ fn unicode_input() {
         ",
     );
     let doc = parse(text);
-    let ElementKind::Headline { data, .. } = &doc.elements[0].kind else {
+    let ElementKind::Headline { data, .. } = &at(&doc, &[0]).kind else {
         panic!()
     };
     assert_eq!(data.tags, vec!["é"]);
@@ -834,7 +856,7 @@ fn crlf_is_not_normalised() {
     // `\r` stays part of the line; ranges remain valid byte offsets.
     let text = "* H\r\nline\r\n";
     let doc = parse(text);
-    assert_eq!(doc.elements[0].range, 0..text.len());
+    assert_eq!(at(&doc, &[0]).range, 0..text.len());
 }
 
 // ---------------------------------------------------------------------------
@@ -874,8 +896,8 @@ fn ts(t: &Option<Timestamp<'_>>) -> String {
     q(t.as_ref().map(|t| &*t.raw))
 }
 
-fn dump_tree(text: &str, els: &[Element<'_>], depth: usize, out: &mut Vec<String>) {
-    for el in els {
+fn dump_tree(text: &str, doc: &Document<'_>, out: &mut Vec<String>) {
+    for (depth, el) in walk(doc) {
         let pa = match &el.kind {
             ElementKind::TableCell { .. } => "nil".to_string(),
             _ => el
@@ -1062,7 +1084,6 @@ fn dump_tree(text: &str, els: &[Element<'_>], depth: usize, out: &mut Vec<String
             pa,
             extra
         ));
-        dump_tree(text, &el.children, depth + 1, out);
     }
 }
 
@@ -1079,7 +1100,7 @@ fn dump() {
         }
         let doc = parse_document(&text, &opts);
         let mut out = Vec::new();
-        dump_tree(&text, &doc.elements, 0, &mut out);
+        dump_tree(&text, &doc, &mut out);
         let s = &doc.settings;
         let j =
             |v: &Vec<CowStr<'_>>, sep: &str| v.iter().map(|x| &**x).collect::<Vec<_>>().join(sep);
