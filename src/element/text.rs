@@ -18,6 +18,7 @@ pub(crate) fn is_word(c: char) -> bool {
 }
 
 /// Case insensitive string equality (Emacs `case-fold-search`).
+#[cfg(test)]
 pub(crate) fn eq_ci(a: &str, b: &str) -> bool {
     a.eq_ignore_ascii_case(b) || (a.len() == b.len() && a.to_lowercase() == b.to_lowercase())
 }
@@ -346,6 +347,7 @@ impl<'a> Src<'a> {
     }
 
     /// `^[ \t]*#\+END_<name>[ \t]*$` (case insensitive).
+    #[cfg(test)]
     pub fn block_end_line(&self, p: usize, name: &str) -> bool {
         let i = self.skip_blank(p);
         if !self.starts_ci(i, "#+END_") {
@@ -360,6 +362,7 @@ impl<'a> Src<'a> {
     }
 
     /// Search a block end line from `from` (bol) to `lim`.
+    #[cfg(test)]
     pub fn find_block_end(&self, from: usize, lim: usize, name: &str) -> Option<usize> {
         self.find_line(from, lim, |q| self.block_end_line(q, name))
     }
@@ -384,6 +387,7 @@ impl<'a> Src<'a> {
 
     /// Search `\\end{name}[ \t]*$` from `from` (not anchored at bol), whole
     /// match ending before `lim`. Returns the position after the match.
+    #[cfg(test)]
     pub fn find_latex_end(&self, from: usize, lim: usize, name: &str) -> Option<usize> {
         let pat = format!("\\end{{{}}}", name);
         let mut start = from;
@@ -572,6 +576,7 @@ impl<'a> Src<'a> {
 }
 
 /// ASCII case-insensitive substring search.
+#[cfg(test)]
 pub(crate) fn find_ci(hay: &str, needle: &str) -> Option<usize> {
     let h = hay.as_bytes();
     let n = needle.as_bytes();

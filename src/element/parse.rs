@@ -3,10 +3,12 @@
 //! `org-element.el` (Org 9.8).
 
 use std::borrow::Cow;
+use std::cell::OnceCell;
 use std::ops::Range;
 use std::rc::Rc;
 
-use super::text::{eq_ci, is_space, Src};
+use super::ends::DelimiterIndex;
+use super::text::{is_space, Src};
 use super::timestamp::parse_timestamp;
 use super::{Element, ElementKind};
 use crate::event::{
@@ -209,8 +211,9 @@ fn nw_trim(s: &str) -> Option<&str> {
     }
 }
 
-pub(super) struct ElemParser<'a> {
+pub(super) struct ElemParser<'a, 'd> {
     pub src: Src<'a>,
+    ends: &'d OnceCell<DelimiterIndex<'a>>,
     /// Minimum number of stars of an inline task (`org-inlinetask-min-level`,
     /// doubled minus one with `org-odd-levels-only`), if enabled.
     pub task_min: Option<usize>,
@@ -219,8 +222,13 @@ pub(super) struct ElemParser<'a> {
     pub outline_max: Option<usize>,
 }
 
-impl<'a> ElemParser<'a> {
-    pub(super) fn new(src: Src<'a>, opts: &Options, odd_levels: bool) -> Self {
+impl<'a, 'd> ElemParser<'a, 'd> {
+    pub(super) fn new(
+        src: Src<'a>,
+        opts: &Options,
+        odd_levels: bool,
+        ends: &'d OnceCell<DelimiterIndex<'a>>,
+    ) -> Self {
         let (task_min, outline_max) = match opts.inlinetask_min_level {
             None => (None, None),
             Some(min) if odd_levels => (
@@ -231,9 +239,14 @@ impl<'a> ElemParser<'a> {
         };
         ElemParser {
             src,
+            ends,
             task_min,
             outline_max,
         }
+    }
+
+    fn ends(&self) -> &DelimiterIndex<'a> {
+        self.ends.get_or_init(|| DelimiterIndex::new(self.src))
     }
 
     fn el(&self, kind: ElementKind<'a>, begin: usize, end: usize) -> Element<'a> {
@@ -761,9 +774,7 @@ impl<'a> ElemParser<'a> {
     fn property_drawer(&self, p: usize, limit: usize, end_line: usize) -> Parsed<'a> {
         let s = self.src;
         let cb = s.next_line(p);
-        let m = s
-            .find_line(p, limit, |q| s.end_drawer_line(q))
-            .unwrap_or(end_line);
+        let m = self.ends().drawer(p, limit).unwrap_or(end_line);
         let contents = if m > cb { Some(cb..m) } else { None };
         let end = s.after_blank(s.next_line(m), limit);
         Parsed {
@@ -869,7 +880,7 @@ impl<'a> ElemParser<'a> {
         name: Range<usize>,
     ) -> Parsed<'a> {
         let s = self.src;
-        match s.find_latex_end(p, limit, s.s(name)) {
+        match self.ends().latex(p, limit, s.s(name)) {
             None => self.paragraph(aff, p, limit),
             Some(m) => {
                 let code_end = s.next_line(m);
@@ -979,7 +990,7 @@ impl<'a> ElemParser<'a> {
     ) -> Parsed<'a> {
         let s = self.src;
         let from = limit.min(s.eol(p));
-        let Some(dend) = s.find_line(from, limit, |q| s.end_drawer_line(q)) else {
+        let Some(dend) = self.ends().drawer(from, limit) else {
             return self.paragraph(aff, p, limit);
         };
         let q = s.skip_ws(s.next_line(p), s.len());
@@ -1003,17 +1014,7 @@ impl<'a> ElemParser<'a> {
 
     fn dynamic_block(&self, aff: Affiliated<'a>, p: usize, limit: usize) -> Parsed<'a> {
         let s = self.src;
-        let bend = s.find_line(p, limit, |q| {
-            let i = s.skip_blank(q);
-            if !s.starts_ci(i, "#+END") {
-                return false;
-            }
-            let mut j = i + 5;
-            if s.at(j) == b':' {
-                j += 1;
-            }
-            s.rest_blank(j)
-        });
+        let bend = self.ends().dynamic(p, limit, false);
         let Some(bend) = bend else {
             return self.paragraph(aff, p, limit);
         };
@@ -1060,7 +1061,7 @@ impl<'a> ElemParser<'a> {
             "CENTER" | "COMMENT" | "EXAMPLE" | "EXPORT" | "QUOTE" | "SRC" | "VERSE" => up.as_str(),
             _ => raw_name,
         };
-        let Some(bend) = s.find_block_end(p, limit, search) else {
+        let Some(bend) = self.ends().block(p, limit, search) else {
             return self.paragraph(aff, p, limit);
         };
         let e = s.eol(p);
@@ -1657,32 +1658,18 @@ impl<'a> ElemParser<'a> {
             let mut skipped = None;
             if s.starts_ci(i, "#+BEGIN") {
                 let k = i + 7;
-                let suffix = if s.at(k) == b':' {
-                    Some(":".to_string())
+                if s.at(k) == b':' {
+                    skipped = self.ends().dynamic(p, limit, true);
                 } else if s.at(k) == b'_' {
                     let r = s.non_space_run(k + 1);
                     if r > k + 1 {
-                        Some(s.s(k..r).to_string())
-                    } else {
-                        None
+                        skipped = self.ends().block(p, limit, s.s(k + 1..r));
                     }
-                } else {
-                    None
-                };
-                if let Some(suf) = suffix {
-                    skipped = s.find_line(p, limit, |q| {
-                        let j = s.skip_blank(q);
-                        s.starts_ci(j, "#+END")
-                            && j + 5 + suf.len() <= s.len()
-                            && s.text.is_char_boundary(j + 5 + suf.len())
-                            && eq_ci(s.s(j + 5..j + 5 + suf.len()), &suf)
-                            && s.rest_blank(j + 5 + suf.len())
-                    });
                 }
             } else if s.drawer_line(p).is_some() {
                 // The search starts on the drawer line itself, which may
                 // match when it is a lone `:END:`.
-                skipped = s.find_line(p, limit, |q| s.end_drawer_line(q));
+                skipped = self.ends().drawer(p, limit);
             }
             if let Some(q) = skipped {
                 p = q;
@@ -1871,18 +1858,18 @@ impl<'a> ElemParser<'a> {
             if from == q || !s.is_bol(from) {
                 return false;
             }
-            return s.find_line(from, limit, |r| s.end_drawer_line(r)).is_some();
+            return self.ends().drawer(from, limit).is_some();
         }
         let i = s.skip_blank(q);
         if s.starts_ci(i, "#+BEGIN_") {
             let ns = i + 8;
             let ne = s.non_space_run(ns);
             if ne > ns {
-                return s.find_block_end(q, limit, s.s(ns..ne)).is_some();
+                return self.ends().block(q, limit, s.s(ns..ne)).is_some();
             }
         }
         if let Some(name) = s.latex_begin(q) {
-            return s.find_latex_end(q, limit, s.s(name)).is_some();
+            return self.ends().latex(q, limit, s.s(name)).is_some();
         }
         // `[ \t]*#\+(\S+)\[.*\]:` → only dual keywords separate.
         if s.starts(i, "#+") {

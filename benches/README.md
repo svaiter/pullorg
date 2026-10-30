@@ -62,6 +62,9 @@ orphaned affiliated keywords, nested sub/superscripts, non-ASCII text.
 `nested-script-braces` and `nested-script-parens` exercise rejection beyond
 Org's supported sub/superscript depth.
 `scaling-adversarial` runs each at four sizes.
+The unterminated-delimiter cases also cover distinct block names, openers
+inside lists, and LaTeX environments, so caching only one failed block name
+cannot hide repeated suffix scans.
 
 To benchmark real documents, point `PULLORG_BENCH_CORPUS` at a directory:
 every `.org` file in it is added to `parse/<name>`, `html/<name>` and the

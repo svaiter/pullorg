@@ -562,6 +562,10 @@ pub mod adversarial {
             Corpus::new("deep-headlines", deep_headlines(size)),
             Corpus::new("deep-lists", deep_lists(size)),
             Corpus::new("nested-blocks", nested_blocks(size)),
+            Corpus::new(
+                "distinct-unterminated-blocks",
+                distinct_unterminated_blocks(size),
+            ),
             Corpus::new("nested-script-braces", nested_script(size, '{', '}')),
             Corpus::new("nested-script-parens", nested_script(size, '(', ')')),
             Corpus::new("wide-table", wide_table(size)),
@@ -573,6 +577,14 @@ pub mod adversarial {
             Corpus::new(
                 "unterminated-drawers",
                 repeat(":DRAWER:\n:PROPERTIES:\n:LOGBOOK:\n", size),
+            ),
+            Corpus::new(
+                "unterminated-latex-environments",
+                repeat("\\begin{equation}\n", size),
+            ),
+            Corpus::new(
+                "unterminated-blocks-in-list",
+                format!("- item\n{}", repeat("  #+begin_x\n", size)),
             ),
             Corpus::new("huge-src-block", huge_src_block(size)),
             Corpus::new("footnote-storm", footnotes(size)),
@@ -648,6 +660,16 @@ pub mod adversarial {
         out.push_str("x\n");
         for i in (0..depth).rev() {
             writeln!(out, "#+end_b{i}").unwrap();
+        }
+        out
+    }
+
+    fn distinct_unterminated_blocks(size: usize) -> String {
+        let mut out = String::new();
+        let mut i = 0;
+        while out.len() < size {
+            writeln!(out, "#+begin_missing{i}").unwrap();
+            i += 1;
         }
         out
     }

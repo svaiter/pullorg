@@ -8,11 +8,13 @@
 //! Reference: `org-element.el`, in particular `org-element--parse-elements`,
 //! `org-element--current-element` and the `org-element-*-parser` functions.
 
+mod ends;
 mod parse;
 mod text;
 mod timestamp;
 
 use std::borrow::Cow;
+use std::cell::OnceCell;
 use std::ops::Range;
 
 use crate::event::{
@@ -158,9 +160,14 @@ pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'
     // `org-element-org-data-parser`: contents start at the first non blank
     // line.
     let cb = src.bol(src.skip_ws(0, src.len()));
+    let ends = OnceCell::new();
     let parse = |odd: bool| {
         if cb < src.len() {
-            ElemParser::new(src, options, odd).parse_elements(cb, src.len(), Mode::FirstSection)
+            ElemParser::new(src, options, odd, &ends).parse_elements(
+                cb,
+                src.len(),
+                Mode::FirstSection,
+            )
         } else {
             (Vec::new(), Vec::new())
         }

@@ -1,0 +1,40 @@
+#+begin_outer
+#+begin_inner
+inside
+#+end_INNER
+after inner
+#+end_outer
+
+#+begin_quote
+#+begin_missing
+inside quote
+#+end_quote
+#+end_missing
+
+- first
+  #+begin_quote
+  quoted
+  #+end_quote
+- second
+  :DRAWER:
+  contents
+  :END:
+- last
+
+#+BEGIN: clocktable
+dynamic contents
+#+END:
+
+\begin{equation}
+x = y \end{equation}
+
+#+begin_src text
+#+end_other
+:END:
+\end{equation}
+#+end_src
+
+#+begin_missing1
+#+begin_missing2
+:MISSING:
+\begin{missing}

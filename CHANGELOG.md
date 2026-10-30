@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Index closing delimiters lazily and share their positions across element
+  searches, avoiding repeated suffix scans for unterminated blocks, drawers
+  and LaTeX environments, including openers inside lists.
 - Build and traverse block structure with an explicit stack and flat element
   arena, avoiding stack overflows for deeply nested blocks without imposing a
   block depth limit. Subscript and superscript validation now stops at Org's
