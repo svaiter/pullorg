@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Render `$...$` and `$$...$$` LaTeX fragments in HTML as `\(...\)` and
+  `\[...\]`, as Emacs does, so MathJax 3's default configuration (used by
+  `--standalone --mathjax`) typesets them.
 - Scan backslash runs in bracket links once, avoiding quadratic work on long
   runs. Follow Emacs' endpoint preference when an even-length run permits
   either closing the link or consuming an escaped closing bracket.
