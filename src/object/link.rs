@@ -160,6 +160,64 @@ fn non_space_bracket(c: char) -> bool {
     !matches!(c, '[' | ']' | ' ' | '\t' | '\n' | '(' | ')' | '<' | '>')
 }
 
+/// Reachable `]` positions in a nonempty URI, in Org's regexp preference order.
+/// Each backslash run is scanned once. The URI grammar permits both an odd
+/// run followed by a bracket and a nonempty run followed by a non-bracket
+/// (which can itself be a backslash). Consequently, two backslashes cannot
+/// consume a following bracket, but any run of three or more can: consume
+/// all but the last backslash as one atom, then escape the bracket.
+fn bracket_uri_ends(uri: &str) -> Vec<usize> {
+    let b = uri.as_bytes();
+    let mut ends = Vec::new();
+    let mut deferred = Vec::new();
+    let mut i = 0;
+    while i < b.len() {
+        match b[i] {
+            b'[' => break,
+            b']' => {
+                if i > 0 {
+                    ends.push(i);
+                }
+                break;
+            }
+            b'\\' => {
+                let start = i;
+                while i < b.len() && b[i] == b'\\' {
+                    i += 1;
+                }
+                let run = i - start;
+                if i == b.len() {
+                    break;
+                }
+                if matches!(b[i], b'[' | b']') {
+                    // Two or more backslashes can also form a complete
+                    // atom, leaving this bracket outside the URI.
+                    if run >= 2 && b[i] == b']' {
+                        if run % 2 == 0 {
+                            // The greedy non-bracket alternative consumes
+                            // the entire run before trying to escape `]`.
+                            ends.push(i);
+                        } else {
+                            // An odd run prefers the escaped-bracket
+                            // alternative; stopping here is a fallback.
+                            deferred.push(i);
+                        }
+                    }
+                    if run == 2 {
+                        break;
+                    }
+                }
+                i += 1;
+            }
+            // Only ASCII delimiters are returned, so scanning bytes cannot
+            // produce an offset inside a UTF-8 character.
+            _ => i += 1,
+        }
+    }
+    ends.extend(deferred.into_iter().rev());
+    ends
+}
+
 impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
     /// `org-element-link-parser` at `p`.
     pub(super) fn link(&self, p: usize) -> Option<Obj<'a>> {
@@ -205,70 +263,6 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         self.angle_link(p)
     }
 
-    /// Possible ends of the URI part of a bracket link starting at `s`,
-    /// greatest first (approximating the backtracking order of
-    /// `org-link-bracket-re`).
-    fn bracket_uri_ends(&self, s: usize) -> Vec<usize> {
-        let b = self.bytes();
-        let end = self.end;
-        let mut reach = vec![true];
-        let mut ends = Vec::new();
-        let mut i = 0;
-        let mark = |reach: &mut Vec<bool>, k: usize| {
-            if reach.len() <= k {
-                reach.resize(k + 1, false);
-            }
-            reach[k] = true;
-        };
-        while i < reach.len() {
-            if !reach[i] {
-                i += 1;
-                continue;
-            }
-            let at = s + i;
-            if i > 0 {
-                ends.push(at);
-            }
-            if at >= end {
-                break;
-            }
-            match b[at] {
-                b'[' | b']' => {}
-                b'\\' => {
-                    let mut m = 0;
-                    while at + m < end && b[at + m] == b'\\' {
-                        m += 1;
-                    }
-                    let after = at + m;
-                    let bracket_after = after < end && matches!(b[after], b'[' | b']');
-                    // \ (\\)* [][]
-                    if m % 2 == 1 && bracket_after {
-                        mark(&mut reach, i + m + 1);
-                    }
-                    // \+ [^][]
-                    for j in 1..=m {
-                        let c = at + j;
-                        if c < end {
-                            if j < m {
-                                mark(&mut reach, i + j + 1);
-                            } else if !bracket_after {
-                                let len = self.ch(c).map_or(1, char::len_utf8);
-                                mark(&mut reach, i + j + len);
-                            }
-                        }
-                    }
-                }
-                _ => {
-                    let len = self.ch(at).map_or(1, char::len_utf8);
-                    mark(&mut reach, i + len);
-                }
-            }
-            i += 1;
-        }
-        ends.reverse();
-        ends
-    }
-
     /// `org-link-bracket-re`.
     fn bracket_link(&self, p: usize) -> Option<Obj<'a>> {
         if !self.starts_with(p, "[[") {
@@ -276,10 +270,8 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         }
         let s = p + 2;
         let mut found = None;
-        for e in self.bracket_uri_ends(s) {
-            if self.byte(e) != Some(b']') {
-                continue;
-            }
+        for relative in bracket_uri_ends(self.slice(s..self.end)) {
+            let e = s + relative;
             match self.byte(e + 1) {
                 Some(b'[') => {
                     // At least one character of description.
@@ -524,4 +516,94 @@ fn normalize_slashes(path: CowStr<'_>) -> CowStr<'_> {
         }
     }
     path
+}
+
+#[cfg(test)]
+mod tests {
+    use super::bracket_uri_ends;
+
+    // Original exhaustive reachability algorithm, retained as a short-input oracle.
+    fn reference_ends(uri: &str) -> Vec<usize> {
+        let b = uri.as_bytes();
+        let s = 0;
+        let end = uri.len();
+        let mut reach = vec![true];
+        let mut ends = Vec::new();
+        let mut i = 0;
+        let mark = |reach: &mut Vec<bool>, k: usize| {
+            if reach.len() <= k {
+                reach.resize(k + 1, false);
+            }
+            reach[k] = true;
+        };
+        while i < reach.len() {
+            if !reach[i] {
+                i += 1;
+                continue;
+            }
+            let at = s + i;
+            if i > 0 && b.get(at) == Some(&b']') {
+                ends.push(at);
+            }
+            if at >= end {
+                break;
+            }
+            match b[at] {
+                b'[' | b']' => {}
+                b'\\' => {
+                    let mut m = 0;
+                    while at + m < end && b[at + m] == b'\\' {
+                        m += 1;
+                    }
+                    let after = at + m;
+                    let bracket_after = after < end && matches!(b[after], b'[' | b']');
+                    // \ (\\)* [][]
+                    if m % 2 == 1 && bracket_after {
+                        mark(&mut reach, i + m + 1);
+                    }
+                    // \+ [^][]
+                    for j in 1..=m {
+                        let c = at + j;
+                        if c < end {
+                            if j < m {
+                                mark(&mut reach, i + j + 1);
+                            } else if !bracket_after {
+                                let len = uri[c..].chars().next().map_or(1, char::len_utf8);
+                                mark(&mut reach, i + j + len);
+                            }
+                        }
+                    }
+                }
+                _ => {
+                    let len = uri[at..].chars().next().map_or(1, char::len_utf8);
+                    mark(&mut reach, i + len);
+                }
+            }
+            i += 1;
+        }
+        ends.reverse();
+        ends
+    }
+
+    #[test]
+    fn run_scanner_matches_exhaustive_reachability() {
+        // All short combinations, including UTF-8 and line breaks. This
+        // exercises ambiguous escape runs. The old scanner found the same
+        // candidates, but sorted them instead of preserving regexp priority.
+        let alphabet = ["a", "é", "[", "]", "\\", "\n"];
+        for len in 0..=7 {
+            for mut n in 0..alphabet.len().pow(len) {
+                let mut uri = String::new();
+                for _ in 0..len {
+                    uri.push_str(alphabet[n % alphabet.len()]);
+                    n /= alphabet.len();
+                }
+                let mut actual = bracket_uri_ends(&uri);
+                actual.sort_unstable();
+                let mut expected = reference_ends(&uri);
+                expected.sort_unstable();
+                assert_eq!(actual, expected, "{uri:?}");
+            }
+        }
+    }
 }

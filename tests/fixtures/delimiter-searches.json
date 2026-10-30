@@ -1,0 +1,359 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 441,
+      "props": {},
+      "children": [
+        {
+          "type": "special-block",
+          "begin": 0,
+          "end": 71,
+          "props": {
+            "type": "outer",
+            "parameters": null
+          },
+          "children": [
+            {
+              "type": "special-block",
+              "begin": 14,
+              "end": 47,
+              "props": {
+                "type": "inner",
+                "parameters": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 28,
+                  "end": 35,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "inside\n"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "begin": 47,
+              "end": 59,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "after inner\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "quote-block",
+          "begin": 72,
+          "end": 127,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 86,
+              "end": 115,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "#+begin"
+                },
+                {
+                  "type": "subscript",
+                  "begin": 93,
+                  "end": 101,
+                  "props": {
+                    "use-brackets-p": false
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "missing"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": "\ninside quote\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 127,
+          "end": 141,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "#+end"
+            },
+            {
+              "type": "subscript",
+              "begin": 132,
+              "end": 140,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "missing"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        },
+        {
+          "type": "plain-list",
+          "begin": 142,
+          "end": 235,
+          "props": {
+            "type": "unordered"
+          },
+          "children": [
+            {
+              "type": "item",
+              "begin": 142,
+              "end": 189,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 144,
+                  "end": 150,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "first\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "quote-block",
+                  "begin": 150,
+                  "end": 189,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 166,
+                      "end": 175,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "  quoted\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 189,
+              "end": 228,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 191,
+                  "end": 198,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "second\n"
+                    }
+                  ]
+                },
+                {
+                  "type": "drawer",
+                  "begin": 198,
+                  "end": 228,
+                  "props": {
+                    "drawer-name": "DRAWER"
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 209,
+                      "end": 220,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "  contents\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "item",
+              "begin": 228,
+              "end": 235,
+              "props": {
+                "bullet": "- ",
+                "checkbox": null,
+                "counter": null,
+                "tag": null
+              },
+              "children": [
+                {
+                  "type": "paragraph",
+                  "begin": 230,
+                  "end": 235,
+                  "props": {},
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "last\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "dynamic-block",
+          "begin": 236,
+          "end": 280,
+          "props": {
+            "block-name": "clocktable",
+            "arguments": null
+          },
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 256,
+              "end": 273,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "dynamic contents\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "latex-environment",
+          "begin": 281,
+          "end": 319,
+          "props": {
+            "value": "\\begin{equation}\nx = y \\end{equation}\n"
+          },
+          "children": []
+        },
+        {
+          "type": "src-block",
+          "begin": 320,
+          "end": 380,
+          "props": {
+            "language": "text",
+            "switches": null,
+            "parameters": null,
+            "value": "#+end_other\n:END:\n\\end{equation}\n"
+          },
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "begin": 381,
+          "end": 441,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "#+begin"
+            },
+            {
+              "type": "subscript",
+              "begin": 388,
+              "end": 397,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "missing1"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\n#+begin"
+            },
+            {
+              "type": "subscript",
+              "begin": 405,
+              "end": 414,
+              "props": {
+                "use-brackets-p": false
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "missing2"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\n:MISSING:\n"
+            },
+            {
+              "type": "latex-fragment",
+              "begin": 425,
+              "end": 440,
+              "props": {
+                "value": "\\begin{missing}"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
