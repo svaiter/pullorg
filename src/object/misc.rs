@@ -46,12 +46,14 @@ fn header<'a>(s: &'a str) -> Option<CowStr<'a>> {
 
 /// Depth of a brace group's contents, when all its brace groups have the same
 /// depth: this is what the regexp built by `org-create-multibrace-regexp`
-/// accepts. `None` when nesting is irregular.
-fn uniform_depth(s: &[u8], o: u8, c: u8) -> Option<usize> {
+/// accepts. `None` when nesting is irregular or exceeds `budget`. The budget
+/// bounds recursion by Org's supported sub/superscript depth, not input depth.
+fn uniform_depth(s: &[u8], o: u8, c: u8, budget: usize) -> Option<usize> {
     let mut i = 0;
     let mut depth: Option<usize> = None;
     while i < s.len() {
         if s[i] == o {
+            let remaining = budget.checked_sub(1)?;
             // Find the matching closing bracket.
             let mut d = 0;
             let mut j = i;
@@ -69,7 +71,7 @@ fn uniform_depth(s: &[u8], o: u8, c: u8) -> Option<usize> {
                     return None;
                 }
             }
-            let inner = uniform_depth(&s[i + 1..j], o, c)?;
+            let inner = uniform_depth(&s[i + 1..j], o, c, remaining)?;
             match depth {
                 None => depth = Some(inner),
                 Some(x) if x == inner => {}
@@ -198,19 +200,13 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         let (end, contents, use_brackets) = match self.byte(b)? {
             b'{' => {
                 let close = self.balanced(b, b'{', b'}')?;
-                let depth = uniform_depth(&self.bytes()[b + 1..close - 1], b'{', b'}')?;
-                if depth >= SEXP_DEPTH {
-                    return None;
-                }
+                uniform_depth(&self.bytes()[b + 1..close - 1], b'{', b'}', SEXP_DEPTH - 1)?;
                 (close, b + 1..close - 1, true)
             }
             _ if braces_only => return None,
             b'(' => {
                 let close = self.balanced(b, b'(', b')')?;
-                let depth = uniform_depth(&self.bytes()[b + 1..close - 1], b'(', b')')?;
-                if depth >= SEXP_DEPTH {
-                    return None;
-                }
+                uniform_depth(&self.bytes()[b + 1..close - 1], b'(', b')', SEXP_DEPTH - 1)?;
                 (close, b..close, false)
             }
             b'*' => (b + 1, b..b + 1, false),

@@ -546,6 +546,8 @@ fn quote(rng: &Rng, out: &mut String) {
 /// otherwise far slower per byte than on a normal document. The `scaling`
 /// bench runs them at several sizes; their throughput should stay flat.
 pub mod adversarial {
+    use std::fmt::Write as _;
+
     use super::Corpus;
 
     pub fn all(size: usize) -> Vec<Corpus> {
@@ -559,6 +561,9 @@ pub mod adversarial {
             Corpus::new("blank-lines", repeat("x\n\n\n\n\n\n\n\n", size)),
             Corpus::new("deep-headlines", deep_headlines(size)),
             Corpus::new("deep-lists", deep_lists(size)),
+            Corpus::new("nested-blocks", nested_blocks(size)),
+            Corpus::new("nested-script-braces", nested_script(size, '{', '}')),
+            Corpus::new("nested-script-parens", nested_script(size, '(', ')')),
             Corpus::new("wide-table", wide_table(size)),
             Corpus::new("tall-table", repeat("| a | b | c | d |\n", size)),
             Corpus::new(
@@ -632,6 +637,28 @@ pub mod adversarial {
     fn wide_table(size: usize) -> String {
         let row = format!("|{}\n", " x |".repeat(200));
         repeat(&row, size)
+    }
+
+    fn nested_blocks(size: usize) -> String {
+        let depth = (size / 32).max(1);
+        let mut out = String::new();
+        for i in 0..depth {
+            writeln!(out, "#+begin_b{i}").unwrap();
+        }
+        out.push_str("x\n");
+        for i in (0..depth).rev() {
+            writeln!(out, "#+end_b{i}").unwrap();
+        }
+        out
+    }
+
+    fn nested_script(size: usize, open: char, close: char) -> String {
+        let depth = size.saturating_sub(3) / 2;
+        format!(
+            "x_{}!{}",
+            open.to_string().repeat(depth),
+            close.to_string().repeat(depth)
+        )
     }
 
     fn huge_src_block(size: usize) -> String {

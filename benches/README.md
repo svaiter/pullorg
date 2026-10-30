@@ -46,7 +46,7 @@ Document corpora, 64 KiB each by default (`common::documents`):
   and example blocks, drawers, dynamic blocks, footnote definitions, LaTeX
   environments, affiliated keywords.
 - `outline`: headlines only, every headline feature, levels up to eight.
-  Headline parser and tree flattening alone.
+  Headline parsing and arena traversal alone.
 - `fixtures`: all of `tests/fixtures/*.org` concatenated and repeated. Small
   hand-written documents that together cover the whole syntax.
 
@@ -58,6 +58,9 @@ lists nested 24 deep, 200-column tables, unterminated blocks and drawers,
 footnote references and definitions by the thousand, radio targets that
 match common words, lines starting with `*` that are not headlines,
 orphaned affiliated keywords, nested sub/superscripts, non-ASCII text.
+`nested-blocks` grows the depth of uniquely named blocks with the input;
+`nested-script-braces` and `nested-script-parens` exercise rejection beyond
+Org's supported sub/superscript depth.
 `scaling-adversarial` runs each at four sizes.
 
 To benchmark real documents, point `PULLORG_BENCH_CORPUS` at a directory:

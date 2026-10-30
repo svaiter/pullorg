@@ -8,12 +8,6 @@ use crate::event::{Event, Tag, TagEnd};
 use crate::object::{self, Restriction};
 use crate::options::Options;
 
-/// Arena node, flattened from the element tree.
-struct Node<'a> {
-    element: Element<'a>,
-    children: Vec<usize>,
-}
-
 /// What the walker is in the middle of emitting.
 enum Frame {
     /// Emitting the children of node `node`, next child index `next`.
@@ -36,7 +30,7 @@ enum Frame {
 /// ```
 pub struct Parser<'a> {
     text: &'a str,
-    nodes: Vec<Node<'a>>,
+    nodes: Vec<Element<'a>>,
     settings: Settings<'a>,
     roots: Vec<usize>,
     stack: Vec<Frame>,
@@ -53,17 +47,11 @@ impl<'a> Parser<'a> {
     /// Create a parser with the given [`Options`].
     pub fn new_ext(text: &'a str, options: Options) -> Self {
         let document = element::parse_document(text, &options);
-        let mut nodes = Vec::new();
-        let roots = document
-            .elements
-            .into_iter()
-            .map(|e| flatten(e, &mut nodes))
-            .collect();
         Parser {
             text,
-            nodes,
+            nodes: document.nodes,
             settings: document.settings,
-            roots,
+            roots: document.roots,
             stack: Vec::new(),
             queue: VecDeque::new(),
             root_next: 0,
@@ -150,9 +138,8 @@ impl<'a> Parser<'a> {
                 }
                 Some(Frame::End { node }) => {
                     let n = &self.nodes[node];
-                    if let Some(end) = end_of(&n.element.kind) {
-                        self.queue
-                            .push_back((Event::End(end), n.element.range.clone()));
+                    if let Some(end) = end_of(&n.kind) {
+                        self.queue.push_back((Event::End(end), n.range.clone()));
                     }
                 }
                 Some(Frame::Children { node, next }) => {
@@ -177,12 +164,12 @@ impl<'a> Parser<'a> {
     fn emit_start(&mut self, node: usize) {
         let text = self.text;
         let n = &self.nodes[node];
-        let range = n.element.range.clone();
-        for (kw, kw_range) in &n.element.affiliated {
+        let range = n.range.clone();
+        for (kw, kw_range) in &n.affiliated {
             self.queue
                 .push_back((Event::Keyword(kw.clone()), kw_range.clone()));
         }
-        match &n.element.kind {
+        match &n.kind {
             ElementKind::Leaf(event) => {
                 self.queue.push_back((event.clone(), range));
                 return;
@@ -413,18 +400,6 @@ fn end_of(kind: &ElementKind<'_>) -> Option<TagEnd> {
         ElementKind::DynamicBlock { .. } => TagEnd::DynamicBlock,
         ElementKind::FootnoteDefinition { .. } => TagEnd::FootnoteDefinition,
     })
-}
-
-fn flatten<'a>(mut element: Element<'a>, nodes: &mut Vec<Node<'a>>) -> usize {
-    let children = std::mem::take(&mut element.children);
-    let idx = nodes.len();
-    nodes.push(Node {
-        element,
-        children: Vec::new(),
-    });
-    let child_idx: Vec<usize> = children.into_iter().map(|c| flatten(c, nodes)).collect();
-    nodes[idx].children = child_idx;
-    idx
 }
 
 impl<'a> Iterator for Parser<'a> {
