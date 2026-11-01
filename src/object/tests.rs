@@ -86,7 +86,7 @@ fn tag_name(tag: &Tag<'_>) -> String {
         Tag::Italic => "italic".into(),
         Tag::Underline => "underline".into(),
         Tag::StrikeThrough => "strike-through".into(),
-        Tag::RadioTarget => "radio-target".into(),
+        Tag::RadioTarget { .. } => "radio-target".into(),
         Tag::Subscript { use_brackets } => {
             format!("subscript {}", if *use_brackets { "t" } else { "nil" })
         }
@@ -1316,6 +1316,7 @@ fn radio_link_fields() {
     };
     assert_eq!(l.link_type, "radio");
     assert_eq!(l.path, "my\ntarget");
+    assert_eq!(l.radio_target.as_deref(), Some("My Target"));
     assert_eq!(l.format, LinkFormat::Plain);
     assert_eq!(ev[i].1, 20..29);
     assert_eq!(ev[i + 1].0, Event::Text(CowStr::Borrowed("my")));

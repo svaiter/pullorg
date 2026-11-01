@@ -330,7 +330,8 @@ enum Kind<'a> {
 }
 
 /// A radio target, pre-processed for matching.
-struct Radio {
+struct Radio<'a> {
+    value: CowStr<'a>,
     /// Characters, lower-cased; `None` stands for a run of spaces, which
     /// matches one or more whitespace characters.
     pieces: Vec<Option<char>>,
@@ -340,14 +341,13 @@ struct Radio {
 struct ObjectParser<'a, 's> {
     text: &'a str,
     settings: &'s Settings<'a>,
-    radios: Vec<Radio>,
+    radios: Vec<Radio<'a>>,
 }
 
 impl<'a, 's> ObjectParser<'a, 's> {
     fn new(text: &'a str, settings: &'s Settings<'a>) -> Self {
-        let mut targets: Vec<&str> = Vec::new();
+        let mut targets = Vec::new();
         for t in &settings.radio_targets {
-            let t: &str = t;
             if !t.is_empty() && !targets.contains(&t) {
                 targets.push(t);
             }
@@ -367,7 +367,10 @@ impl<'a, 's> ObjectParser<'a, 's> {
                         pieces.push(Some(c));
                     }
                 }
-                Radio { pieces }
+                Radio {
+                    value: t.clone(),
+                    pieces,
+                }
             })
             .collect();
         ObjectParser {
@@ -395,6 +398,8 @@ struct FrameCache {
 
 #[derive(Clone, Copy, Debug)]
 struct RadioMatch {
+    /// Index of the definition selected by the matcher.
+    radio: usize,
     /// Start of the whole match (including the character before the
     /// target).
     start: usize,
@@ -641,7 +646,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             }
         }
         for s in starts.into_iter().flatten() {
-            for r in &self.p.radios {
+            for (radio, r) in self.p.radios.iter().enumerate() {
                 if let Some(e) = self.radio_target_at(s, r) {
                     let after = if self.eol(e) {
                         Some(e)
@@ -652,6 +657,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
                     };
                     if let Some(end) = after {
                         return Some(RadioMatch {
+                            radio,
                             start: m,
                             target: (s, e),
                             end,
@@ -665,7 +671,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
 
     /// Match one radio target at `s`, case-insensitively, spaces matching
     /// any run of whitespace. Returns the end of the match.
-    fn radio_target_at(&self, s: usize, r: &Radio) -> Option<usize> {
+    fn radio_target_at(&self, s: usize, r: &Radio<'_>) -> Option<usize> {
         let mut p = s;
         for piece in &r.pieces {
             match piece {

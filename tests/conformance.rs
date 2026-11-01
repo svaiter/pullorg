@@ -267,7 +267,7 @@ fn sort_affiliated(entries: &mut [Value]) {
 }
 
 /// Convert a start tag to `(frame kind, node)`.
-fn start_node(tag: &Tag<'_>, range: &Range<usize>, src: &str) -> (FrameKind, Map<String, Value>) {
+fn start_node(tag: &Tag<'_>, range: &Range<usize>) -> (FrameKind, Map<String, Value>) {
     use FrameKind::{Node, Raw};
     let n = |ty: &str, props: Value| node(ty, range, props);
     match tag {
@@ -382,15 +382,7 @@ fn start_node(tag: &Tag<'_>, range: &Range<usize>, src: &str) -> (FrameKind, Map
             Node,
             n("superscript", json!({"use-brackets-p": use_brackets})),
         ),
-        Tag::RadioTarget => {
-            // Emacs' :value is the raw text between `<<<` and `>>>`.
-            let raw = src.get(range.clone()).unwrap_or("");
-            let value = raw
-                .strip_prefix("<<<")
-                .and_then(|r| r.strip_suffix(">>>"))
-                .unwrap_or(raw);
-            (Node, n("radio-target", json!({"value": value})))
-        }
+        Tag::RadioTarget { value } => (Node, n("radio-target", json!({"value": value}))),
         Tag::FootnoteReference { label } => (
             Node,
             n(
@@ -533,9 +525,8 @@ fn leaf_node(event: &Event<'_>, range: &Range<usize>) -> Option<Map<String, Valu
 }
 
 /// Convert an event stream with byte ranges into the JSON tree shape
-/// produced by `tests/emacs/dump.el`. `src` is the source text (used to
-/// recover raw values the events do not carry, e.g. radio target text).
-fn events_to_json<'a, I>(src: &str, events: I) -> Result<Value, String>
+/// produced by `tests/emacs/dump.el`.
+fn events_to_json<'a, I>(events: I) -> Result<Value, String>
 where
     I: IntoIterator<Item = (Event<'a>, Range<usize>)>,
 {
@@ -559,7 +550,7 @@ where
         let ctx = |msg: String| format!("event #{index} {event:?} @ {range:?}: {msg}");
         match &event {
             Event::Start(tag) => {
-                let (kind, mut n) = start_node(tag, &range, src);
+                let (kind, mut n) = start_node(tag, &range);
                 if !matches!(kind, FrameKind::Title | FrameKind::ItemTag) {
                     take_affiliated(&mut pending_affiliated, &mut n);
                 } else if !pending_affiliated.is_empty() {
@@ -778,7 +769,7 @@ fn check_fixture(name: &str) -> Result<(), String> {
     let src = fs::read_to_string(&org_path).map_err(|e| format!("{}: {e}", org_path.display()))?;
     let result = panic::catch_unwind(AssertUnwindSafe(|| {
         let events: Vec<_> = Parser::new(&src).into_offset_iter().collect();
-        events_to_json(&src, events)
+        events_to_json(events)
     }));
     let mut actual = match result {
         Ok(Ok(v)) => v,
@@ -891,7 +882,6 @@ mod converter {
         // #+NAME: p
         // Some
         // text <2024-01-01 Mon +1w>
-        let src = "* TODO [#A] Hi *b* :t:\n#+NAME: p\nSome\ntext <2024-01-01 Mon +1w>\n";
         let ts = Timestamp {
             kind: TimestampKind::Active,
             raw: b("<2024-01-01 Mon +1w>"),
@@ -950,7 +940,7 @@ mod converter {
             (Event::End(TagEnd::Section), 23..67),
             (Event::End(TagEnd::Headline), 0..67),
         ];
-        let mut actual = events_to_json(src, events).unwrap();
+        let mut actual = events_to_json(events).unwrap();
         let mut expected = json!({
           "type": "org-data",
           "children": [{
@@ -996,7 +986,11 @@ mod converter {
 
     #[test]
     fn items_raw_blocks_and_leaves() {
-        let src = "- [@c] [X] t :: d\n#+begin_src sh\necho\n#+end_src\n<<<radio>>>\n";
+        // - [@c] [X] t :: d
+        // #+begin_src sh
+        // echo
+        // #+end_src
+        // <<<radio>>>
         let events = vec![
             (
                 Event::Start(Tag::PlainList {
@@ -1031,7 +1025,7 @@ mod converter {
             (Event::Text(b("echo")), 18..48),
             (Event::End(TagEnd::SrcBlock), 18..48),
             (Event::Start(Tag::Paragraph), 48..60),
-            (Event::Start(Tag::RadioTarget), 48..59),
+            (Event::Start(Tag::RadioTarget { value: b("radio") }), 48..59),
             (Event::Text(b("radio")), 51..56),
             (Event::End(TagEnd::RadioTarget), 48..59),
             (Event::End(TagEnd::Paragraph), 48..60),
@@ -1057,7 +1051,7 @@ mod converter {
                 60..60,
             ),
         ];
-        let mut actual = events_to_json(src, events).unwrap();
+        let mut actual = events_to_json(events).unwrap();
         normalize(&mut actual);
         let expected = json!({
           "type": "org-data",
@@ -1093,12 +1087,12 @@ mod converter {
     #[test]
     fn rejects_malformed_streams() {
         let unbalanced = vec![(Event::Start(Tag::Paragraph), 0..1)];
-        assert!(events_to_json("x", unbalanced).is_err());
+        assert!(events_to_json(unbalanced).is_err());
         let mismatched = vec![
             (Event::Start(Tag::Paragraph), 0..1),
             (Event::End(TagEnd::Bold), 0..1),
         ];
-        assert!(events_to_json("x", mismatched).is_err());
+        assert!(events_to_json(mismatched).is_err());
         let dangling = vec![(
             Event::Keyword(Keyword {
                 key: b("NAME"),
@@ -1108,7 +1102,7 @@ mod converter {
             }),
             0..9,
         )];
-        assert!(events_to_json("#+NAME: x", dangling).is_err());
+        assert!(events_to_json(dangling).is_err());
     }
 
     #[test]
@@ -1458,6 +1452,7 @@ mod roundtrip {
                     link_type: st(&p["type"]),
                     path: st(&p["path"]),
                     raw_link: st(&p["raw-link"]),
+                    radio_target: None,
                     format: match p["format"].as_str().unwrap() {
                         "plain" => LinkFormat::Plain,
                         "angle" => LinkFormat::Angle,
@@ -1478,7 +1473,13 @@ mod roundtrip {
                 };
                 container(tag, n, out)
             }
-            "radio-target" => container(Tag::RadioTarget, n, out),
+            "radio-target" => container(
+                Tag::RadioTarget {
+                    value: st(&n["props"]["value"]),
+                },
+                n,
+                out,
+            ),
             "footnote-reference" if p["type"] == "inline" => container(
                 Tag::FootnoteReference {
                     label: ost(&p["label"]),
@@ -1614,11 +1615,10 @@ mod roundtrip {
     fn emacs_json_roundtrips_through_events() {
         for name in fixture_names() {
             let mut expected = load_expected(&name).unwrap();
-            let src = fs::read_to_string(fixtures_dir().join(format!("{name}.org"))).unwrap();
             let mut events = Vec::new();
             nodes(&expected["children"], &mut events);
             let mut actual =
-                events_to_json(&src, events).unwrap_or_else(|e| panic!("fixture {name}: {e}"));
+                events_to_json(events).unwrap_or_else(|e| panic!("fixture {name}: {e}"));
             normalize(&mut expected);
             normalize(&mut actual);
             assert_eq!(expected, actual, "fixture {name}");
