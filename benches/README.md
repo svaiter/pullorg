@@ -71,6 +71,8 @@ and repeated failed bracket-link openers.
 `parse-first-radio-event` measures latency to the first event as the number
 of distinct targets grows. `radio-literal-paragraphs` exercises discovery in
 documents where most target-like spellings occur inside verbatim text.
+`radio-glossary` is mostly definitions that mention no other target, which
+the second discovery pass does not reparse.
 
 To benchmark real documents, point `PULLORG_BENCH_CORPUS` at a directory:
 every `.org` file in it is added to `parse/<name>`, `html/<name>` and the

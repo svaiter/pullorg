@@ -536,29 +536,51 @@ fn fix_headlines<'a>(
 // ---------------------------------------------------------------------------
 // Radio targets.
 
+/// An object container that may hold a radio target: its range, its
+/// restriction, and whether it survives in the export buffer (it is not in
+/// a commented subtree, which `org-export--delete-comment-trees` removes).
+pub(crate) type RadioContainer = (Range<usize>, Restriction, bool);
+
 /// The object containers of `elements` that may hold a radio target.
 fn radio_containers<'e, 'a>(
     text: &'a str,
     elements: &'e [Element<'a>],
-) -> impl Iterator<Item = (Range<usize>, Restriction)> + 'e
+) -> impl Iterator<Item = RadioContainer> + 'e
 where
     'a: 'e,
 {
-    elements.iter().filter_map(move |element| {
+    // Elements are in pre-order, so a subtree is a contiguous index range.
+    let mut commented_until = 0;
+    elements.iter().enumerate().filter_map(move |(i, element)| {
+        if i >= commented_until {
+            if let ElementKind::Headline { data, .. } | ElementKind::Inlinetask { data, .. } =
+                &element.kind
+            {
+                if data.commented {
+                    let mut last = i;
+                    while let Some(&child) = elements[last].children.last() {
+                        last = child;
+                    }
+                    commented_until = last + 1;
+                }
+            }
+        }
         let (range, restriction) = element.kind.object_content()?;
         text[range.clone()]
             .contains("<<<")
-            .then(|| (range.clone(), restriction))
+            .then(|| (range.clone(), restriction, i >= commented_until))
     })
 }
 
 /// Collect the radio targets as `org-export-as` sees them.
 ///
 /// Entering Org mode runs `org-update-radio-target-regexp` with no radio
-/// links; the export refreshes it once more with that first list active, so
-/// a radio link that consumes the opening of a verbatim span can expose a
-/// target. The second list is the one used for parsing. Keep the
-/// matcher shared across containers, and leave their events to the pull parser.
+/// links. The export deletes commented subtrees and refreshes it once more
+/// with that first list active, so a radio link that consumes the opening
+/// of a verbatim span can expose a target, or one that breaks up markup
+/// can hide one. The second list is the one used for parsing. A container
+/// in whose plain text no first-pass target occurs parses the same in both
+/// passes and keeps its first-pass targets without a second parse.
 ///
 /// Only object containers are searched. Emacs also finds targets in parsed
 /// affiliated keywords (`#+CAPTION:`), whose values are not parsed as
@@ -568,37 +590,71 @@ pub(crate) fn collect_radio_targets<'a, I>(
     containers: impl Fn() -> I,
     settings: &mut Settings<'a>,
 ) where
-    I: Iterator<Item = (Range<usize>, Restriction)>,
+    I: Iterator<Item = RadioContainer>,
 {
     debug_assert!(settings.radio_targets.names().is_empty());
-    let first = discover_radio_targets(text, containers(), settings);
+    // Targets found by the first pass with their ranges; container `i`
+    // found `first[ends[i - 1]..ends[i]]`.
+    let mut first = Vec::new();
+    let mut ends = Vec::new();
+    for (range, restriction, _) in containers() {
+        object::visit_radio_targets(text, range, restriction, settings, |v, r| {
+            first.push((v, r))
+        });
+        ends.push(first.len());
+    }
     if first.is_empty() {
         return;
     }
-    settings.radio_targets = object::RadioTargets::new(first);
-    let second = discover_radio_targets(text, containers(), settings);
-    if second != settings.radio_targets.names() {
-        settings.radio_targets = object::RadioTargets::new(second);
+    settings.radio_targets =
+        object::RadioTargets::new(priority(first.iter().map(|(v, _)| v.clone())));
+    let mut second = Vec::new();
+    let mut start = 0;
+    for ((range, restriction, exported), end) in containers().zip(ends) {
+        let found = &first[start..end];
+        start = end;
+        if !exported {
+            continue;
+        }
+        // The two passes diverge only at a radio link, and one cannot match
+        // inside a radio target (minimal restriction) or across its `<`.
+        let mut from = range.start;
+        let mut plain = found
+            .iter()
+            .map(|(_, r)| r.clone())
+            .chain(std::iter::once(range.end..range.end))
+            .map(|r| {
+                let segment = from..r.start.max(from);
+                from = r.end.max(from);
+                segment
+            });
+        if plain.any(|r| settings.radio_targets.occurs_in(&text[r])) {
+            object::visit_radio_targets(text, range, restriction, settings, |v, _| second.push(v));
+        } else {
+            #[cfg(debug_assertions)]
+            {
+                let mut again = Vec::new();
+                object::visit_radio_targets(text, range, restriction, settings, |v, r| {
+                    again.push((v, r))
+                });
+                debug_assert_eq!(found, again, "radio second pass skipped a change");
+            }
+            second.extend(found.iter().map(|(v, _)| v.clone()));
+        }
+    }
+    let second = object::RadioTargets::new(priority(second.into_iter()));
+    if second.names() != settings.radio_targets.names() {
+        settings.radio_targets = second;
     }
 }
 
-fn discover_radio_targets<'a>(
-    text: &'a str,
-    containers: impl Iterator<Item = (Range<usize>, Restriction)>,
-    settings: &Settings<'a>,
-) -> Vec<CowStr<'a>> {
+/// `cl-pushnew` over targets in document order: each name once, the most
+/// recent first.
+fn priority<'a>(names: impl Iterator<Item = CowStr<'a>>) -> Vec<CowStr<'a>> {
     let mut seen = std::collections::HashSet::new();
-    let mut found = Vec::new();
-    for (range, restriction) in containers {
-        object::visit_radio_targets(text, range, restriction, settings, |value| {
-            if seen.insert(value.clone()) {
-                found.push(value);
-            }
-        });
-    }
-    found.reverse();
-    found.sort_by_cached_key(|t| std::cmp::Reverse(t.chars().count()));
-    found
+    let mut out: Vec<_> = names.filter(|name| seen.insert(name.clone())).collect();
+    out.reverse();
+    out
 }
 
 #[cfg(test)]

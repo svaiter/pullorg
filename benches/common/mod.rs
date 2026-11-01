@@ -599,6 +599,7 @@ pub mod adversarial {
             Corpus::new("footnote-storm", footnotes(size)),
             Corpus::new("radio-targets", radio(size)),
             Corpus::new("radio-target-paragraphs", radio_paragraphs(size)),
+            Corpus::new("radio-glossary", radio_glossary(size)),
             Corpus::new(
                 "radio-literal-paragraphs",
                 format!(
@@ -743,6 +744,30 @@ pub mod adversarial {
                 n % 50,
                 (n + 1) % 50,
                 (n + 7) % 50
+            ));
+            n += 1;
+        }
+        super::truncate_at_char(&mut out, size);
+        out
+    }
+
+    fn radio_glossary(size: usize) -> String {
+        // Definitions that mention no other target, then prose using them:
+        // the second discovery pass has nothing to reparse.
+        let mut out = String::new();
+        let mut n = 0;
+        while out.len() < size / 2 {
+            out.push_str(&format!(
+                "A <<<term{}>>> is defined with *bold* and =code= here.\n\n",
+                n % 200
+            ));
+            n += 1;
+        }
+        while out.len() < size {
+            out.push_str(&format!(
+                "Prose using term{} and term{} with /emphasis/.\n\n",
+                n % 200,
+                (n + 13) % 200
             ));
             n += 1;
         }

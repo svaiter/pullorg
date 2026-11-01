@@ -38,7 +38,7 @@ fn opt(s: &Option<CowStr<'_>>) -> String {
 fn snippet_settings(src: &str) -> Settings<'_> {
     let mut settings = document_settings(src);
     settings.radio_targets = Default::default();
-    let container = (paragraph_range(src), Restriction::Standard);
+    let container = (paragraph_range(src), Restriction::Standard, true);
     collect_radio_targets(src, || std::iter::once(container.clone()), &mut settings);
     settings
 }
@@ -1687,7 +1687,6 @@ fn soup_never_panics() {
         if i % 3 == 0 {
             let mut names = settings.radio_targets.names().to_vec();
             names.extend(["a b".into(), "é".into(), "a".into()]);
-            names.sort_by_key(|t| std::cmp::Reverse(t.chars().count()));
             settings.radio_targets = super::RadioTargets::new(names);
         }
         settings.sub_superscripts = match i % 3 {

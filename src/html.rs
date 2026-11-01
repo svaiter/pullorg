@@ -348,6 +348,8 @@ struct Renderer<W: fmt::Write> {
     radio: radio::Anchors,
     /// Whether each open link with children emitted an anchor.
     link_tags: Vec<bool>,
+    /// Whether each open radio target emitted an anchor.
+    target_tags: Vec<bool>,
     out: W,
     // None discards an unused definition while its nested definitions and
     // document-wide macro effects are still processed.
@@ -430,6 +432,7 @@ impl<W: fmt::Write> Renderer<W> {
         Renderer {
             radio: radio::Anchors::default(),
             link_tags: Vec::new(),
+            target_tags: Vec::new(),
             out,
             bufs: Vec::new(),
             skip: 0,
@@ -1036,10 +1039,14 @@ impl<W: fmt::Write> Renderer<W> {
                     .as_ref()
                     .and_then(|plan| plan.visible_definition())
                     .unwrap_or_else(|| !self.hstack.iter().any(|h| h.muted));
-                if visible {
-                    if let Some(n) = self.radio.number(&value, true) {
-                        self.w(&format!("<a id=\"{RADIO_PREFIX}{n}\">"))?;
-                    }
+                let number = if visible {
+                    self.radio.number(&value, true)
+                } else {
+                    None
+                };
+                self.target_tags.push(number.is_some());
+                if let Some(n) = number {
+                    self.w(&format!("<a id=\"{RADIO_PREFIX}{n}\">"))?;
                 }
             }
             Tag::FootnoteReference { .. } => {
@@ -1172,7 +1179,11 @@ impl<W: fmt::Write> Renderer<W> {
                     self.w("</a>")?;
                 }
             }
-            TagEnd::RadioTarget => self.w("</a>")?,
+            TagEnd::RadioTarget => {
+                if self.target_tags.pop() == Some(true) {
+                    self.w("</a>")?;
+                }
+            }
             TagEnd::Citation => self.w("]")?,
         }
         Ok(())
@@ -1876,6 +1887,33 @@ mod tests {
             parse_html("See RADIO.\n\nThe <<<radio>>> target.\n"),
             "<p>See <a href=\"#org-radio-1\">RADIO</a>.</p>\n<p>The <a id=\"org-radio-1\">radio</a> target.</p>\n"
         );
+    }
+
+    #[test]
+    fn radio_target_without_an_anchor_writes_no_closing_tag() {
+        // Rendered without a plan, the target has no number.
+        let mut r = Renderer::new(String::new());
+        for ev in [
+            st(Tag::RadioTarget { value: "x".into() }),
+            Event::Text("x".into()),
+            en(TagEnd::RadioTarget),
+        ] {
+            r.handle(ev, Next::Other).unwrap();
+        }
+        assert_eq!(r.out, "x");
+    }
+
+    #[test]
+    fn radio_targets_from_commented_trees_do_not_link() {
+        // `org-export--delete-comment-trees` runs before the export's
+        // second radio pass. Checked against Emacs' HTML export.
+        let html =
+            parse_html("* COMMENT hidden\n<<<a =b>>>\n* Body\na =b <<<c>>>= x\n\nlater c.\n");
+        assert!(
+            html.contains("<p>a <code>b &lt;&lt;&lt;c&gt;&gt;&gt;</code> x</p>"),
+            "{html}"
+        );
+        assert!(html.contains("<p>later c.</p>"), "{html}");
     }
 
     #[test]

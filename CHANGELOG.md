@@ -6,6 +6,8 @@
   verbatim, code, inline source, or LaTeX no longer creates spurious links.
   As in `org-export-as`, discovery runs a second time with the first targets
   active, so a radio link that breaks up markup can expose or hide a target.
+  Like the export, that second pass ignores commented subtrees, and it
+  skips containers in whose plain text no first-pass target occurs.
   HTML emits a link only when its target is actually rendered. The parser
   shares its matcher across paragraphs and produces their events on demand.
   Targets in `#+CAPTION:` values, which Emacs also registers, are still not

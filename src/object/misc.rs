@@ -493,6 +493,15 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         Some(nb..ne)
     }
 
+    /// [`header`], left raw while discovering radio targets.
+    fn header(&self, r: Range<usize>) -> Option<CowStr<'a>> {
+        if self.p.discovering {
+            Some(self.borrow(r))
+        } else {
+            header(self.slice(r))
+        }
+    }
+
     /// `org-element-inline-babel-call-parser`.
     pub(super) fn inline_babel_call(&self, p: usize) -> Option<Obj<'a>> {
         let name = self.name_after(p, "call_", b"[(", b"([")?;
@@ -512,9 +521,9 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             q,
             Kind::Leaf(Event::InlineBabelCall {
                 call: self.borrow(name),
-                inside_header: inside.and_then(|r| header(self.slice(r))),
+                inside_header: inside.and_then(|r| self.header(r)),
                 arguments: non_blank(self.slice(args.clone())).then(|| self.borrow(args)),
-                end_header: end_header.and_then(|r| header(self.slice(r))),
+                end_header: end_header.and_then(|r| self.header(r)),
             }),
         ))
     }
@@ -533,7 +542,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             e,
             Kind::Leaf(Event::InlineSrcBlock {
                 language: self.borrow(lang),
-                parameters: params.and_then(|r| header(self.slice(r))),
+                parameters: params.and_then(|r| self.header(r)),
                 value: self.borrow(value),
             }),
         ))
@@ -561,12 +570,15 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             return None;
         };
         let key = self.slice(kb..ke);
-        let key = if key.bytes().any(|b| b.is_ascii_uppercase()) {
+        let key = if !self.p.discovering && key.bytes().any(|b| b.is_ascii_uppercase()) {
             CowStr::Owned(key.to_ascii_lowercase())
         } else {
             CowStr::Borrowed(key)
         };
-        let args = args.map_or_else(Vec::new, |r| macro_arguments(self.slice(r)));
+        let args = match args {
+            Some(r) if !self.p.discovering => macro_arguments(self.slice(r)),
+            _ => Vec::new(),
+        };
         Some(self.obj(p, end, Kind::Leaf(Event::Macro { key, args })))
     }
 

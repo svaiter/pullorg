@@ -24,27 +24,61 @@ impl Hash for Letter {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) struct RadioTargets<'a> {
     names: Vec<CowStr<'a>>,
     edges: HashMap<(usize, Letter), usize>,
     /// Candidate indices at the end of each literal prefix.
     candidates: Vec<Vec<usize>>,
     suffixes: Vec<Vec<Option<char>>>,
+    /// ASCII characters that can start a target, for a quick scan.
+    ascii_starts: [bool; 128],
+}
+
+impl Default for RadioTargets<'_> {
+    fn default() -> Self {
+        Self {
+            names: Vec::new(),
+            edges: HashMap::new(),
+            candidates: Vec::new(),
+            suffixes: Vec::new(),
+            ascii_starts: [false; 128],
+        }
+    }
 }
 
 impl<'a> RadioTargets<'a> {
-    /// Names are in match priority order (longest first, latest on ties).
-    pub(crate) fn new(names: Vec<CowStr<'a>>) -> Self {
+    /// Build the matcher. `names` gives the priority between targets of the
+    /// same length (`org-update-radio-target-regexp` lists the most recent
+    /// first); empty names and repeats are dropped, and longer targets are
+    /// tried first.
+    pub(crate) fn new(mut names: Vec<CowStr<'a>>) -> Self {
+        let mut seen = std::collections::HashSet::new();
+        names.retain(|name| !name.is_empty() && seen.insert(name.clone()));
         if names.is_empty() {
             return Self::default();
         }
+        names.sort_by_cached_key(|t| std::cmp::Reverse(t.chars().count()));
         let mut index = Self {
             names,
             candidates: vec![Vec::new()],
             ..Self::default()
         };
         for (id, name) in index.names.iter().enumerate() {
+            if let Some(first) = name.chars().next() {
+                if first == ' ' {
+                    // A space matches any whitespace.
+                    for c in 0..128u8 {
+                        index.ascii_starts[c as usize] |= is_ws(c as char);
+                    }
+                }
+                for c in std::iter::once(first).chain(first.to_lowercase()) {
+                    if c.is_ascii() {
+                        index.ascii_starts[c.to_ascii_lowercase() as usize] = true;
+                        index.ascii_starts[c.to_ascii_uppercase() as usize] = true;
+                    }
+                }
+            }
             let end = name.find(' ').unwrap_or(name.len());
             let mut node = 0;
             for c in name[..end].chars() {
@@ -99,9 +133,44 @@ impl<'a> RadioTargets<'a> {
         }
         best
     }
+
+    /// Whether some target's text occurs anywhere in `text`, ignoring the
+    /// boundaries a radio link needs. A container where this is false parses
+    /// the same with or without these targets.
+    pub(crate) fn occurs_in(&self, text: &str) -> bool {
+        if self.names.is_empty() {
+            return false;
+        }
+        text.char_indices().any(|(start, c)| {
+            // A non-ASCII character can fold onto an ASCII one (the Kelvin
+            // sign), so only ASCII characters are filtered.
+            if c.is_ascii() && !self.ascii_starts[c as usize] {
+                return false;
+            }
+            let (mut node, mut pos) = (0, start);
+            loop {
+                if self.candidates[node]
+                    .iter()
+                    .any(|&id| suffix_end(text, pos, &self.suffixes[id]).is_some())
+                {
+                    return true;
+                }
+                let Some(c) = text[pos..].chars().next() else {
+                    return false;
+                };
+                let Some(&next) = self.edges.get(&(node, Letter(c))) else {
+                    return false;
+                };
+                node = next;
+                pos += c.len_utf8();
+            }
+        })
+    }
 }
 
-fn match_suffix(text: &str, mut pos: usize, suffix: &[Option<char>]) -> Option<(usize, usize)> {
+/// End of `suffix` matched at `pos`: literal characters compare
+/// case-insensitively, `None` matches a run of whitespace.
+fn suffix_end(text: &str, mut pos: usize, suffix: &[Option<char>]) -> Option<usize> {
     for piece in suffix {
         let mut chars = text[pos..].chars();
         let c = chars.next()?;
@@ -117,6 +186,12 @@ fn match_suffix(text: &str, mut pos: usize, suffix: &[Option<char>]) -> Option<(
             _ => return None,
         }
     }
+    Some(pos)
+}
+
+/// [`suffix_end`] followed by the right boundary of a radio link.
+fn match_suffix(text: &str, pos: usize, suffix: &[Option<char>]) -> Option<(usize, usize)> {
+    let pos = suffix_end(text, pos, suffix)?;
     match text[pos..].chars().next() {
         None | Some('\n') => Some((pos, pos)),
         Some(c) if !is_alnum(c) || is_line_breakable(c) => Some((pos, pos + c.len_utf8())),
@@ -152,5 +227,74 @@ mod tests {
                 .map(|(i, _, _)| matcher.names()[i].as_ref());
             assert_eq!(actual, expected, "{text:?}");
         }
+    }
+
+    /// The matcher this index replaced: every target in priority order,
+    /// character by character.
+    fn linear_match(names: &[CowStr<'_>], text: &str) -> Option<(usize, usize, usize)> {
+        names.iter().enumerate().find_map(|(id, name)| {
+            let mut pieces = Vec::new();
+            for c in name.chars() {
+                if c != ' ' {
+                    pieces.push(Some(c));
+                } else if pieces.last() != Some(&None) {
+                    pieces.push(None);
+                }
+            }
+            match_suffix(text, 0, &pieces).map(|(end, after)| (id, end, after))
+        })
+    }
+
+    #[test]
+    fn index_matches_linear_matcher() {
+        const CHARS: &[char] = &[
+            'a', 'A', 'b', 'k', 'K', '\u{212a}', 'i', 'İ', 'é', 'É', ' ', ' ', '\t', '\n',
+            '\u{a0}', '/', '.', '日',
+        ];
+        let mut state = 0x2545_F491_4F6C_DD1Du64;
+        let mut next = move |n: usize| {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            (state % n as u64) as usize
+        };
+        for _ in 0..5000 {
+            let mut word = |max: usize| -> String {
+                let len = 1 + next(max);
+                (0..len).map(|_| CHARS[next(CHARS.len())]).collect()
+            };
+            let count = 1 + word(5).chars().count();
+            let names: Vec<CowStr<'_>> = (0..count).map(|_| word(4).into()).collect();
+            let text = word(8);
+            let matcher = RadioTargets::new(names);
+            for (start, _) in text.char_indices() {
+                let rest = &text[start..];
+                assert_eq!(
+                    matcher.match_at(rest),
+                    linear_match(matcher.names(), rest),
+                    "{:?} in {rest:?}",
+                    matcher.names()
+                );
+            }
+            let any = text
+                .char_indices()
+                .any(|(start, _)| linear_match(matcher.names(), &text[start..]).is_some());
+            assert!(
+                !any || matcher.occurs_in(&text),
+                "{:?} in {text:?}",
+                matcher.names()
+            );
+        }
+    }
+
+    #[test]
+    fn new_drops_empty_and_repeated_names_and_sorts_longest_first() {
+        let matcher = RadioTargets::new(
+            ["a", "", "abc", "ab", "a", "xyz"]
+                .into_iter()
+                .map(CowStr::from)
+                .collect(),
+        );
+        assert_eq!(matcher.names(), ["abc", "xyz", "ab", "a"]);
     }
 }

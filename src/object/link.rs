@@ -292,10 +292,14 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         }
         let (uri, desc, end) = found?;
         let source = self.slice(uri.clone());
-        let raw = expand_abbrev(
-            unescape(replace_newlines(source, " ")),
-            &self.p.settings.link_abbreviations,
-        );
+        let raw = if self.p.discovering {
+            CowStr::Borrowed(source)
+        } else {
+            expand_abbrev(
+                unescape(replace_newlines(source, " ")),
+                &self.p.settings.link_abbreviations,
+            )
+        };
         // Emacs' `:raw-link` is the link after unescaping and abbreviation
         // expansion, not the source text.
         let raw_link = raw.clone();
@@ -441,7 +445,11 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
         if self.byte(q) != Some(b'>') {
             return None;
         }
-        let path = replace_newlines(self.slice(ps..q), "");
+        let path = if self.p.discovering {
+            self.borrow(ps..q)
+        } else {
+            replace_newlines(self.slice(ps..q), "")
+        };
         let link = self.finish_link(
             self.borrow(ts..ts + t.len()),
             path,
@@ -493,7 +501,9 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
                 link.search_option = Some(sub(&link.path, i + 2..link.path.len()));
                 link.path = sub(&link.path, 0..i);
             }
-            link.path = normalize_slashes(std::mem::take(&mut link.path));
+            if !self.p.discovering {
+                link.path = normalize_slashes(std::mem::take(&mut link.path));
+            }
         }
         link
     }

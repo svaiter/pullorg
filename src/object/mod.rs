@@ -186,11 +186,11 @@ pub(crate) fn visit_radio_targets<'a>(
     range: Range<usize>,
     restriction: Restriction,
     settings: &Settings<'a>,
-    mut visit: impl FnMut(CowStr<'a>),
+    mut visit: impl FnMut(CowStr<'a>, Range<usize>),
 ) {
-    walk_objects::<false>(text, range, restriction, settings, |event, _| {
+    walk_objects::<false>(text, range, restriction, settings, |event, range| {
         if let Event::Start(Tag::RadioTarget { value }) = event {
-            visit(value);
+            visit(value, range);
         }
     });
 }
@@ -208,7 +208,11 @@ fn walk_objects<'a, const EMIT_TEXT: bool>(
         debug_assert!(false, "parse_objects: range not on char boundaries");
         return;
     }
-    let parser = ObjectParser { text, settings };
+    let parser = ObjectParser {
+        text,
+        settings,
+        discovering: !EMIT_TEXT,
+    };
     let mut stack = vec![Frame {
         start,
         end,
@@ -371,6 +375,10 @@ enum Kind<'a> {
 struct ObjectParser<'a, 's> {
     text: &'a str,
     settings: &'s Settings<'a>,
+    /// Radio target discovery: object boundaries matter, but values that
+    /// would need a new allocation (unescaped or expanded link paths, macro
+    /// arguments, header arguments) are left raw.
+    discovering: bool,
 }
 
 /// Caches of forward searches in a container. A search from `from` that

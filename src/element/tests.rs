@@ -1135,3 +1135,17 @@ fn radio_targets_second_pass() {
     let doc = parse("<<<z *a>>>\n\nz *a ~b* <<<x>>>~\n\nlater x.\n");
     assert_eq!(doc.settings.radio_targets.names(), ["z *a"]);
 }
+
+/// Containers whose plain text holds no first-pass target skip the second
+/// parse; the result is the same as reparsing them.
+#[test]
+fn radio_second_pass_skips_unaffected_containers() {
+    let doc = parse(
+        "A <<<widget>>> here.\n\n=x <<<hidden>>>= and a <<<gadget>>>.\n\nwidget gadget hidden\n",
+    );
+    assert_eq!(doc.settings.radio_targets.names(), ["gadget", "widget"]);
+    // The second paragraph defines `d`, but `a =b` also occurs in its plain
+    // text: it is reparsed and exposes `c`.
+    let doc = parse("<<<a =b>>>\n\n<<<d>>> a =b <<<c>>>= x\n");
+    assert_eq!(doc.settings.radio_targets.names(), ["a =b", "c", "d"]);
+}
