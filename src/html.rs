@@ -11,8 +11,11 @@
 //! required: tables, footnote definitions and paragraphs
 //! carrying affiliated keywords. Headlines are held back until their property
 //! drawer has been seen, so that a `CUSTOM_ID` property can become the `id`.
-//! On the first radio target or link, the renderer buffers the remaining
-//! events so generated radio ids can avoid explicit ids anywhere in the document.
+//! On the first radio or footnote event the renderer buffers the remaining
+//! events to resolve document-wide references. Radio ids avoid explicit ids.
+//! Footnotes use the last visible definition of each label and are numbered
+//! depth-first from visible references. Macros and keywords are still
+//! processed in source order, including inside footnote definitions.
 //!
 //! # Headline ids and links
 //!
@@ -33,6 +36,7 @@
 //! escaped plain text and is not parsed as Org again, and a macro must be
 //! defined before its first use. Unknown macros expand to nothing.
 
+mod footnotes;
 mod radio;
 
 use radio::PREFIX as RADIO_PREFIX;
@@ -329,16 +333,23 @@ struct ItemInfo {
     checkbox: Option<Checkbox>,
 }
 
-struct FnEntry {
-    label: Option<String>,
-    refs: usize,
-    def: Option<String>,
+/// Headlines that are omitted from the output also cannot define footnotes.
+fn omit(tag: &Tag<'_>, archived_parent: bool) -> bool {
+    match tag {
+        Tag::Headline(h) | Tag::Inlinetask(h) => {
+            archived_parent || h.commented || h.tags.iter().any(|t| t == "noexport")
+        }
+        Tag::Section => archived_parent,
+        _ => false,
+    }
 }
 
 struct Renderer<W: fmt::Write> {
     radio: radio::Anchors,
     out: W,
-    bufs: Vec<String>,
+    // None discards an unused definition while its nested definitions and
+    // document-wide macro effects are still processed.
+    bufs: Vec<Option<String>>,
     skip: usize,
     raw: bool,
     verse: usize,
@@ -356,11 +367,7 @@ struct Renderer<W: fmt::Write> {
     src_caption: Vec<bool>,
     preserve_indent: Vec<bool>,
     export_html: Vec<bool>,
-    entries: Vec<FnEntry>,
-    label_idx: HashMap<String, usize>,
-    pending_defs: HashMap<String, String>,
-    fn_def_stack: Vec<String>,
-    fn_inline_stack: Vec<usize>,
+    footnotes: Option<footnotes::Plan>,
     cite_first: bool,
 }
 
@@ -439,21 +446,18 @@ impl<W: fmt::Write> Renderer<W> {
             src_caption: Vec::new(),
             preserve_indent: Vec::new(),
             export_html: Vec::new(),
-            entries: Vec::new(),
-            label_idx: HashMap::new(),
-            pending_defs: HashMap::new(),
-            fn_def_stack: Vec::new(),
-            fn_inline_stack: Vec::new(),
+            footnotes: None,
             cite_first: true,
         }
     }
 
     fn w(&mut self, s: &str) -> fmt::Result {
         match self.bufs.last_mut() {
-            Some(b) => {
+            Some(Some(b)) => {
                 b.push_str(s);
                 Ok(())
             }
+            Some(None) => Ok(()),
             None => self.out.write_str(s),
         }
     }
@@ -463,14 +467,32 @@ impl<W: fmt::Write> Renderer<W> {
     }
 
     fn pop_buf(&mut self) -> String {
-        self.bufs.pop().unwrap_or_default()
+        self.bufs.pop().flatten().unwrap_or_default()
+    }
+
+    fn needs_plan(&mut self, event: &Event<'_>) -> bool {
+        self.footnotes.is_none() && (self.radio.observe(event) || footnotes::is_footnote(event))
+    }
+
+    fn plan_tail<'e>(
+        &mut self,
+        prefix: &[Event<'e>],
+        iter: impl Iterator<Item = Event<'e>>,
+    ) -> Vec<Event<'e>> {
+        let tail = self.radio.reserve_tail(iter);
+        self.footnotes = Some(footnotes::Plan::discover(
+            prefix.iter().chain(&tail),
+            &self.hstack,
+            self.skip,
+        ));
+        tail
     }
 
     fn feed<'e, I: Iterator<Item = Event<'e>>>(&mut self, iter: I) -> fmt::Result {
         let mut it = iter.peekable();
         while let Some(ev) = it.next() {
-            if self.radio.observe(&ev) {
-                let tail = self.radio.reserve_tail(it);
+            if self.needs_plan(&ev) {
+                let tail = self.plan_tail(std::slice::from_ref(&ev), it);
                 return self.feed(std::iter::once(ev).chain(tail));
             }
             if self.skip == 0 {
@@ -480,7 +502,7 @@ impl<W: fmt::Write> Renderer<W> {
                     let kws = std::mem::take(&mut self.pending);
                     let mut depth = 1usize;
                     let mut evs = Vec::new();
-                    let mut has_radio = false;
+                    let mut needs_plan = false;
                     for e in it.by_ref() {
                         match &e {
                             Event::Start(_) => depth += 1,
@@ -490,11 +512,11 @@ impl<W: fmt::Write> Renderer<W> {
                         if depth == 0 {
                             break;
                         }
-                        has_radio |= self.radio.observe(&e);
+                        needs_plan |= self.needs_plan(&e);
                         evs.push(e);
                     }
-                    if has_radio {
-                        let tail = self.radio.reserve_tail(it);
+                    if needs_plan {
+                        let tail = self.plan_tail(&evs, it);
                         self.table(kind, evs, &kws)?;
                         return self.feed(tail.into_iter());
                     }
@@ -517,54 +539,29 @@ impl<W: fmt::Write> Renderer<W> {
 
     fn finish(&mut self) -> fmt::Result {
         self.flush_held()?;
-        if self.entries.is_empty() {
+        let Some(notes) = self
+            .footnotes
+            .take()
+            .filter(|notes| !notes.bodies.is_empty())
+        else {
             return Ok(());
-        }
+        };
         self.w("<div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n")?;
-        let mut i = 0;
-        while i < self.entries.len() {
+        for (i, def) in notes.bodies.into_iter().enumerate() {
             let n = i + 1;
-            let def = match self.entries[i].def.clone() {
-                Some(d) => d,
-                None => self.entries[i]
-                    .label
-                    .as_ref()
-                    .and_then(|l| self.pending_defs.get(l).cloned())
-                    .unwrap_or_default(),
-            };
             self.w(&format!(
                 "<div class=\"footdef\"><sup><a id=\"fn.{n}\" class=\"footnum\" href=\"#fnr.{n}\">{n}</a></sup> <div class=\"footpara\">{def}</div></div>\n"
             ))?;
-            i += 1;
         }
         self.w("</div></div>\n")
     }
 
-    fn footnote_ref(&mut self, label: Option<&str>) -> (usize, String) {
-        let idx = match label.and_then(|l| self.label_idx.get(l).copied()) {
-            Some(i) => i,
-            None => {
-                self.entries.push(FnEntry {
-                    label: label.map(str::to_string),
-                    refs: 0,
-                    def: None,
-                });
-                let i = self.entries.len() - 1;
-                if let Some(l) = label {
-                    self.label_idx.insert(l.to_string(), i);
-                }
-                i
-            }
-        };
-        self.entries[idx].refs += 1;
-        let r = self.entries[idx].refs;
-        let n = idx + 1;
-        let id = if r == 1 {
-            format!("fnr.{n}")
-        } else {
-            format!("fnr.{n}.{}", 100 + r - 2)
-        };
-        (n, id)
+    fn begin_definition(&mut self) {
+        let reachable = self
+            .footnotes
+            .as_mut()
+            .is_some_and(|plan| plan.begin_definition());
+        self.bufs.push(reachable.then(String::new));
     }
 
     /// Returns `true` when the following event has been consumed.
@@ -645,10 +642,7 @@ impl<W: fmt::Write> Renderer<W> {
                 self.we(&ts.raw)?;
                 self.w("</span></span>")?;
             }
-            Event::FootnoteReference(label) => {
-                let (n, id) = self.footnote_ref(Some(&label));
-                self.fn_link(n, &id)?;
-            }
+            Event::FootnoteReference(_) => self.fn_link()?,
             Event::CitationReference {
                 key,
                 prefix,
@@ -767,7 +761,15 @@ impl<W: fmt::Write> Renderer<W> {
         }
     }
 
-    fn fn_link(&mut self, n: usize, id: &str) -> fmt::Result {
+    fn fn_link(&mut self) -> fmt::Result {
+        let Some((n, occurrence)) = self.footnotes.as_mut().and_then(|p| p.reference()) else {
+            return Ok(());
+        };
+        let id = if occurrence == 1 {
+            format!("fnr.{n}")
+        } else {
+            format!("fnr.{n}.{}", 100 + occurrence - 2)
+        };
         self.w(&format!(
             "<sup><a id=\"{id}\" class=\"footref\" href=\"#fn.{n}\" role=\"doc-backlink\">{n}</a></sup>"
         ))
@@ -790,13 +792,9 @@ impl<W: fmt::Write> Renderer<W> {
     }
 
     fn start_headline(&mut self, h: &Headline<'_>, inline: bool) -> fmt::Result {
-        if h.commented || h.tags.iter().any(|t| t == "noexport") {
-            self.skip = 1;
-            return Ok(());
-        }
         let muted = h.footnote_section && !inline;
         if muted {
-            self.bufs.push(String::new());
+            self.bufs.push(Some(String::new()));
         }
         if !inline {
             self.headline_count += 1;
@@ -823,9 +821,7 @@ impl<W: fmt::Write> Renderer<W> {
         next: Next,
         lead: bool,
     ) -> Result<bool, fmt::Error> {
-        if matches!(tag, Tag::Section | Tag::Headline(_) | Tag::Inlinetask(_))
-            && self.hstack.last().is_some_and(|h| h.archived)
-        {
+        if omit(&tag, self.hstack.last().is_some_and(|h| h.archived)) {
             self.skip = 1;
             return Ok(false);
         }
@@ -840,7 +836,7 @@ impl<W: fmt::Write> Renderer<W> {
                     if inline {
                         self.w("<b>")?;
                     } else {
-                        self.bufs.push(String::new());
+                        self.bufs.push(Some(String::new()));
                     }
                     self.w(&prefix)?;
                 }
@@ -854,7 +850,7 @@ impl<W: fmt::Write> Renderer<W> {
                     self.w("<p>")?;
                 } else {
                     self.paras.push(ParaKind::Aff(aff));
-                    self.bufs.push(String::new());
+                    self.bufs.push(Some(String::new()));
                 }
             }
             Tag::PlainList { kind } => {
@@ -945,13 +941,13 @@ impl<W: fmt::Write> Renderer<W> {
                     _ => "src".to_string(),
                 };
                 self.w(&aff.open("pre", Some(&base)))?;
-                self.bufs.push(String::new());
+                self.bufs.push(Some(String::new()));
             }
             Tag::ExampleBlock { switches } => {
                 self.preserve_indent
                     .push(preserves_indent(switches.as_deref()));
                 self.w(&aff.open("pre", Some("example")))?;
-                self.bufs.push(String::new());
+                self.bufs.push(Some(String::new()));
             }
             Tag::ExportBlock { backend } => {
                 let html = backend.eq_ignore_ascii_case("html");
@@ -959,18 +955,17 @@ impl<W: fmt::Write> Renderer<W> {
                 if html {
                     self.raw = true;
                 } else {
-                    self.bufs.push(String::new());
+                    self.bufs.push(Some(String::new()));
                 }
             }
-            Tag::CommentBlock | Tag::PropertyDrawer => self.bufs.push(String::new()),
+            Tag::CommentBlock | Tag::PropertyDrawer => self.bufs.push(Some(String::new())),
             Tag::Drawer { name } => {
                 self.w(&aff.open("div", Some(&format!("drawer {name}"))))?;
                 self.w(&format!("\n<h6>{}</h6>\n", escape(&name)))?;
             }
             Tag::DynamicBlock { .. } => {}
-            Tag::FootnoteDefinition { label } => {
-                self.fn_def_stack.push(label.to_string());
-                self.bufs.push(String::new());
+            Tag::FootnoteDefinition { .. } => {
+                self.begin_definition();
                 self.lead = true;
             }
             Tag::Bold => self.w("<b>")?,
@@ -1023,14 +1018,20 @@ impl<W: fmt::Write> Renderer<W> {
                 self.w(&format!("<a href=\"{}\">", escape(&href)))?;
             }
             Tag::RadioTarget { value } => {
-                let n = self.radio.number(&value, true);
-                self.w(&format!("<a id=\"{RADIO_PREFIX}{n}\">"))?;
+                // An anchor inside a discarded definition cannot be the
+                // destination of a link elsewhere in the document.
+                if !self
+                    .footnotes
+                    .as_ref()
+                    .is_some_and(|p| p.in_discarded_definition())
+                {
+                    let n = self.radio.number(&value, true);
+                    self.w(&format!("<a id=\"{RADIO_PREFIX}{n}\">"))?;
+                }
             }
-            Tag::FootnoteReference { label } => {
-                let (n, id) = self.footnote_ref(label.as_deref());
-                self.fn_link(n, &id)?;
-                self.fn_inline_stack.push(n);
-                self.bufs.push(String::new());
+            Tag::FootnoteReference { .. } => {
+                self.fn_link()?;
+                self.begin_definition();
             }
             Tag::Citation { .. } => {
                 self.cite_first = true;
@@ -1141,10 +1142,10 @@ impl<W: fmt::Write> Renderer<W> {
             }
             TagEnd::Drawer => self.w("</div>\n")?,
             TagEnd::DynamicBlock => {}
-            TagEnd::FootnoteDefinition => {
+            TagEnd::FootnoteDefinition | TagEnd::FootnoteReference => {
                 let content = self.pop_buf();
-                if let Some(label) = self.fn_def_stack.pop() {
-                    self.pending_defs.insert(label, content);
+                if let Some(plan) = &mut self.footnotes {
+                    plan.end_definition(content);
                 }
             }
             TagEnd::Bold => self.w("</b>")?,
@@ -1155,15 +1156,6 @@ impl<W: fmt::Write> Renderer<W> {
             TagEnd::Superscript => self.w("</sup>")?,
             TagEnd::Link => self.w("</a>")?,
             TagEnd::RadioTarget => self.w("</a>")?,
-            TagEnd::FootnoteReference => {
-                let content = self.pop_buf();
-                if let Some(n) = self.fn_inline_stack.pop() {
-                    let e = &mut self.entries[n - 1];
-                    if e.def.is_none() {
-                        e.def = Some(content);
-                    }
-                }
-            }
             TagEnd::Citation => self.w("]")?,
         }
         Ok(())
@@ -1661,6 +1653,38 @@ mod tests {
 <div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n\
 <div class=\"footdef\"><sup><a id=\"fn.1\" class=\"footnum\" href=\"#fnr.1\">1</a></sup> <div class=\"footpara\">def x</div></div>\n\
 <div class=\"footdef\"><sup><a id=\"fn.2\" class=\"footnum\" href=\"#fnr.2\">2</a></sup> <div class=\"footpara\">inline</div></div>\n\
+</div></div>\n"
+        );
+    }
+
+    #[test]
+    fn unused_footnote_definition_is_not_rendered() {
+        // Issue #8: a reference inside an unused definition must not
+        // create a footnote (nor a backlink to a missing `fnr.2`).
+        let mut ev = para(vec![t("Hello "), Event::FootnoteReference("real".into())]);
+        ev.push(st(Tag::FootnoteDefinition {
+            label: "unused".into(),
+        }));
+        ev.extend(para(vec![
+            t("Unused "),
+            Event::FootnoteReference("extra".into()),
+        ]));
+        ev.push(en(TagEnd::FootnoteDefinition));
+        ev.push(st(Tag::FootnoteDefinition {
+            label: "real".into(),
+        }));
+        ev.extend(para(vec![t("Actual.")]));
+        ev.push(en(TagEnd::FootnoteDefinition));
+        ev.push(st(Tag::FootnoteDefinition {
+            label: "extra".into(),
+        }));
+        ev.extend(para(vec![t("Extra.")]));
+        ev.push(en(TagEnd::FootnoteDefinition));
+        assert_eq!(
+            render(ev),
+            "<p>Hello <sup><a id=\"fnr.1\" class=\"footref\" href=\"#fn.1\" role=\"doc-backlink\">1</a></sup></p>\n\
+<div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n\
+<div class=\"footdef\"><sup><a id=\"fn.1\" class=\"footnum\" href=\"#fnr.1\">1</a></sup> <div class=\"footpara\">Actual.</div></div>\n\
 </div></div>\n"
         );
     }

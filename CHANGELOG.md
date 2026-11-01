@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- HTML exports only footnotes reachable from visible references. Nested
+  references are numbered depth-first, the last visible definition wins,
+  and macros inside definitions run in source order.
+
 - Give radio targets generated HTML ids and link to the definition the parser
   matched, including when markup, case or whitespace differs. Ordinary Org
   targets retain their ids. `Tag::RadioTarget` now carries the target's raw
