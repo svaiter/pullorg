@@ -358,6 +358,18 @@ struct Renderer<W: fmt::Write> {
     cite_first: bool,
 }
 
+/// Use MathJax's default inline delimiters for single-dollar fragments.
+/// MathJax already accepts display dollars, including literal `\]` inside them.
+fn mathjax_delimiters(s: &str) -> Cow<'_, str> {
+    if s.starts_with("$$") {
+        Cow::Borrowed(s)
+    } else if let Some(inner) = s.strip_prefix('$').and_then(|r| r.strip_suffix('$')) {
+        Cow::Owned(format!("\\({inner}\\)"))
+    } else {
+        Cow::Borrowed(s)
+    }
+}
+
 fn is_image(path: &str) -> bool {
     let lower = path.to_ascii_lowercase();
     ["png", "jpg", "jpeg", "gif", "svg", "webp"]
@@ -589,7 +601,7 @@ impl<W: fmt::Write> Renderer<W> {
                 self.w("</code>")?;
             }
             Event::Entity(e) => self.w(e.html)?,
-            Event::LatexFragment(t) => self.we(&t)?,
+            Event::LatexFragment(t) => self.we(&mathjax_delimiters(&t))?,
             Event::LatexEnvironment(t) => {
                 self.we(&t)?;
                 self.w("\n")?;
@@ -1763,8 +1775,21 @@ mod tests {
         ];
         assert_eq!(
             render(ev),
-            "<hr />\n<a id=\"tg\"></a><code>[1/3]</code><i>$a&lt;b$<a id=\"rt\">rt</a>"
+            "<hr />\n<a id=\"tg\"></a><code>[1/3]</code><i>\\(a&lt;b\\)<a id=\"rt\">rt</a>"
         );
+    }
+
+    #[test]
+    fn latex_fragment_delimiters() {
+        assert_eq!(
+            parse_html("$x^2$ and \\(x^2\\), $$a<b$$ and \\[y\\] cost $5\n"),
+            "<p>\\(x^2\\) and \\(x^2\\), $$a&lt;b$$ and \\[y\\] cost $5</p>\n"
+        );
+    }
+
+    #[test]
+    fn display_math_can_contain_a_literal_closing_bracket_delimiter() {
+        assert_eq!(parse_html(r"$$\verb|\]|$$"), "<p>$$\\verb|\\]|$$</p>\n");
     }
 
     #[test]
