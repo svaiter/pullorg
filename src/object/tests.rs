@@ -32,33 +32,8 @@ fn opt(s: &Option<CowStr<'_>>) -> String {
     s.as_deref().map_or_else(|| "-".to_string(), quote)
 }
 
-/// Settings for a snippet: radio targets (`<<<...>>>`) and `#+LINK:` lines,
-/// as the element parser would collect them.
 fn snippet_settings(src: &str) -> Settings<'_> {
-    let mut settings = Settings::default();
-    for (i, _) in src.match_indices("<<<") {
-        let after = &src[i + 3..];
-        let n = after.find(['<', '>', '\n', '\r']).unwrap_or(after.len());
-        let t = &after[..n];
-        if !t.is_empty()
-            && after[n..].starts_with(">>>")
-            && !t.starts_with([' ', '\t'])
-            && !t.ends_with([' ', '\t'])
-        {
-            settings.radio_targets.push(CowStr::Borrowed(t));
-        }
-    }
-    for line in src.lines() {
-        if let Some(l) = line.strip_prefix("#+LINK: ") {
-            let mut it = l.splitn(2, ' ');
-            let k = it.next().unwrap();
-            let v = it.next().unwrap_or("").trim();
-            settings
-                .link_abbreviations
-                .push((CowStr::Borrowed(k), CowStr::Borrowed(v)));
-        }
-    }
-    settings
+    crate::element::parse_document(src, &crate::Options::default()).settings
 }
 
 /// The paragraph range of a snippet: everything after the `#+LINK:` lines.

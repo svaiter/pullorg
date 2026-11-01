@@ -2,8 +2,8 @@
 //!
 //! This pass turns the whole document into a flat arena of [`Element`]s. Containers
 //! holding objects (paragraphs, verse blocks, table cells, headline titles,
-//! item tags) only record the byte range of their content: objects are parsed
-//! lazily by [`crate::object`] when the events are pulled.
+//! item tags) record their content ranges. [`crate::object`] parses these
+//! when events are pulled, and also during discovery if they contain `<<<`.
 //!
 //! Reference: `org-element.el`, in particular `org-element--parse-elements`,
 //! `org-element--current-element` and the `org-element-*-parser` functions.
@@ -18,8 +18,9 @@ use std::cell::OnceCell;
 use std::ops::Range;
 
 use crate::event::{
-    Event, Headline, Item, Keyword, ListKind, Priority, TableKind, TableRowKind, TodoType,
+    Event, Headline, Item, Keyword, ListKind, Priority, TableKind, TableRowKind, Tag, TodoType,
 };
+use crate::object::{self, Restriction};
 use crate::options::{Options, SubSuperscripts};
 use crate::strings::CowStr;
 
@@ -123,6 +124,23 @@ pub(crate) enum ElementKind<'a> {
     Leaf(Event<'a>),
 }
 
+impl ElementKind<'_> {
+    /// Region parsed as inline objects, with the syntax allowed in this container.
+    pub(crate) fn object_content(&self) -> Option<(&Range<usize>, Restriction)> {
+        match self {
+            Self::Paragraph { content } | Self::VerseBlock { content } => {
+                Some((content, Restriction::Standard))
+            }
+            Self::Headline { title, .. } | Self::Inlinetask { title, .. } => {
+                Some((title, Restriction::HeadlineTitle))
+            }
+            Self::Item { tag: Some(tag), .. } => Some((tag, Restriction::ItemTag)),
+            Self::TableCell { content } => Some((content, Restriction::TableCell)),
+            _ => None,
+        }
+    }
+}
+
 /// Document-wide settings gathered from in-buffer keywords before parsing,
 /// merged with the user [`Options`].
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -180,7 +198,7 @@ pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'
         settings = collect_settings(&nodes, options).0;
     }
     fix_headlines(src, &mut nodes, &settings, options, odd);
-    settings.radio_targets = collect_radio_targets(src, &nodes);
+    settings.radio_targets = collect_radio_targets(text, &nodes, &settings);
     Document {
         nodes,
         roots,
@@ -518,57 +536,36 @@ fn fix_headlines<'a>(
 // ---------------------------------------------------------------------------
 // Radio targets.
 
-/// Find `<<<target>>>` in the object containers of the tree.
-fn collect_radio_targets<'a>(src: Src<'a>, elements: &[Element<'a>]) -> Vec<CowStr<'a>> {
-    let mut found: Vec<&'a str> = Vec::new();
-    let mut scan = |r: &Range<usize>| {
-        let s = src.s(r.clone());
-        let mut i = 0;
-        while let Some(k) = s[i..].find("<<<") {
-            let st = i + k + 3;
-            let inner_end = s[st..]
-                .find(['<', '>', '\n', '\r'])
-                .map_or(s.len(), |n| st + n);
-            let inner = &s[st..inner_end];
-            // Cheap stand-in for `org-element-context`: skip targets
-            // written inside verbatim or code markup (`=<<<x>>>=`).
-            let in_markup = {
-                let before = s[..i + k].chars().next_back();
-                let after = s[inner_end..].get(3..).and_then(|r| r.chars().next());
-                matches!(before, Some('=') | Some('~')) && before == after
-            };
-            if !inner.is_empty()
-                && !in_markup
-                && s[inner_end..].starts_with(">>>")
-                && !inner.starts_with([' ', '\t'])
-                && !inner.ends_with([' ', '\t'])
-            {
-                if !found.contains(&inner) {
-                    found.push(inner);
-                }
-                i = inner_end + 3;
-            } else {
-                i = i + k + 1;
-            }
+/// Discover definitions with radio links disabled until the full list is known.
+fn collect_radio_targets<'a>(
+    text: &'a str,
+    elements: &[Element<'a>],
+    settings: &Settings<'a>,
+) -> Vec<CowStr<'a>> {
+    debug_assert!(settings.radio_targets.is_empty());
+    let mut found = Vec::new();
+    let mut events = Vec::new();
+    for element in elements {
+        let Some((range, restriction)) = element.kind.object_content() else {
+            continue;
+        };
+        if !text[range.clone()].contains("<<<") {
+            continue;
         }
-    };
-    for e in elements {
-        match &e.kind {
-            ElementKind::Paragraph { content }
-            | ElementKind::VerseBlock { content }
-            | ElementKind::TableCell { content } => scan(content),
-            ElementKind::Headline { title, .. } | ElementKind::Inlinetask { title, .. } => {
-                scan(title)
+        object::parse_objects(text, range.clone(), restriction, settings, &mut events);
+        for (event, _) in events.drain(..) {
+            if let Event::Start(Tag::RadioTarget { value }) = event {
+                if !found.contains(&value) {
+                    found.push(value);
+                }
             }
-            ElementKind::Item { tag: Some(t), .. } => scan(t),
-            _ => {}
         }
     }
     // `org-update-radio-target-regexp`: most recent first, then longest
     // first (stable sort).
     found.reverse();
     found.sort_by_key(|t| std::cmp::Reverse(t.chars().count()));
-    found.into_iter().map(Cow::Borrowed).collect()
+    found
 }
 
 #[cfg(test)]

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Discover radio targets from parsed inline objects. Target-like text inside
+  verbatim, code, inline source, or LaTeX no longer creates spurious links.
 - HTML exports only footnotes reachable from visible references. Nested
   references are numbered depth-first, the last visible definition wins,
   and macros inside definitions run in source order.

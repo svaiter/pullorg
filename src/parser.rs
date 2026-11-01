@@ -169,6 +169,16 @@ impl<'a> Parser<'a> {
             self.queue
                 .push_back((Event::Keyword(kw.clone()), kw_range.clone()));
         }
+        let mut objects = Vec::new();
+        if let Some((content, restriction)) = n.kind.object_content() {
+            object::parse_objects(
+                text,
+                content.clone(),
+                restriction,
+                &self.settings,
+                &mut objects,
+            );
+        }
         match &n.kind {
             ElementKind::Leaf(event) => {
                 self.queue.push_back((event.clone(), range));
@@ -179,15 +189,7 @@ impl<'a> Parser<'a> {
                     .push_back((Event::Start(Tag::Headline(data.clone())), range.clone()));
                 self.queue
                     .push_back((Event::Start(Tag::Title), title.clone()));
-                let mut objs = Vec::new();
-                object::parse_objects(
-                    text,
-                    title.clone(),
-                    Restriction::HeadlineTitle,
-                    &self.settings,
-                    &mut objs,
-                );
-                self.queue.extend(objs);
+                self.queue.extend(objects);
                 self.queue
                     .push_back((Event::End(TagEnd::Title), title.clone()));
             }
@@ -196,32 +198,16 @@ impl<'a> Parser<'a> {
                     .push_back((Event::Start(Tag::Inlinetask(data.clone())), range.clone()));
                 self.queue
                     .push_back((Event::Start(Tag::Title), title.clone()));
-                let mut objs = Vec::new();
-                object::parse_objects(
-                    text,
-                    title.clone(),
-                    Restriction::HeadlineTitle,
-                    &self.settings,
-                    &mut objs,
-                );
-                self.queue.extend(objs);
+                self.queue.extend(objects);
                 self.queue
                     .push_back((Event::End(TagEnd::Title), title.clone()));
             }
             ElementKind::Section => {
                 self.queue.push_back((Event::Start(Tag::Section), range));
             }
-            ElementKind::Paragraph { content } => {
+            ElementKind::Paragraph { .. } => {
                 self.queue.push_back((Event::Start(Tag::Paragraph), range));
-                let mut objs = Vec::new();
-                object::parse_objects(
-                    text,
-                    content.clone(),
-                    Restriction::Standard,
-                    &self.settings,
-                    &mut objs,
-                );
-                self.queue.extend(objs);
+                self.queue.extend(objects);
             }
             ElementKind::PlainList { kind } => {
                 self.queue
@@ -233,15 +219,7 @@ impl<'a> Parser<'a> {
                 if let Some(tag) = tag {
                     self.queue
                         .push_back((Event::Start(Tag::ItemTag), tag.clone()));
-                    let mut objs = Vec::new();
-                    object::parse_objects(
-                        text,
-                        tag.clone(),
-                        Restriction::ItemTag,
-                        &self.settings,
-                        &mut objs,
-                    );
-                    self.queue.extend(objs);
+                    self.queue.extend(objects);
                     self.queue
                         .push_back((Event::End(TagEnd::ItemTag), tag.clone()));
                 }
@@ -266,17 +244,9 @@ impl<'a> Parser<'a> {
                 self.queue
                     .push_back((Event::Start(Tag::TableRow { kind: *kind }), range));
             }
-            ElementKind::TableCell { content } => {
+            ElementKind::TableCell { .. } => {
                 self.queue.push_back((Event::Start(Tag::TableCell), range));
-                let mut objs = Vec::new();
-                object::parse_objects(
-                    text,
-                    content.clone(),
-                    Restriction::TableCell,
-                    &self.settings,
-                    &mut objs,
-                );
-                self.queue.extend(objs);
+                self.queue.extend(objects);
             }
             ElementKind::CenterBlock => {
                 self.queue
@@ -285,17 +255,9 @@ impl<'a> Parser<'a> {
             ElementKind::QuoteBlock => {
                 self.queue.push_back((Event::Start(Tag::QuoteBlock), range));
             }
-            ElementKind::VerseBlock { content } => {
+            ElementKind::VerseBlock { .. } => {
                 self.queue.push_back((Event::Start(Tag::VerseBlock), range));
-                let mut objs = Vec::new();
-                object::parse_objects(
-                    text,
-                    content.clone(),
-                    Restriction::Standard,
-                    &self.settings,
-                    &mut objs,
-                );
-                self.queue.extend(objs);
+                self.queue.extend(objects);
             }
             ElementKind::SpecialBlock { name, parameters } => {
                 self.queue.push_back((

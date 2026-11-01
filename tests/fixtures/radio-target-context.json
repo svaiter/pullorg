@@ -1,0 +1,659 @@
+{
+  "type": "org-data",
+  "children": [
+    {
+      "type": "section",
+      "begin": 0,
+      "end": 511,
+      "props": {},
+      "children": [
+        {
+          "type": "paragraph",
+          "begin": 0,
+          "end": 26,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "Early mention of "
+            },
+            {
+              "type": "link",
+              "begin": 17,
+              "end": 24,
+              "props": {
+                "type": "radio",
+                "path": "visible",
+                "format": "plain",
+                "raw-link": "visible",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "visible"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 27,
+          "end": 79,
+          "props": {},
+          "children": [
+            {
+              "type": "verbatim",
+              "begin": 27,
+              "end": 78,
+              "props": {
+                "value": "literal <<<verbatimword>>> and <<<visible>>> here"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 80,
+          "end": 110,
+          "props": {},
+          "children": [
+            {
+              "type": "code",
+              "begin": 80,
+              "end": 109,
+              "props": {
+                "value": "literal <<<codeword>>> here"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 111,
+          "end": 138,
+          "props": {},
+          "children": [
+            {
+              "type": "inline-src-block",
+              "begin": 111,
+              "end": 137,
+              "props": {
+                "language": "text",
+                "parameters": null,
+                "value": "<<<sourceword>>>"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 139,
+          "end": 156,
+          "props": {},
+          "children": [
+            {
+              "type": "latex-fragment",
+              "begin": 139,
+              "end": 155,
+              "props": {
+                "value": "$<<<mathword>>>$"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 157,
+          "end": 204,
+          "props": {},
+          "children": [
+            {
+              "type": "link",
+              "begin": 157,
+              "end": 203,
+              "props": {
+                "type": "https",
+                "path": "//example.org",
+                "format": "bracket",
+                "raw-link": "https://example.org",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "<<<descriptionword>>>"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "\n"
+            }
+          ]
+        },
+        {
+          "type": "src-block",
+          "begin": 205,
+          "end": 247,
+          "props": {
+            "language": "org",
+            "switches": null,
+            "parameters": null,
+            "value": "<<<blockword>>>\n"
+          },
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "begin": 248,
+          "end": 326,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "verbatimword, codeword, sourceword, mathword, descriptionword, and blockword.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 327,
+          "end": 361,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "x="
+            },
+            {
+              "type": "radio-target",
+              "begin": 329,
+              "end": 343,
+              "props": {
+                "value": "bareword"
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "bareword"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": "=y then "
+            },
+            {
+              "type": "link",
+              "begin": 351,
+              "end": 359,
+              "props": {
+                "type": "radio",
+                "path": "bareword",
+                "format": "plain",
+                "raw-link": "bareword",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "bareword"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 362,
+          "end": 430,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "A real "
+            },
+            {
+              "type": "radio-target",
+              "begin": 369,
+              "end": 382,
+              "props": {
+                "value": "visible"
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "visible"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " target next to "
+            },
+            {
+              "type": "verbatim",
+              "begin": 398,
+              "end": 428,
+              "props": {
+                "value": "literal <<<decoyword>>> text"
+              },
+              "children": []
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 431,
+          "end": 454,
+          "props": {},
+          "children": [
+            {
+              "type": "link",
+              "begin": 431,
+              "end": 438,
+              "props": {
+                "type": "radio",
+                "path": "visible",
+                "format": "plain",
+                "raw-link": "visible",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "visible"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": " and decoyword.\n"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "begin": 455,
+          "end": 511,
+          "props": {},
+          "children": [
+            {
+              "type": "plain-text",
+              "value": "A nested "
+            },
+            {
+              "type": "bold",
+              "begin": 464,
+              "end": 492,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "bold "
+                },
+                {
+                  "type": "radio-target",
+                  "begin": 470,
+                  "end": 484,
+                  "props": {
+                    "value": "boldword"
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "boldword"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " target"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ". Later, "
+            },
+            {
+              "type": "link",
+              "begin": 501,
+              "end": 509,
+              "props": {
+                "type": "radio",
+                "path": "boldword",
+                "format": "plain",
+                "raw-link": "boldword",
+                "search-option": null,
+                "application": null
+              },
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "boldword"
+                }
+              ]
+            },
+            {
+              "type": "plain-text",
+              "value": ".\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "headline",
+      "begin": 512,
+      "end": 682,
+      "props": {
+        "level": 1,
+        "todo-keyword": null,
+        "todo-type": null,
+        "priority": null,
+        "tags": [],
+        "commentedp": false,
+        "archivedp": false,
+        "footnote-section-p": false,
+        "raw-value": "Heading <<<titleword>>>",
+        "title": [
+          {
+            "type": "plain-text",
+            "value": "Heading "
+          },
+          {
+            "type": "radio-target",
+            "begin": 522,
+            "end": 537,
+            "props": {
+              "value": "titleword"
+            },
+            "children": [
+              {
+                "type": "plain-text",
+                "value": "titleword"
+              }
+            ]
+          }
+        ]
+      },
+      "children": [
+        {
+          "type": "section",
+          "begin": 538,
+          "end": 682,
+          "props": {},
+          "children": [
+            {
+              "type": "paragraph",
+              "begin": 538,
+              "end": 556,
+              "props": {},
+              "children": [
+                {
+                  "type": "plain-text",
+                  "value": "A "
+                },
+                {
+                  "type": "link",
+                  "begin": 540,
+                  "end": 549,
+                  "props": {
+                    "type": "radio",
+                    "path": "titleword",
+                    "format": "plain",
+                    "raw-link": "titleword",
+                    "search-option": null,
+                    "application": null
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "titleword"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " link.\n"
+                }
+              ]
+            },
+            {
+              "type": "plain-list",
+              "begin": 557,
+              "end": 592,
+              "props": {
+                "type": "descriptive"
+              },
+              "children": [
+                {
+                  "type": "item",
+                  "begin": 557,
+                  "end": 592,
+                  "props": {
+                    "bullet": "- ",
+                    "checkbox": null,
+                    "counter": null,
+                    "tag": [
+                      {
+                        "type": "radio-target",
+                        "begin": 559,
+                        "end": 572,
+                        "props": {
+                          "value": "tagword"
+                        },
+                        "children": [
+                          {
+                            "type": "plain-text",
+                            "value": "tagword"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "begin": 576,
+                      "end": 592,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "plain-text",
+                          "value": "A "
+                        },
+                        {
+                          "type": "link",
+                          "begin": 578,
+                          "end": 585,
+                          "props": {
+                            "type": "radio",
+                            "path": "tagword",
+                            "format": "plain",
+                            "raw-link": "tagword",
+                            "search-option": null,
+                            "application": null
+                          },
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "tagword"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "plain-text",
+                          "value": " link.\n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "table",
+              "begin": 593,
+              "end": 623,
+              "props": {
+                "type": "org",
+                "tblfm": [],
+                "value": null
+              },
+              "children": [
+                {
+                  "type": "table-row",
+                  "begin": 593,
+                  "end": 623,
+                  "props": {
+                    "type": "standard"
+                  },
+                  "children": [
+                    {
+                      "type": "table-cell",
+                      "begin": 594,
+                      "end": 611,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "radio-target",
+                          "begin": 595,
+                          "end": 609,
+                          "props": {
+                            "value": "cellword"
+                          },
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "cellword"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "table-cell",
+                      "begin": 611,
+                      "end": 622,
+                      "props": {},
+                      "children": [
+                        {
+                          "type": "link",
+                          "begin": 612,
+                          "end": 620,
+                          "props": {
+                            "type": "radio",
+                            "path": "cellword",
+                            "format": "plain",
+                            "raw-link": "cellword",
+                            "search-option": null,
+                            "application": null
+                          },
+                          "children": [
+                            {
+                              "type": "plain-text",
+                              "value": "cellword"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "verse-block",
+              "begin": 624,
+              "end": 682,
+              "props": {},
+              "children": [
+                {
+                  "type": "radio-target",
+                  "begin": 638,
+                  "end": 653,
+                  "props": {
+                    "value": "verseword"
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "verseword"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": " then "
+                },
+                {
+                  "type": "link",
+                  "begin": 659,
+                  "end": 668,
+                  "props": {
+                    "type": "radio",
+                    "path": "verseword",
+                    "format": "plain",
+                    "raw-link": "verseword",
+                    "search-option": null,
+                    "application": null
+                  },
+                  "children": [
+                    {
+                      "type": "plain-text",
+                      "value": "verseword"
+                    }
+                  ]
+                },
+                {
+                  "type": "plain-text",
+                  "value": ".\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
