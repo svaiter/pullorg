@@ -8,19 +8,14 @@
 //! left to the document title) and no section wrappers are produced.
 //!
 //! The renderer streams into the sink and only buffers where look-ahead is
-//! required: tables, radio targets and paragraphs carrying affiliated
-//! keywords. Headlines are held back until their property drawer has been
-//! seen, so that a `CUSTOM_ID` property can become the `id`.
-//!
-//! # Footnotes
-//!
-//! Footnote definitions are not rendered where they appear: their events are
-//! kept aside and only the definitions reachable from a rendered reference are
-//! emitted in the footnote section at the end. References are numbered in
-//! order of first appearance in the body; a reference met only inside a
-//! definition is numbered when that definition is rendered, after every body
-//! reference. Definitions referencing each other (including cycles) are
-//! rendered once each.
+//! required: tables, footnote definitions and paragraphs
+//! carrying affiliated keywords. Headlines are held back until their property
+//! drawer has been seen, so that a `CUSTOM_ID` property can become the `id`.
+//! On the first radio or footnote event the renderer buffers the remaining
+//! events to resolve document-wide references. Radio ids avoid explicit ids.
+//! Footnotes use the last visible definition of each label and are numbered
+//! depth-first from visible references. Macros and keywords are still
+//! processed in source order, including inside footnote definitions.
 //!
 //! # Headline ids and links
 //!
@@ -40,6 +35,11 @@
 //! `input-file` expand to nothing). Unlike Emacs, an expansion is inserted as
 //! escaped plain text and is not parsed as Org again, and a macro must be
 //! defined before its first use. Unknown macros expand to nothing.
+
+mod footnotes;
+mod radio;
+
+use radio::PREFIX as RADIO_PREFIX;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -333,15 +333,23 @@ struct ItemInfo {
     checkbox: Option<Checkbox>,
 }
 
-struct FnEntry {
-    label: Option<String>,
-    refs: usize,
-    def: Option<String>,
+/// Headlines that are omitted from the output also cannot define footnotes.
+fn omit(tag: &Tag<'_>, archived_parent: bool) -> bool {
+    match tag {
+        Tag::Headline(h) | Tag::Inlinetask(h) => {
+            archived_parent || h.commented || h.tags.iter().any(|t| t == "noexport")
+        }
+        Tag::Section => archived_parent,
+        _ => false,
+    }
 }
 
-struct Renderer<'e, W: fmt::Write> {
+struct Renderer<W: fmt::Write> {
+    radio: radio::Anchors,
     out: W,
-    bufs: Vec<String>,
+    // None discards an unused definition while its nested definitions and
+    // document-wide macro effects are still processed.
+    bufs: Vec<Option<String>>,
     skip: usize,
     raw: bool,
     verse: usize,
@@ -359,16 +367,20 @@ struct Renderer<'e, W: fmt::Write> {
     src_caption: Vec<bool>,
     preserve_indent: Vec<bool>,
     export_html: Vec<bool>,
-    entries: Vec<FnEntry>,
-    label_idx: HashMap<String, usize>,
-    /// Captured footnote definitions, rendered on demand by [`Self::finish`].
-    pending_defs: HashMap<String, Vec<Event<'e>>>,
-    /// Set while `finish` feeds a captured definition back through `feed`.
-    resolving: bool,
-    fn_def_stack: Vec<String>,
-    fn_inline_stack: Vec<usize>,
-    radio_text: Vec<String>,
+    footnotes: Option<footnotes::Plan>,
     cite_first: bool,
+}
+
+/// Use MathJax's default inline delimiters for single-dollar fragments.
+/// MathJax already accepts display dollars, including literal `\]` inside them.
+fn mathjax_delimiters(s: &str) -> Cow<'_, str> {
+    if s.starts_with("$$") {
+        Cow::Borrowed(s)
+    } else if let Some(inner) = s.strip_prefix('$').and_then(|r| r.strip_suffix('$')) {
+        Cow::Owned(format!("\\({inner}\\)"))
+    } else {
+        Cow::Borrowed(s)
+    }
 }
 
 fn is_image(path: &str) -> bool {
@@ -411,9 +423,10 @@ fn checkbox_html(c: Checkbox) -> &'static str {
     }
 }
 
-impl<'e, W: fmt::Write> Renderer<'e, W> {
+impl<W: fmt::Write> Renderer<W> {
     fn new(out: W) -> Self {
         Renderer {
+            radio: radio::Anchors::default(),
             out,
             bufs: Vec::new(),
             skip: 0,
@@ -433,23 +446,18 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
             src_caption: Vec::new(),
             preserve_indent: Vec::new(),
             export_html: Vec::new(),
-            entries: Vec::new(),
-            label_idx: HashMap::new(),
-            pending_defs: HashMap::new(),
-            resolving: false,
-            fn_def_stack: Vec::new(),
-            fn_inline_stack: Vec::new(),
-            radio_text: Vec::new(),
+            footnotes: None,
             cite_first: true,
         }
     }
 
     fn w(&mut self, s: &str) -> fmt::Result {
         match self.bufs.last_mut() {
-            Some(b) => {
+            Some(Some(b)) => {
                 b.push_str(s);
                 Ok(())
             }
+            Some(None) => Ok(()),
             None => self.out.write_str(s),
         }
     }
@@ -459,34 +467,60 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
     }
 
     fn pop_buf(&mut self) -> String {
-        self.bufs.pop().unwrap_or_default()
+        self.bufs.pop().flatten().unwrap_or_default()
     }
 
-    fn feed<I: Iterator<Item = Event<'e>>>(&mut self, iter: I) -> fmt::Result {
+    fn needs_plan(&mut self, event: &Event<'_>) -> bool {
+        self.footnotes.is_none() && (self.radio.observe(event) || footnotes::is_footnote(event))
+    }
+
+    fn plan_tail<'e>(
+        &mut self,
+        prefix: &[Event<'e>],
+        iter: impl Iterator<Item = Event<'e>>,
+    ) -> Vec<Event<'e>> {
+        let tail = self.radio.reserve_tail(iter);
+        self.footnotes = Some(footnotes::Plan::discover(
+            prefix.iter().chain(&tail),
+            &self.hstack,
+            self.skip,
+        ));
+        tail
+    }
+
+    fn feed<'e, I: Iterator<Item = Event<'e>>>(&mut self, iter: I) -> fmt::Result {
         let mut it = iter.peekable();
         while let Some(ev) = it.next() {
+            if self.needs_plan(&ev) {
+                let tail = self.plan_tail(std::slice::from_ref(&ev), it);
+                return self.feed(std::iter::once(ev).chain(tail));
+            }
             if self.skip == 0 {
                 if let Event::Start(Tag::Table { kind, .. }) = &ev {
                     let kind = *kind;
                     self.flush_held()?;
                     let kws = std::mem::take(&mut self.pending);
-                    let evs = Self::collect_container(&mut it);
+                    let mut depth = 1usize;
+                    let mut evs = Vec::new();
+                    let mut needs_plan = false;
+                    for e in it.by_ref() {
+                        match &e {
+                            Event::Start(_) => depth += 1,
+                            Event::End(_) => depth -= 1,
+                            _ => {}
+                        }
+                        if depth == 0 {
+                            break;
+                        }
+                        needs_plan |= self.needs_plan(&e);
+                        evs.push(e);
+                    }
+                    if needs_plan {
+                        let tail = self.plan_tail(&evs, it);
+                        self.table(kind, evs, &kws)?;
+                        return self.feed(tail.into_iter());
+                    }
                     self.table(kind, evs, &kws)?;
-                    continue;
-                }
-                if let (false, Event::Start(Tag::FootnoteDefinition { label })) =
-                    (self.resolving, &ev)
-                {
-                    // Keep the definition aside: it is rendered by `finish`
-                    // only if some rendered reference reaches it. Like
-                    // Emacs, the first definition of a label wins.
-                    self.flush_held()?;
-                    self.pending.clear();
-                    let label = label.to_string();
-                    let mut evs = vec![ev];
-                    evs.extend(Self::collect_container(&mut it));
-                    evs.push(Event::End(TagEnd::FootnoteDefinition));
-                    self.pending_defs.entry(label).or_insert(evs);
                     continue;
                 }
             }
@@ -503,86 +537,31 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
         Ok(())
     }
 
-    /// Drain the events of the container whose `Start` was just consumed,
-    /// up to (and dropping) its matching `End`.
-    fn collect_container<I: Iterator<Item = Event<'e>>>(
-        it: &mut std::iter::Peekable<I>,
-    ) -> Vec<Event<'e>> {
-        let mut depth = 1usize;
-        let mut evs = Vec::new();
-        for e in it.by_ref() {
-            match &e {
-                Event::Start(_) => depth += 1,
-                Event::End(_) => depth -= 1,
-                _ => {}
-            }
-            if depth == 0 {
-                break;
-            }
-            evs.push(e);
-        }
-        evs
-    }
-
     fn finish(&mut self) -> fmt::Result {
         self.flush_held()?;
-        if self.entries.is_empty() {
+        let Some(notes) = self
+            .footnotes
+            .take()
+            .filter(|notes| !notes.bodies.is_empty())
+        else {
             return Ok(());
-        }
+        };
         self.w("<div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n")?;
-        // Rendering a definition may register the references it contains,
-        // which appends entries: the loop picks them up in turn. A definition
-        // is taken out of `pending_defs` when rendered, so a reference back
-        // to an entry already being rendered only bumps its reference count.
-        let mut i = 0;
-        while i < self.entries.len() {
+        for (i, def) in notes.bodies.into_iter().enumerate() {
             let n = i + 1;
-            if self.entries[i].def.is_none() {
-                let evs = self.entries[i]
-                    .label
-                    .as_ref()
-                    .and_then(|l| self.pending_defs.remove(l));
-                if let Some(evs) = evs {
-                    self.resolving = true;
-                    let r = self.feed(evs.into_iter());
-                    self.resolving = false;
-                    r?;
-                }
-            }
-            let def = self.entries[i].def.take().unwrap_or_default();
             self.w(&format!(
                 "<div class=\"footdef\"><sup><a id=\"fn.{n}\" class=\"footnum\" href=\"#fnr.{n}\">{n}</a></sup> <div class=\"footpara\">{def}</div></div>\n"
             ))?;
-            i += 1;
         }
         self.w("</div></div>\n")
     }
 
-    fn footnote_ref(&mut self, label: Option<&str>) -> (usize, String) {
-        let idx = match label.and_then(|l| self.label_idx.get(l).copied()) {
-            Some(i) => i,
-            None => {
-                self.entries.push(FnEntry {
-                    label: label.map(str::to_string),
-                    refs: 0,
-                    def: None,
-                });
-                let i = self.entries.len() - 1;
-                if let Some(l) = label {
-                    self.label_idx.insert(l.to_string(), i);
-                }
-                i
-            }
-        };
-        self.entries[idx].refs += 1;
-        let r = self.entries[idx].refs;
-        let n = idx + 1;
-        let id = if r == 1 {
-            format!("fnr.{n}")
-        } else {
-            format!("fnr.{n}.{}", 100 + r - 2)
-        };
-        (n, id)
+    fn begin_definition(&mut self) {
+        let reachable = self
+            .footnotes
+            .as_mut()
+            .is_some_and(|plan| plan.begin_definition());
+        self.bufs.push(reachable.then(String::new));
     }
 
     /// Returns `true` when the following event has been consumed.
@@ -621,9 +600,6 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
             Event::Start(tag) => return self.start(tag, &kws, next, lead),
             Event::End(end) => self.end(end, next)?,
             Event::Text(t) => {
-                if let Some(r) = self.radio_text.last_mut() {
-                    r.push_str(&t);
-                }
                 if self.raw {
                     self.w(&t)?;
                 } else {
@@ -636,7 +612,7 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
                 self.w("</code>")?;
             }
             Event::Entity(e) => self.w(e.html)?,
-            Event::LatexFragment(t) => self.we(&t)?,
+            Event::LatexFragment(t) => self.we(&mathjax_delimiters(&t))?,
             Event::LatexEnvironment(t) => {
                 self.we(&t)?;
                 self.w("\n")?;
@@ -666,10 +642,7 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
                 self.we(&ts.raw)?;
                 self.w("</span></span>")?;
             }
-            Event::FootnoteReference(label) => {
-                let (n, id) = self.footnote_ref(Some(&label));
-                self.fn_link(n, &id)?;
-            }
+            Event::FootnoteReference(_) => self.fn_link()?,
             Event::CitationReference {
                 key,
                 prefix,
@@ -788,7 +761,15 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
         }
     }
 
-    fn fn_link(&mut self, n: usize, id: &str) -> fmt::Result {
+    fn fn_link(&mut self) -> fmt::Result {
+        let Some((n, occurrence)) = self.footnotes.as_mut().and_then(|p| p.reference()) else {
+            return Ok(());
+        };
+        let id = if occurrence == 1 {
+            format!("fnr.{n}")
+        } else {
+            format!("fnr.{n}.{}", 100 + occurrence - 2)
+        };
         self.w(&format!(
             "<sup><a id=\"{id}\" class=\"footref\" href=\"#fn.{n}\" role=\"doc-backlink\">{n}</a></sup>"
         ))
@@ -811,13 +792,9 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
     }
 
     fn start_headline(&mut self, h: &Headline<'_>, inline: bool) -> fmt::Result {
-        if h.commented || h.tags.iter().any(|t| t == "noexport") {
-            self.skip = 1;
-            return Ok(());
-        }
         let muted = h.footnote_section && !inline;
         if muted {
-            self.bufs.push(String::new());
+            self.bufs.push(Some(String::new()));
         }
         if !inline {
             self.headline_count += 1;
@@ -844,9 +821,7 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
         next: Next,
         lead: bool,
     ) -> Result<bool, fmt::Error> {
-        if matches!(tag, Tag::Section | Tag::Headline(_) | Tag::Inlinetask(_))
-            && self.hstack.last().is_some_and(|h| h.archived)
-        {
+        if omit(&tag, self.hstack.last().is_some_and(|h| h.archived)) {
             self.skip = 1;
             return Ok(false);
         }
@@ -861,7 +836,7 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
                     if inline {
                         self.w("<b>")?;
                     } else {
-                        self.bufs.push(String::new());
+                        self.bufs.push(Some(String::new()));
                     }
                     self.w(&prefix)?;
                 }
@@ -875,7 +850,7 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
                     self.w("<p>")?;
                 } else {
                     self.paras.push(ParaKind::Aff(aff));
-                    self.bufs.push(String::new());
+                    self.bufs.push(Some(String::new()));
                 }
             }
             Tag::PlainList { kind } => {
@@ -966,13 +941,13 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
                     _ => "src".to_string(),
                 };
                 self.w(&aff.open("pre", Some(&base)))?;
-                self.bufs.push(String::new());
+                self.bufs.push(Some(String::new()));
             }
             Tag::ExampleBlock { switches } => {
                 self.preserve_indent
                     .push(preserves_indent(switches.as_deref()));
                 self.w(&aff.open("pre", Some("example")))?;
-                self.bufs.push(String::new());
+                self.bufs.push(Some(String::new()));
             }
             Tag::ExportBlock { backend } => {
                 let html = backend.eq_ignore_ascii_case("html");
@@ -980,18 +955,17 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
                 if html {
                     self.raw = true;
                 } else {
-                    self.bufs.push(String::new());
+                    self.bufs.push(Some(String::new()));
                 }
             }
-            Tag::CommentBlock | Tag::PropertyDrawer => self.bufs.push(String::new()),
+            Tag::CommentBlock | Tag::PropertyDrawer => self.bufs.push(Some(String::new())),
             Tag::Drawer { name } => {
                 self.w(&aff.open("div", Some(&format!("drawer {name}"))))?;
                 self.w(&format!("\n<h6>{}</h6>\n", escape(&name)))?;
             }
             Tag::DynamicBlock { .. } => {}
-            Tag::FootnoteDefinition { label } => {
-                self.fn_def_stack.push(label.to_string());
-                self.bufs.push(String::new());
+            Tag::FootnoteDefinition { .. } => {
+                self.begin_definition();
                 self.lead = true;
             }
             Tag::Bold => self.w("<b>")?,
@@ -1002,8 +976,10 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
             Tag::Superscript { .. } => self.w("<sup>")?,
             Tag::Link(l) => {
                 let t = l.link_type.as_ref();
-                let anchor = matches!(t, "fuzzy" | "custom-id" | "id" | "coderef" | "radio");
-                let href = if anchor {
+                let href = if t == "radio" {
+                    let target = l.radio_target.as_deref().unwrap_or(&l.path);
+                    format!("#{RADIO_PREFIX}{}", self.radio.number(target, false))
+                } else if matches!(t, "fuzzy" | "custom-id" | "id" | "coderef") {
                     format!("#{}", l.path)
                 } else if t == "file" || t.is_empty() {
                     l.path.to_string()
@@ -1041,15 +1017,21 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
                 }
                 self.w(&format!("<a href=\"{}\">", escape(&href)))?;
             }
-            Tag::RadioTarget => {
-                self.radio_text.push(String::new());
-                self.bufs.push(String::new());
+            Tag::RadioTarget { value } => {
+                // An anchor inside a discarded definition cannot be the
+                // destination of a link elsewhere in the document.
+                if !self
+                    .footnotes
+                    .as_ref()
+                    .is_some_and(|p| p.in_discarded_definition())
+                {
+                    let n = self.radio.number(&value, true);
+                    self.w(&format!("<a id=\"{RADIO_PREFIX}{n}\">"))?;
+                }
             }
-            Tag::FootnoteReference { label } => {
-                let (n, id) = self.footnote_ref(label.as_deref());
-                self.fn_link(n, &id)?;
-                self.fn_inline_stack.push(n);
-                self.bufs.push(String::new());
+            Tag::FootnoteReference { .. } => {
+                self.fn_link()?;
+                self.begin_definition();
             }
             Tag::Citation { .. } => {
                 self.cite_first = true;
@@ -1160,17 +1142,10 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
             }
             TagEnd::Drawer => self.w("</div>\n")?,
             TagEnd::DynamicBlock => {}
-            TagEnd::FootnoteDefinition => {
+            TagEnd::FootnoteDefinition | TagEnd::FootnoteReference => {
                 let content = self.pop_buf();
-                if let Some(i) = self
-                    .fn_def_stack
-                    .pop()
-                    .and_then(|label| self.label_idx.get(&label).copied())
-                {
-                    let e = &mut self.entries[i];
-                    if e.def.is_none() {
-                        e.def = Some(content);
-                    }
+                if let Some(plan) = &mut self.footnotes {
+                    plan.end_definition(content);
                 }
             }
             TagEnd::Bold => self.w("</b>")?,
@@ -1180,20 +1155,7 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
             TagEnd::Subscript => self.w("</sub>")?,
             TagEnd::Superscript => self.w("</sup>")?,
             TagEnd::Link => self.w("</a>")?,
-            TagEnd::RadioTarget => {
-                let content = self.pop_buf();
-                let id = self.radio_text.pop().unwrap_or_default();
-                self.w(&format!("<a id=\"{}\">{}</a>", escape(&id), content))?;
-            }
-            TagEnd::FootnoteReference => {
-                let content = self.pop_buf();
-                if let Some(n) = self.fn_inline_stack.pop() {
-                    let e = &mut self.entries[n - 1];
-                    if e.def.is_none() {
-                        e.def = Some(content);
-                    }
-                }
-            }
+            TagEnd::RadioTarget => self.w("</a>")?,
             TagEnd::Citation => self.w("]")?,
         }
         Ok(())
@@ -1248,7 +1210,7 @@ impl<'e, W: fmt::Write> Renderer<'e, W> {
     fn table(
         &mut self,
         kind: TableKind,
-        evs: Vec<Event<'e>>,
+        evs: Vec<Event<'_>>,
         kws: &[(String, String)],
     ) -> fmt::Result {
         let aff = Aff::from_keywords(kws);
@@ -1397,6 +1359,7 @@ mod tests {
             link_type: ty.into(),
             path: path.into(),
             raw_link: format!("{ty}:{path}").into(),
+            radio_target: None,
             format: LinkFormat::Bracket,
             search_option: None,
             application: None,
@@ -1843,14 +1806,27 @@ mod tests {
                 affiliated: false,
             }),
             Event::LatexFragment("$a<b$".into()),
-            st(Tag::RadioTarget),
+            st(Tag::RadioTarget { value: "Rt".into() }),
             t("rt"),
             en(TagEnd::RadioTarget),
         ];
         assert_eq!(
             render(ev),
-            "<hr />\n<a id=\"tg\"></a><code>[1/3]</code><i>$a&lt;b$<a id=\"rt\">rt</a>"
+            "<hr />\n<a id=\"tg\"></a><code>[1/3]</code><i>\\(a&lt;b\\)<a id=\"org-radio-1\">rt</a>"
         );
+    }
+
+    #[test]
+    fn latex_fragment_delimiters() {
+        assert_eq!(
+            parse_html("$x^2$ and \\(x^2\\), $$a<b$$ and \\[y\\] cost $5\n"),
+            "<p>\\(x^2\\) and \\(x^2\\), $$a&lt;b$$ and \\[y\\] cost $5</p>\n"
+        );
+    }
+
+    #[test]
+    fn display_math_can_contain_a_literal_closing_bracket_delimiter() {
+        assert_eq!(parse_html(r"$$\verb|\]|$$"), "<p>$$\\verb|\\]|$$</p>\n");
     }
 
     #[test]
@@ -1864,6 +1840,89 @@ mod tests {
         let mut s = String::new();
         push_html(&mut s, crate::Parser::new(src));
         s
+    }
+
+    #[test]
+    fn radio_targets_and_links_share_an_id() {
+        // Issue #7: markup inside the target must not split the identity.
+        assert_eq!(
+            parse_html("<<</hello/>>> then /hello/\n"),
+            "<p><a id=\"org-radio-1\"><i>hello</i></a> then <a href=\"#org-radio-1\"><i>hello</i></a></p>\n"
+        );
+        // A different spelling still refers to the matched definition.
+        assert_eq!(
+            parse_html("<<<My Target>>> foo my  target\n"),
+            "<p><a id=\"org-radio-1\">My Target</a> foo <a href=\"#org-radio-1\">my  target</a></p>\n"
+        );
+        // A link before its target still resolves to the same id.
+        assert_eq!(
+            parse_html("See RADIO.\n\nThe <<<radio>>> target.\n"),
+            "<p>See <a href=\"#org-radio-1\">RADIO</a>.</p>\n<p>The <a id=\"org-radio-1\">radio</a> target.</p>\n"
+        );
+    }
+
+    #[test]
+    fn radio_link_jumps_to_its_own_target() {
+        let html = parse_html("<<label>>\n\n<<<Label>>> then Label; use [[label]].\n");
+        assert_eq!(
+            html,
+            "<p><a id=\"label\"></a></p>\n<p><a id=\"org-radio-1\">Label</a> then <a href=\"#org-radio-1\">Label</a>; use <a href=\"#label\">label</a>.</p>\n"
+        );
+    }
+
+    #[test]
+    fn radio_link_uses_the_matchers_whitespace_rules() {
+        assert_eq!(
+            parse_html("my\u{200b}target then <<<My Target>>>.\n"),
+            "<p><a href=\"#org-radio-1\">my\u{200b}target</a> then <a id=\"org-radio-1\">My Target</a>.</p>\n"
+        );
+    }
+
+    #[test]
+    fn radio_ids_skip_explicit_ids_before_and_after_first_reference() {
+        let html = parse_html(
+            "<<org-radio-1>>\n\n| LABEL |\n\n<<<Label>>> and <<org-radio-2>>.\n\n\
+             * Heading\n:PROPERTIES:\n:CUSTOM_ID: org-radio-3\n:END:\n\
+             #+ATTR_HTML: :id org-radio-4\nA paragraph.\n",
+        );
+        for n in 1..=5 {
+            assert_eq!(
+                html.matches(&format!("id=\"org-radio-{n}\"")).count(),
+                1,
+                "{html}"
+            );
+        }
+        assert!(
+            html.contains("<a href=\"#org-radio-5\">LABEL</a>"),
+            "{html}"
+        );
+        assert!(html.contains("<a id=\"org-radio-5\">Label</a>"), "{html}");
+    }
+
+    #[test]
+    fn radio_ids_distinguish_literal_whitespace_from_a_matching_space() {
+        let html = parse_html("<<<A B>>> and <<<A\u{a0}B>>>. See A\u{a0}B and A\u{200b}B.\n");
+        assert!(html.contains("<a id=\"org-radio-1\">A B</a>"), "{html}");
+        assert!(
+            html.contains("<a id=\"org-radio-2\">A\u{a0}B</a>"),
+            "{html}"
+        );
+        assert!(
+            html.contains("<a href=\"#org-radio-2\">A\u{a0}B</a>"),
+            "{html}"
+        );
+        assert!(
+            html.contains("<a href=\"#org-radio-1\">A\u{200b}B</a>"),
+            "{html}"
+        );
+    }
+
+    #[test]
+    fn repeated_radio_targets_have_distinct_ids() {
+        let html = parse_html("See word. <<<word>>> and <<<word>>>.\n");
+        assert_eq!(html.matches("id=\"org-radio-1\"").count(), 1);
+        assert_eq!(html.matches("id=\"org-radio-2\"").count(), 1);
+        assert!(html.contains("<a href=\"#org-radio-1\">word</a>"));
     }
 
     #[test]

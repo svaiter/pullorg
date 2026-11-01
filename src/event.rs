@@ -306,8 +306,12 @@ pub enum Tag<'a> {
         /// Whether the superscript is written with braces.
         use_brackets: bool,
     },
-    /// A radio target `<<<target>>>` (objects).
-    RadioTarget,
+    /// A radio target `<<<target>>>` (objects). Its content is the parsed
+    /// target text.
+    RadioTarget {
+        /// The raw text between `<<<` and `>>>` (`org-element`'s `:value`).
+        value: CowStr<'a>,
+    },
     /// A footnote reference with an inline definition, `[fn:label:def]` or
     /// `[fn::def]`. Its content is the definition objects.
     FootnoteReference {
@@ -360,7 +364,7 @@ impl<'a> Tag<'a> {
             Tag::Link(_) => TagEnd::Link,
             Tag::Subscript { .. } => TagEnd::Subscript,
             Tag::Superscript { .. } => TagEnd::Superscript,
-            Tag::RadioTarget => TagEnd::RadioTarget,
+            Tag::RadioTarget { .. } => TagEnd::RadioTarget,
             Tag::FootnoteReference { .. } => TagEnd::FootnoteReference,
             Tag::Citation { .. } => TagEnd::Citation,
         }
@@ -571,6 +575,9 @@ pub struct Link<'a> {
     /// bracket links, after removing escapes and expanding link
     /// abbreviations; for plain and angle links, the source text.
     pub raw_link: CowStr<'a>,
+    /// For an automatic radio link, the raw value of the target selected by
+    /// the parser. `path` and `raw_link` retain the reference as written.
+    pub radio_target: Option<CowStr<'a>>,
     /// How the link is written.
     pub format: LinkFormat,
     /// For `file` links, the search option after `::`.
