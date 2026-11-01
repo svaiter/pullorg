@@ -358,12 +358,11 @@ struct Renderer<W: fmt::Write> {
     cite_first: bool,
 }
 
-/// Rewrite dollar-delimited LaTeX fragments to the `\(...\)` and `\[...\]`
-/// forms MathJax recognises by default (single dollars are off there), as
-/// Emacs' HTML export does: `$x$` becomes `\(x\)`, `$$x$$` becomes `\[x\]`.
+/// Use MathJax's default inline delimiters for single-dollar fragments.
+/// MathJax already accepts display dollars, including literal `\]` inside them.
 fn mathjax_delimiters(s: &str) -> Cow<'_, str> {
-    if let Some(inner) = s.strip_prefix("$$").and_then(|r| r.strip_suffix("$$")) {
-        Cow::Owned(format!("\\[{inner}\\]"))
+    if s.starts_with("$$") {
+        Cow::Borrowed(s)
     } else if let Some(inner) = s.strip_prefix('$').and_then(|r| r.strip_suffix('$')) {
         Cow::Owned(format!("\\({inner}\\)"))
     } else {
@@ -1784,8 +1783,13 @@ mod tests {
     fn latex_fragment_delimiters() {
         assert_eq!(
             parse_html("$x^2$ and \\(x^2\\), $$a<b$$ and \\[y\\] cost $5\n"),
-            "<p>\\(x^2\\) and \\(x^2\\), \\[a&lt;b\\] and \\[y\\] cost $5</p>\n"
+            "<p>\\(x^2\\) and \\(x^2\\), $$a&lt;b$$ and \\[y\\] cost $5</p>\n"
         );
+    }
+
+    #[test]
+    fn display_math_can_contain_a_literal_closing_bracket_delimiter() {
+        assert_eq!(parse_html(r"$$\verb|\]|$$"), "<p>$$\\verb|\\]|$$</p>\n");
     }
 
     #[test]
