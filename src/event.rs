@@ -306,8 +306,12 @@ pub enum Tag<'a> {
         /// Whether the superscript is written with braces.
         use_brackets: bool,
     },
-    /// A radio target `<<<target>>>` (objects).
-    RadioTarget,
+    /// A radio target `<<<target>>>` (objects). Its content is the parsed
+    /// target text.
+    RadioTarget {
+        /// The raw text between `<<<` and `>>>` (`org-element`'s `:value`).
+        value: CowStr<'a>,
+    },
     /// A footnote reference with an inline definition, `[fn:label:def]` or
     /// `[fn::def]`. Its content is the definition objects.
     FootnoteReference {
@@ -360,7 +364,7 @@ impl<'a> Tag<'a> {
             Tag::Link(_) => TagEnd::Link,
             Tag::Subscript { .. } => TagEnd::Subscript,
             Tag::Superscript { .. } => TagEnd::Superscript,
-            Tag::RadioTarget => TagEnd::RadioTarget,
+            Tag::RadioTarget { .. } => TagEnd::RadioTarget,
             Tag::FootnoteReference { .. } => TagEnd::FootnoteReference,
             Tag::Citation { .. } => TagEnd::Citation,
         }

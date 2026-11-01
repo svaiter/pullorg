@@ -597,7 +597,9 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             p,
             e + 3,
             Kind::Container {
-                tag: Tag::RadioTarget,
+                tag: Tag::RadioTarget {
+                    value: self.borrow(p + 3..e),
+                },
                 contents: Some(p + 3..e),
                 restriction: Restriction::RadioTarget,
             },

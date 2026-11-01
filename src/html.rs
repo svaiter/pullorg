@@ -8,7 +8,7 @@
 //! left to the document title) and no section wrappers are produced.
 //!
 //! The renderer streams into the sink and only buffers where look-ahead is
-//! required: tables, footnote definitions, radio targets and paragraphs
+//! required: tables, footnote definitions and paragraphs
 //! carrying affiliated keywords. Headlines are held back until their property
 //! drawer has been seen, so that a `CUSTOM_ID` property can become the `id`.
 //!
@@ -354,7 +354,6 @@ struct Renderer<W: fmt::Write> {
     pending_defs: HashMap<String, String>,
     fn_def_stack: Vec<String>,
     fn_inline_stack: Vec<usize>,
-    radio_text: Vec<String>,
     cite_first: bool,
 }
 
@@ -388,6 +387,30 @@ fn expand_template(tpl: &str, args: &[crate::strings::CowStr<'_>]) -> String {
     }
     out.push_str(rest);
     out
+}
+
+/// The anchor shared by a radio target and the links that point at it.
+///
+/// Radio links match their target case-insensitively, a space in the target
+/// standing for any run of whitespace, so the target's raw value and the text
+/// of each link are folded the same way: lower-cased, whitespace runs
+/// collapsed to one space. Both sides thus derive the same id from the raw
+/// text, markup delimiters included (`<<</hello/>>>` gives `/hello/`).
+fn radio_id(text: &str) -> String {
+    let mut id = String::with_capacity(text.len());
+    let mut ws = false;
+    for c in text.chars() {
+        if c.is_whitespace() {
+            ws = true;
+        } else {
+            if ws && !id.is_empty() {
+                id.push(' ');
+            }
+            ws = false;
+            id.extend(c.to_lowercase());
+        }
+    }
+    id
 }
 
 fn checkbox_html(c: Checkbox) -> &'static str {
@@ -425,7 +448,6 @@ impl<W: fmt::Write> Renderer<W> {
             pending_defs: HashMap::new(),
             fn_def_stack: Vec::new(),
             fn_inline_stack: Vec::new(),
-            radio_text: Vec::new(),
             cite_first: true,
         }
     }
@@ -574,9 +596,6 @@ impl<W: fmt::Write> Renderer<W> {
             Event::Start(tag) => return self.start(tag, &kws, next, lead),
             Event::End(end) => self.end(end, next)?,
             Event::Text(t) => {
-                if let Some(r) = self.radio_text.last_mut() {
-                    r.push_str(&t);
-                }
                 if self.raw {
                     self.w(&t)?;
                 } else {
@@ -955,8 +974,9 @@ impl<W: fmt::Write> Renderer<W> {
             Tag::Superscript { .. } => self.w("<sup>")?,
             Tag::Link(l) => {
                 let t = l.link_type.as_ref();
-                let anchor = matches!(t, "fuzzy" | "custom-id" | "id" | "coderef" | "radio");
-                let href = if anchor {
+                let href = if t == "radio" {
+                    format!("#{}", radio_id(&l.path))
+                } else if matches!(t, "fuzzy" | "custom-id" | "id" | "coderef") {
                     format!("#{}", l.path)
                 } else if t == "file" || t.is_empty() {
                     l.path.to_string()
@@ -994,9 +1014,8 @@ impl<W: fmt::Write> Renderer<W> {
                 }
                 self.w(&format!("<a href=\"{}\">", escape(&href)))?;
             }
-            Tag::RadioTarget => {
-                self.radio_text.push(String::new());
-                self.bufs.push(String::new());
+            Tag::RadioTarget { value } => {
+                self.w(&format!("<a id=\"{}\">", escape(&radio_id(&value))))?;
             }
             Tag::FootnoteReference { label } => {
                 let (n, id) = self.footnote_ref(label.as_deref());
@@ -1126,11 +1145,7 @@ impl<W: fmt::Write> Renderer<W> {
             TagEnd::Subscript => self.w("</sub>")?,
             TagEnd::Superscript => self.w("</sup>")?,
             TagEnd::Link => self.w("</a>")?,
-            TagEnd::RadioTarget => {
-                let content = self.pop_buf();
-                let id = self.radio_text.pop().unwrap_or_default();
-                self.w(&format!("<a id=\"{}\">{}</a>", escape(&id), content))?;
-            }
+            TagEnd::RadioTarget => self.w("</a>")?,
             TagEnd::FootnoteReference => {
                 let content = self.pop_buf();
                 if let Some(n) = self.fn_inline_stack.pop() {
@@ -1757,7 +1772,7 @@ mod tests {
                 affiliated: false,
             }),
             Event::LatexFragment("$a<b$".into()),
-            st(Tag::RadioTarget),
+            st(Tag::RadioTarget { value: "Rt".into() }),
             t("rt"),
             en(TagEnd::RadioTarget),
         ];
@@ -1778,6 +1793,25 @@ mod tests {
         let mut s = String::new();
         push_html(&mut s, crate::Parser::new(src));
         s
+    }
+
+    #[test]
+    fn radio_targets_and_links_share_an_id() {
+        // Issue #7: markup inside the target must not split the identity.
+        assert_eq!(
+            parse_html("<<</hello/>>> then /hello/\n"),
+            "<p><a id=\"/hello/\"><i>hello</i></a> then <a href=\"#/hello/\"><i>hello</i></a></p>\n"
+        );
+        // Case and whitespace differences between target and link fold away.
+        assert_eq!(
+            parse_html("<<<My Target>>> foo my  target\n"),
+            "<p><a id=\"my target\">My Target</a> foo <a href=\"#my target\">my  target</a></p>\n"
+        );
+        // A link before its target still resolves to the same id.
+        assert_eq!(
+            parse_html("See RADIO.\n\nThe <<<radio>>> target.\n"),
+            "<p>See <a href=\"#radio\">RADIO</a>.</p>\n<p>The <a id=\"radio\">radio</a> target.</p>\n"
+        );
     }
 
     #[test]

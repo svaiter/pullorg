@@ -86,7 +86,7 @@ fn tag_name(tag: &Tag<'_>) -> String {
         Tag::Italic => "italic".into(),
         Tag::Underline => "underline".into(),
         Tag::StrikeThrough => "strike-through".into(),
-        Tag::RadioTarget => "radio-target".into(),
+        Tag::RadioTarget { .. } => "radio-target".into(),
         Tag::Subscript { use_brackets } => {
             format!("subscript {}", if *use_brackets { "t" } else { "nil" })
         }
