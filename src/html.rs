@@ -8,9 +8,19 @@
 //! left to the document title) and no section wrappers are produced.
 //!
 //! The renderer streams into the sink and only buffers where look-ahead is
-//! required: tables, footnote definitions, radio targets and paragraphs
-//! carrying affiliated keywords. Headlines are held back until their property
-//! drawer has been seen, so that a `CUSTOM_ID` property can become the `id`.
+//! required: tables, radio targets and paragraphs carrying affiliated
+//! keywords. Headlines are held back until their property drawer has been
+//! seen, so that a `CUSTOM_ID` property can become the `id`.
+//!
+//! # Footnotes
+//!
+//! Footnote definitions are not rendered where they appear: their events are
+//! kept aside and only the definitions reachable from a rendered reference are
+//! emitted in the footnote section at the end. References are numbered in
+//! order of first appearance in the body; a reference met only inside a
+//! definition is numbered when that definition is rendered, after every body
+//! reference. Definitions referencing each other (including cycles) are
+//! rendered once each.
 //!
 //! # Headline ids and links
 //!
@@ -329,7 +339,7 @@ struct FnEntry {
     def: Option<String>,
 }
 
-struct Renderer<W: fmt::Write> {
+struct Renderer<'e, W: fmt::Write> {
     out: W,
     bufs: Vec<String>,
     skip: usize,
@@ -351,7 +361,10 @@ struct Renderer<W: fmt::Write> {
     export_html: Vec<bool>,
     entries: Vec<FnEntry>,
     label_idx: HashMap<String, usize>,
-    pending_defs: HashMap<String, String>,
+    /// Captured footnote definitions, rendered on demand by [`Self::finish`].
+    pending_defs: HashMap<String, Vec<Event<'e>>>,
+    /// Set while `finish` feeds a captured definition back through `feed`.
+    resolving: bool,
     fn_def_stack: Vec<String>,
     fn_inline_stack: Vec<usize>,
     radio_text: Vec<String>,
@@ -398,7 +411,7 @@ fn checkbox_html(c: Checkbox) -> &'static str {
     }
 }
 
-impl<W: fmt::Write> Renderer<W> {
+impl<'e, W: fmt::Write> Renderer<'e, W> {
     fn new(out: W) -> Self {
         Renderer {
             out,
@@ -423,6 +436,7 @@ impl<W: fmt::Write> Renderer<W> {
             entries: Vec::new(),
             label_idx: HashMap::new(),
             pending_defs: HashMap::new(),
+            resolving: false,
             fn_def_stack: Vec::new(),
             fn_inline_stack: Vec::new(),
             radio_text: Vec::new(),
@@ -448,7 +462,7 @@ impl<W: fmt::Write> Renderer<W> {
         self.bufs.pop().unwrap_or_default()
     }
 
-    fn feed<'e, I: Iterator<Item = Event<'e>>>(&mut self, iter: I) -> fmt::Result {
+    fn feed<I: Iterator<Item = Event<'e>>>(&mut self, iter: I) -> fmt::Result {
         let mut it = iter.peekable();
         while let Some(ev) = it.next() {
             if self.skip == 0 {
@@ -456,20 +470,23 @@ impl<W: fmt::Write> Renderer<W> {
                     let kind = *kind;
                     self.flush_held()?;
                     let kws = std::mem::take(&mut self.pending);
-                    let mut depth = 1usize;
-                    let mut evs = Vec::new();
-                    for e in it.by_ref() {
-                        match &e {
-                            Event::Start(_) => depth += 1,
-                            Event::End(_) => depth -= 1,
-                            _ => {}
-                        }
-                        if depth == 0 {
-                            break;
-                        }
-                        evs.push(e);
-                    }
+                    let evs = Self::collect_container(&mut it);
                     self.table(kind, evs, &kws)?;
+                    continue;
+                }
+                if let (false, Event::Start(Tag::FootnoteDefinition { label })) =
+                    (self.resolving, &ev)
+                {
+                    // Keep the definition aside: it is rendered by `finish`
+                    // only if some rendered reference reaches it. Like
+                    // Emacs, the first definition of a label wins.
+                    self.flush_held()?;
+                    self.pending.clear();
+                    let label = label.to_string();
+                    let mut evs = vec![ev];
+                    evs.extend(Self::collect_container(&mut it));
+                    evs.push(Event::End(TagEnd::FootnoteDefinition));
+                    self.pending_defs.entry(label).or_insert(evs);
                     continue;
                 }
             }
@@ -486,23 +503,53 @@ impl<W: fmt::Write> Renderer<W> {
         Ok(())
     }
 
+    /// Drain the events of the container whose `Start` was just consumed,
+    /// up to (and dropping) its matching `End`.
+    fn collect_container<I: Iterator<Item = Event<'e>>>(
+        it: &mut std::iter::Peekable<I>,
+    ) -> Vec<Event<'e>> {
+        let mut depth = 1usize;
+        let mut evs = Vec::new();
+        for e in it.by_ref() {
+            match &e {
+                Event::Start(_) => depth += 1,
+                Event::End(_) => depth -= 1,
+                _ => {}
+            }
+            if depth == 0 {
+                break;
+            }
+            evs.push(e);
+        }
+        evs
+    }
+
     fn finish(&mut self) -> fmt::Result {
         self.flush_held()?;
         if self.entries.is_empty() {
             return Ok(());
         }
         self.w("<div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n")?;
+        // Rendering a definition may register the references it contains,
+        // which appends entries: the loop picks them up in turn. A definition
+        // is taken out of `pending_defs` when rendered, so a reference back
+        // to an entry already being rendered only bumps its reference count.
         let mut i = 0;
         while i < self.entries.len() {
             let n = i + 1;
-            let def = match self.entries[i].def.clone() {
-                Some(d) => d,
-                None => self.entries[i]
+            if self.entries[i].def.is_none() {
+                let evs = self.entries[i]
                     .label
                     .as_ref()
-                    .and_then(|l| self.pending_defs.get(l).cloned())
-                    .unwrap_or_default(),
-            };
+                    .and_then(|l| self.pending_defs.remove(l));
+                if let Some(evs) = evs {
+                    self.resolving = true;
+                    let r = self.feed(evs.into_iter());
+                    self.resolving = false;
+                    r?;
+                }
+            }
+            let def = self.entries[i].def.take().unwrap_or_default();
             self.w(&format!(
                 "<div class=\"footdef\"><sup><a id=\"fn.{n}\" class=\"footnum\" href=\"#fnr.{n}\">{n}</a></sup> <div class=\"footpara\">{def}</div></div>\n"
             ))?;
@@ -1115,8 +1162,15 @@ impl<W: fmt::Write> Renderer<W> {
             TagEnd::DynamicBlock => {}
             TagEnd::FootnoteDefinition => {
                 let content = self.pop_buf();
-                if let Some(label) = self.fn_def_stack.pop() {
-                    self.pending_defs.insert(label, content);
+                if let Some(i) = self
+                    .fn_def_stack
+                    .pop()
+                    .and_then(|label| self.label_idx.get(&label).copied())
+                {
+                    let e = &mut self.entries[i];
+                    if e.def.is_none() {
+                        e.def = Some(content);
+                    }
                 }
             }
             TagEnd::Bold => self.w("</b>")?,
@@ -1194,7 +1248,7 @@ impl<W: fmt::Write> Renderer<W> {
     fn table(
         &mut self,
         kind: TableKind,
-        evs: Vec<Event<'_>>,
+        evs: Vec<Event<'e>>,
         kws: &[(String, String)],
     ) -> fmt::Result {
         let aff = Aff::from_keywords(kws);
@@ -1636,6 +1690,38 @@ mod tests {
 <div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n\
 <div class=\"footdef\"><sup><a id=\"fn.1\" class=\"footnum\" href=\"#fnr.1\">1</a></sup> <div class=\"footpara\">def x</div></div>\n\
 <div class=\"footdef\"><sup><a id=\"fn.2\" class=\"footnum\" href=\"#fnr.2\">2</a></sup> <div class=\"footpara\">inline</div></div>\n\
+</div></div>\n"
+        );
+    }
+
+    #[test]
+    fn unused_footnote_definition_is_not_rendered() {
+        // Issue #8: a reference inside an unused definition must not
+        // create a footnote (nor a backlink to a missing `fnr.2`).
+        let mut ev = para(vec![t("Hello "), Event::FootnoteReference("real".into())]);
+        ev.push(st(Tag::FootnoteDefinition {
+            label: "unused".into(),
+        }));
+        ev.extend(para(vec![
+            t("Unused "),
+            Event::FootnoteReference("extra".into()),
+        ]));
+        ev.push(en(TagEnd::FootnoteDefinition));
+        ev.push(st(Tag::FootnoteDefinition {
+            label: "real".into(),
+        }));
+        ev.extend(para(vec![t("Actual.")]));
+        ev.push(en(TagEnd::FootnoteDefinition));
+        ev.push(st(Tag::FootnoteDefinition {
+            label: "extra".into(),
+        }));
+        ev.extend(para(vec![t("Extra.")]));
+        ev.push(en(TagEnd::FootnoteDefinition));
+        assert_eq!(
+            render(ev),
+            "<p>Hello <sup><a id=\"fnr.1\" class=\"footref\" href=\"#fn.1\" role=\"doc-backlink\">1</a></sup></p>\n\
+<div id=\"footnotes\"><h2 class=\"footnotes\">Footnotes</h2><div id=\"text-footnotes\">\n\
+<div class=\"footdef\"><sup><a id=\"fn.1\" class=\"footnum\" href=\"#fnr.1\">1</a></sup> <div class=\"footpara\">Actual.</div></div>\n\
 </div></div>\n"
         );
     }
