@@ -1124,3 +1124,30 @@ fn dump() {
     }
     println!("END-DUMP");
 }
+
+/// Radio targets as `org-export-as` sees them: a second discovery pass with
+/// the first targets active. Checked against Emacs' HTML export.
+#[test]
+fn radio_targets_second_pass() {
+    // The radio link `a =b` consumes the verbatim opener and exposes `c`.
+    let doc = parse("<<<a =b>>>\n\na =b <<<c>>>= x\n\nlater c.\n");
+    assert_eq!(doc.settings.radio_targets, vec!["a =b", "c"]);
+    // The radio link `z *a` breaks the bold and `~` now hides `x`.
+    let doc = parse("<<<z *a>>>\n\nz *a ~b* <<<x>>>~\n\nlater x.\n");
+    assert_eq!(doc.settings.radio_targets, vec!["z *a"]);
+    assert!(doc.objects.is_empty());
+}
+
+/// Object events kept from discovery are those emission would produce.
+#[test]
+fn radio_discovery_objects_match_emission() {
+    let text = "<<<one>>> and <<<two words>>>.\n\n* Title <<<three>>> one\n\n- <<<four>>> :: two words\n\n| <<<five>>> | four |\n\nNo target, one.\n";
+    let doc = parse(text);
+    assert_eq!(doc.objects.len(), 4);
+    for (node, events) in &doc.objects {
+        let (range, restriction) = doc.nodes[*node].kind.object_content().unwrap();
+        let mut fresh = Vec::new();
+        object::parse_objects(text, range.clone(), restriction, &doc.settings, &mut fresh);
+        assert_eq!(events, &fresh);
+    }
+}

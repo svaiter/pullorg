@@ -165,6 +165,9 @@ pub(crate) struct Document<'a> {
     pub nodes: Vec<Element<'a>>,
     pub roots: Vec<usize>,
     pub settings: Settings<'a>,
+    /// Object events already parsed with `settings` while collecting radio
+    /// targets, keyed by node index in increasing order.
+    pub objects: Vec<(usize, Objects<'a>)>,
 }
 
 /// Parse the whole document into an element arena.
@@ -198,11 +201,12 @@ pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'
         settings = collect_settings(&nodes, options).0;
     }
     fix_headlines(src, &mut nodes, &settings, options, odd);
-    settings.radio_targets = collect_radio_targets(text, &nodes, &settings);
+    let objects = collect_radio_targets(text, || radio_containers(text, &nodes), &mut settings);
     Document {
         nodes,
         roots,
         settings,
+        objects,
     }
 }
 
@@ -536,36 +540,91 @@ fn fix_headlines<'a>(
 // ---------------------------------------------------------------------------
 // Radio targets.
 
-/// Discover definitions with radio links disabled until the full list is known.
-fn collect_radio_targets<'a>(
+/// Object events of a container, as [`object::parse_objects`] produces them.
+pub(crate) type Objects<'a> = Vec<(Event<'a>, Range<usize>)>;
+
+/// The object containers of `elements` that may hold a radio target, with
+/// their node index.
+fn radio_containers<'e, 'a>(
     text: &'a str,
-    elements: &[Element<'a>],
-    settings: &Settings<'a>,
-) -> Vec<CowStr<'a>> {
+    elements: &'e [Element<'a>],
+) -> impl Iterator<Item = (usize, Range<usize>, Restriction)> + 'e
+where
+    'a: 'e,
+{
+    elements.iter().enumerate().filter_map(move |(i, element)| {
+        let (range, restriction) = element.kind.object_content()?;
+        text[range.clone()]
+            .contains("<<<")
+            .then(|| (i, range.clone(), restriction))
+    })
+}
+
+/// Collect the radio targets as `org-export-as` sees them.
+///
+/// Entering Org mode runs `org-update-radio-target-regexp` with no radio
+/// links; the export refreshes it once more with that first list active, so
+/// a radio link that consumes the opening of a verbatim span can expose a
+/// target. The second list is the one used for parsing. When both passes
+/// agree, the second pass parsed every container with the final settings,
+/// and its object events are returned for reuse, keyed by node index.
+///
+/// Only object containers are searched. Emacs also finds targets in parsed
+/// affiliated keywords (`#+CAPTION:`), whose values are not parsed as
+/// objects here.
+pub(crate) fn collect_radio_targets<'a, I>(
+    text: &'a str,
+    containers: impl Fn() -> I,
+    settings: &mut Settings<'a>,
+) -> Vec<(usize, Objects<'a>)>
+where
+    I: Iterator<Item = (usize, Range<usize>, Restriction)>,
+{
     debug_assert!(settings.radio_targets.is_empty());
-    let mut found = Vec::new();
+    let (first, _) = discover_radio_targets(text, containers(), settings, false);
+    if first.is_empty() {
+        return Vec::new();
+    }
+    settings.radio_targets = first;
+    let (second, objects) = discover_radio_targets(text, containers(), settings, true);
+    if second == settings.radio_targets {
+        objects
+    } else {
+        settings.radio_targets = second;
+        Vec::new()
+    }
+}
+
+/// One `org-update-radio-target-regexp` pass: parse `containers` with
+/// `settings` and list the radio targets, most recent first then longest
+/// first (stable sort). With `keep`, also return each container's events.
+fn discover_radio_targets<'a>(
+    text: &'a str,
+    containers: impl Iterator<Item = (usize, Range<usize>, Restriction)>,
+    settings: &Settings<'a>,
+    keep: bool,
+) -> (Vec<CowStr<'a>>, Vec<(usize, Objects<'a>)>) {
+    let mut found: Vec<CowStr<'a>> = Vec::new();
+    let mut kept = Vec::new();
     let mut events = Vec::new();
-    for element in elements {
-        let Some((range, restriction)) = element.kind.object_content() else {
-            continue;
-        };
-        if !text[range.clone()].contains("<<<") {
-            continue;
-        }
-        object::parse_objects(text, range.clone(), restriction, settings, &mut events);
-        for (event, _) in events.drain(..) {
+    for (node, range, restriction) in containers {
+        object::parse_objects(text, range, restriction, settings, &mut events);
+        for (event, _) in &events {
             if let Event::Start(Tag::RadioTarget { value }) = event {
-                if !found.contains(&value) {
-                    found.push(value);
+                if !found.contains(value) {
+                    found.push(value.clone());
                 }
             }
         }
+        if keep {
+            kept.push((node, std::mem::take(&mut events)));
+        } else {
+            events.clear();
+        }
     }
-    // `org-update-radio-target-regexp`: most recent first, then longest
-    // first (stable sort).
     found.reverse();
     found.sort_by_key(|t| std::cmp::Reverse(t.chars().count()));
-    found
+    (found, kept)
 }
 
 #[cfg(test)]

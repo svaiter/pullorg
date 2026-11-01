@@ -4,6 +4,10 @@
 
 - Discover radio targets from parsed inline objects. Target-like text inside
   verbatim, code, inline source, or LaTeX no longer creates spurious links.
+  As in `org-export-as`, discovery runs a second time with the first targets
+  active, so a radio link that breaks up markup can expose or hide a target.
+  Targets in `#+CAPTION:` values, which Emacs also registers, are still not
+  found because keyword values are not parsed as objects.
 - HTML exports only footnotes reachable from visible references. Nested
   references are numbered depth-first, the last visible definition wins,
   and macros inside definitions run in source order.

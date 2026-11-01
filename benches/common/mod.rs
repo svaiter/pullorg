@@ -598,6 +598,7 @@ pub mod adversarial {
             Corpus::new("huge-src-block", huge_src_block(size)),
             Corpus::new("footnote-storm", footnotes(size)),
             Corpus::new("radio-targets", radio(size)),
+            Corpus::new("radio-target-paragraphs", radio_paragraphs(size)),
             Corpus::new(
                 "star-lines",
                 repeat("*not a headline\n *nor this\n**nor this\n", size),
@@ -718,6 +719,24 @@ pub mod adversarial {
         // Many radio targets make every word a candidate match.
         let mut out = String::from("<<<the>>> <<<parser>>> <<<and>>> <<<a>>> <<<of>>>\n\n");
         out.push_str(&super::prose(size));
+        out
+    }
+
+    fn radio_paragraphs(size: usize) -> String {
+        // Every paragraph holds a target, so each one goes through radio
+        // target discovery as well as emission.
+        let mut out = String::new();
+        let mut n = 0;
+        while out.len() < size {
+            out.push_str(&format!(
+                "Para <<<t{}>>> with *bold* =code= and refs t{} and t{}.\n\n",
+                n % 50,
+                (n + 1) % 50,
+                (n + 7) % 50
+            ));
+            n += 1;
+        }
+        super::truncate_at_char(&mut out, size);
         out
     }
 }

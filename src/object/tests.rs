@@ -9,7 +9,7 @@ use std::fmt::Write;
 use std::ops::Range;
 
 use super::{parse_objects, Restriction};
-use crate::element::Settings;
+use crate::element::{collect_radio_targets, Settings};
 use crate::event::*;
 use crate::options::SubSuperscripts;
 use crate::strings::CowStr;
@@ -32,7 +32,20 @@ fn opt(s: &Option<CowStr<'_>>) -> String {
     s.as_deref().map_or_else(|| "-".to_string(), quote)
 }
 
+/// Settings for a snippet parsed as one paragraph (see [`paragraph_range`]):
+/// `#+LINK:` abbreviations from the document, radio targets discovered in
+/// that paragraph range, whatever elements the snippet would otherwise be.
 fn snippet_settings(src: &str) -> Settings<'_> {
+    let mut settings = document_settings(src);
+    settings.radio_targets.clear();
+    let container = (0, paragraph_range(src), Restriction::Standard);
+    collect_radio_targets(src, || std::iter::once(container.clone()), &mut settings);
+    settings
+}
+
+/// Settings of the snippet read as a whole document, for snippets that
+/// stand for an element (headline, item, table).
+fn document_settings(src: &str) -> Settings<'_> {
     crate::element::parse_document(src, &crate::Options::default()).settings
 }
 
@@ -272,7 +285,7 @@ fn render(src: &str) -> String {
 /// title), `| ` (one-row table: cells joined with ` | `) and `- tag :: `
 /// (item tag).
 fn render_element(src: &str) -> String {
-    let settings = snippet_settings(src);
+    let settings = document_settings(src);
     if let Some(title) = src.strip_prefix("* ") {
         let start = src.len() - title.len();
         let end = start + title.trim_end().len();
