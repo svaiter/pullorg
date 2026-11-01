@@ -6,7 +6,8 @@
   matched, including when markup, case or whitespace differs. Ordinary Org
   targets retain their ids. `Tag::RadioTarget` now carries the target's raw
   `value`; `Link::radio_target` records that value on automatic radio links.
-
+- Render `$...$` inline LaTeX fragments as `\(...\)` in HTML so
+  `--standalone --mathjax` typesets them with MathJax 3's default settings.
 - Scan backslash runs in bracket links once, avoiding quadratic work on long
   runs. Follow Emacs' endpoint preference when an even-length run permits
   either closing the link or consuming an escaped closing bracket.
