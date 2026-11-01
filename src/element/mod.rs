@@ -667,7 +667,10 @@ pub(crate) fn collect_radio_targets<'a, I>(
                     again.push((v, r))
                 });
                 debug_assert!(
-                    found.iter().zip(ranges).eq(again.iter().map(|(v, r)| (v, r))),
+                    found
+                        .iter()
+                        .zip(ranges)
+                        .eq(again.iter().map(|(v, r)| (v, r))),
                     "radio second pass skipped a change"
                 );
             }

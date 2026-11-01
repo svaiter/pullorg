@@ -29,7 +29,10 @@ fn html_full(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::from_parameter(&name), text, |b, text| {
             b.iter(|| {
                 let mut out = String::new();
-                html::push_html(&mut out, Parser::for_export(black_box(text), Default::default()));
+                html::push_html(
+                    &mut out,
+                    Parser::for_export(black_box(text), Default::default()),
+                );
                 out
             })
         });
