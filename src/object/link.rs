@@ -222,7 +222,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
     /// `org-element-link-parser` at `p`.
     pub(super) fn link(&self, p: usize) -> Option<Obj<'a>> {
         // Radio link.
-        if !self.p.radios.is_empty() {
+        if !self.p.settings.radio_targets.names().is_empty() {
             let q = if self.bol(p) {
                 p
             } else {
@@ -238,7 +238,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
                         link_type: CowStr::Borrowed("radio"),
                         path: path.clone(),
                         raw_link: path,
-                        radio_target: Some(self.p.radios[m.radio].value.clone()),
+                        radio_target: Some(self.p.settings.radio_targets.names()[m.radio].clone()),
                         format: LinkFormat::Plain,
                         search_option: None,
                         application: None,

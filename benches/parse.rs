@@ -64,6 +64,17 @@ fn parse_collect(c: &mut Criterion) {
     group.finish();
 }
 
+fn radio_first_event(c: &mut Criterion) {
+    let mut group = c.benchmark_group("parse-first-radio-event");
+    for count in [64, 256, 1024] {
+        let text = common::adversarial::distinct_radio_targets(count);
+        group.bench_with_input(BenchmarkId::from_parameter(count), &text, |b, src| {
+            b.iter(|| Parser::new(black_box(src)).next());
+        });
+    }
+    group.finish();
+}
+
 /// Shorter than Criterion's defaults; the inputs are small and the suite is
 /// large. Command-line flags (`--warm-up-time`, `--measurement-time`,
 /// `--quick`) still override these.
@@ -76,6 +87,6 @@ fn config() -> Criterion {
 criterion_group! {
     name = benches;
     config = config();
-    targets = parse, parse_offsets, parse_collect
+    targets = parse, parse_offsets, parse_collect, radio_first_event
 }
 criterion_main!(benches);

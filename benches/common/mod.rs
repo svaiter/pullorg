@@ -600,6 +600,16 @@ pub mod adversarial {
             Corpus::new("radio-targets", radio(size)),
             Corpus::new("radio-target-paragraphs", radio_paragraphs(size)),
             Corpus::new(
+                "radio-literal-paragraphs",
+                format!(
+                    "<<<real>>>\n\n{}",
+                    repeat(
+                        "Some *bold* /emphasis/ =literal <<<fake>>> here= then real.\n\n",
+                        size
+                    )
+                ),
+            ),
+            Corpus::new(
                 "star-lines",
                 repeat("*not a headline\n *nor this\n**nor this\n", size),
             ),
@@ -738,5 +748,13 @@ pub mod adversarial {
         }
         super::truncate_at_char(&mut out, size);
         out
+    }
+
+    pub fn distinct_radio_targets(count: usize) -> String {
+        let mut text = String::new();
+        for i in 0..count {
+            writeln!(text, "<<<t{i:05}>>>\n").unwrap();
+        }
+        text
     }
 }

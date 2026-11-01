@@ -12,7 +12,7 @@ pub(super) struct Anchors {
     planned: bool,
     raw_html: bool,
     /// Matched target spelling -> (id, has its anchor been emitted?).
-    assigned: HashMap<String, (usize, bool)>,
+    assigned: HashMap<String, (Option<usize>, bool)>,
     last: usize,
 }
 
@@ -68,25 +68,29 @@ impl Anchors {
         tail
     }
 
-    pub(super) fn number(&mut self, target: &str, definition: bool) -> usize {
-        if let Some((id, emitted)) = self.assigned.get_mut(target) {
-            if !definition || !*emitted {
-                *emitted |= definition;
-                return *id;
-            }
-            // A repeated definition gets its own id. Links keep using the first.
-            return self.next_id();
+    /// Only anchors that can actually appear in the rendered document can
+    /// receive a number. A link can precede its visible definition.
+    pub(super) fn register(&mut self, target: &str) {
+        if !self.assigned.contains_key(target) {
+            self.assigned.insert(target.to_owned(), (None, false));
         }
-        let id = self.next_id();
-        self.assigned.insert(target.to_owned(), (id, definition));
-        id
     }
 
-    fn next_id(&mut self) -> usize {
-        self.last += 1;
-        while self.reserved.contains(&self.last) {
+    pub(super) fn number(&mut self, target: &str, definition: bool) -> Option<usize> {
+        let (number, emitted) = self.assigned.get_mut(target)?;
+        let mut next_id = || {
             self.last += 1;
+            while self.reserved.contains(&self.last) {
+                self.last += 1;
+            }
+            self.last
+        };
+        let number = *number.get_or_insert_with(&mut next_id);
+        if definition && std::mem::replace(emitted, true) {
+            // Repeated definitions get distinct ids; links use the first.
+            Some(next_id())
+        } else {
+            Some(number)
         }
-        self.last
     }
 }

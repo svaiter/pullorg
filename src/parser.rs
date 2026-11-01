@@ -32,8 +32,6 @@ pub struct Parser<'a> {
     text: &'a str,
     nodes: Vec<Element<'a>>,
     settings: Settings<'a>,
-    /// Object events parsed ahead of time, see [`element::Document::objects`].
-    objects: Vec<(usize, element::Objects<'a>)>,
     roots: Vec<usize>,
     stack: Vec<Frame>,
     queue: VecDeque<(Event<'a>, Range<usize>)>,
@@ -53,7 +51,6 @@ impl<'a> Parser<'a> {
             text,
             nodes: document.nodes,
             settings: document.settings,
-            objects: document.objects,
             roots: document.roots,
             stack: Vec::new(),
             queue: VecDeque::new(),
@@ -106,7 +103,6 @@ impl<'a> Parser<'a> {
             text,
             nodes: Vec::new(),
             settings,
-            objects: Vec::new(),
             roots: Vec::new(),
             stack: Vec::new(),
             queue,
@@ -175,16 +171,13 @@ impl<'a> Parser<'a> {
         }
         let mut objects = Vec::new();
         if let Some((content, restriction)) = n.kind.object_content() {
-            match self.objects.binary_search_by_key(&node, |(i, _)| *i) {
-                Ok(k) => objects = std::mem::take(&mut self.objects[k].1),
-                Err(_) => object::parse_objects(
-                    text,
-                    content.clone(),
-                    restriction,
-                    &self.settings,
-                    &mut objects,
-                ),
-            }
+            object::parse_objects(
+                text,
+                content.clone(),
+                restriction,
+                &self.settings,
+                &mut objects,
+            );
         }
         match &n.kind {
             ElementKind::Leaf(event) => {

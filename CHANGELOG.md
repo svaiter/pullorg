@@ -6,6 +6,8 @@
   verbatim, code, inline source, or LaTeX no longer creates spurious links.
   As in `org-export-as`, discovery runs a second time with the first targets
   active, so a radio link that breaks up markup can expose or hide a target.
+  HTML emits a link only when its target is actually rendered. The parser
+  shares its matcher across paragraphs and produces their events on demand.
   Targets in `#+CAPTION:` values, which Emacs also registers, are still not
   found because keyword values are not parsed as objects.
 - HTML exports only footnotes reachable from visible references. Nested

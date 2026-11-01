@@ -37,8 +37,8 @@ fn opt(s: &Option<CowStr<'_>>) -> String {
 /// that paragraph range, whatever elements the snippet would otherwise be.
 fn snippet_settings(src: &str) -> Settings<'_> {
     let mut settings = document_settings(src);
-    settings.radio_targets.clear();
-    let container = (0, paragraph_range(src), Restriction::Standard);
+    settings.radio_targets = Default::default();
+    let container = (paragraph_range(src), Restriction::Standard);
     collect_radio_targets(src, || std::iter::once(container.clone()), &mut settings);
     settings
 }
@@ -1685,9 +1685,10 @@ fn soup_never_panics() {
         }
         let mut settings = snippet_settings(&s);
         if i % 3 == 0 {
-            settings.radio_targets.push("a b".into());
-            settings.radio_targets.push("é".into());
-            settings.radio_targets.push("a".into());
+            let mut names = settings.radio_targets.names().to_vec();
+            names.extend(["a b".into(), "é".into(), "a".into()]);
+            names.sort_by_key(|t| std::cmp::Reverse(t.chars().count()));
+            settings.radio_targets = super::RadioTargets::new(names);
         }
         settings.sub_superscripts = match i % 3 {
             0 => SubSuperscripts::Always,
@@ -1751,7 +1752,7 @@ fn large_input_is_linear_enough() {
     // shared CI runners (debug build, 3 cores) need well over the local time.
     assert!(start.elapsed().as_secs() < 120);
     let mut settings = snippet_settings(&src);
-    settings.radio_targets.push("text".into());
+    settings.radio_targets = super::RadioTargets::new(vec!["text".into()]);
     let mut out = Vec::new();
     parse_objects(
         &src,

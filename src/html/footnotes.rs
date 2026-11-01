@@ -107,8 +107,12 @@ impl Plan {
         events: impl Iterator<Item = &'s Event<'a>>,
         headings: &[HInfo],
         mut skip: usize,
+        mut register_radio: impl FnMut(&str),
     ) -> Self {
         let mut graph = Graph::default();
+        // Targets inside definitions become visible only once the reference
+        // graph has selected the reachable definitions.
+        let mut radios_in_defs = Vec::new();
         // (archived, inside a muted footnote heading). The first footnote
         // can appear inside a heading whose start has already been rendered.
         let mut heads = Vec::new();
@@ -136,6 +140,13 @@ impl Plan {
                 Event::End(TagEnd::Headline | TagEnd::Inlinetask) => {
                     heads.pop();
                 }
+                Event::Start(Tag::RadioTarget { value }) => {
+                    if let Some(&def) = graph.open.last() {
+                        radios_in_defs.push((def, value));
+                    } else if !muted {
+                        register_radio(value);
+                    }
+                }
                 Event::FootnoteReference(label) => {
                     let note = graph.note(Some(label));
                     graph.reference(note, !muted);
@@ -155,7 +166,13 @@ impl Plan {
                 _ => {}
             }
         }
-        graph.resolve()
+        let plan = graph.resolve();
+        for (def, value) in radios_in_defs {
+            if plan.destinations.as_slice()[def].is_some() {
+                register_radio(value);
+            }
+        }
+        plan
     }
 
     pub(super) fn reference(&mut self) -> Option<(usize, usize)> {
@@ -174,7 +191,7 @@ impl Plan {
         }
     }
 
-    pub(super) fn in_discarded_definition(&self) -> bool {
-        self.open.last() == Some(&None)
+    pub(super) fn visible_definition(&self) -> Option<bool> {
+        self.open.last().map(Option::is_some)
     }
 }

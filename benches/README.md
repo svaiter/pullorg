@@ -68,6 +68,10 @@ cannot hide repeated suffix scans.
 Link cases include long backslash runs, escaped brackets throughout a URI,
 and repeated failed bracket-link openers.
 
+`parse-first-radio-event` measures latency to the first event as the number
+of distinct targets grows. `radio-literal-paragraphs` exercises discovery in
+documents where most target-like spellings occur inside verbatim text.
+
 To benchmark real documents, point `PULLORG_BENCH_CORPUS` at a directory:
 every `.org` file in it is added to `parse/<name>`, `html/<name>` and the
 allocation report. The Org manual (`doc/org-manual.org` in the Org

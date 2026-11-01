@@ -745,7 +745,7 @@ fn in_buffer_settings() {
         s.link_abbreviations,
         vec![(Cow::Borrowed("gh"), Cow::Borrowed("https://github.com/%s"))]
     );
-    assert_eq!(s.radio_targets, vec!["radio"]);
+    assert_eq!(s.radio_targets.names(), ["radio"]);
     let types: Vec<_> = doc
         .roots
         .iter()
@@ -1102,8 +1102,7 @@ fn dump() {
         let mut out = Vec::new();
         dump_tree(&text, &doc, &mut out);
         let s = &doc.settings;
-        let j =
-            |v: &Vec<CowStr<'_>>, sep: &str| v.iter().map(|x| &**x).collect::<Vec<_>>().join(sep);
+        let j = |v: &[CowStr<'_>], sep: &str| v.iter().map(|x| &**x).collect::<Vec<_>>().join(sep);
         println!(
             "=== {}",
             std::path::Path::new(path)
@@ -1119,7 +1118,7 @@ fn dump() {
             "SETTINGS todo={} done={} radio={}",
             q(Some(&j(&s.todo_keywords, " "))),
             q(Some(&j(&s.done_keywords, " "))),
-            q(Some(&j(&s.radio_targets, "|")))
+            q(Some(&j(s.radio_targets.names(), "|")))
         );
     }
     println!("END-DUMP");
@@ -1131,23 +1130,8 @@ fn dump() {
 fn radio_targets_second_pass() {
     // The radio link `a =b` consumes the verbatim opener and exposes `c`.
     let doc = parse("<<<a =b>>>\n\na =b <<<c>>>= x\n\nlater c.\n");
-    assert_eq!(doc.settings.radio_targets, vec!["a =b", "c"]);
+    assert_eq!(doc.settings.radio_targets.names(), ["a =b", "c"]);
     // The radio link `z *a` breaks the bold and `~` now hides `x`.
     let doc = parse("<<<z *a>>>\n\nz *a ~b* <<<x>>>~\n\nlater x.\n");
-    assert_eq!(doc.settings.radio_targets, vec!["z *a"]);
-    assert!(doc.objects.is_empty());
-}
-
-/// Object events kept from discovery are those emission would produce.
-#[test]
-fn radio_discovery_objects_match_emission() {
-    let text = "<<<one>>> and <<<two words>>>.\n\n* Title <<<three>>> one\n\n- <<<four>>> :: two words\n\n| <<<five>>> | four |\n\nNo target, one.\n";
-    let doc = parse(text);
-    assert_eq!(doc.objects.len(), 4);
-    for (node, events) in &doc.objects {
-        let (range, restriction) = doc.nodes[*node].kind.object_content().unwrap();
-        let mut fresh = Vec::new();
-        object::parse_objects(text, range.clone(), restriction, &doc.settings, &mut fresh);
-        assert_eq!(events, &fresh);
-    }
+    assert_eq!(doc.settings.radio_targets.names(), ["z *a"]);
 }
