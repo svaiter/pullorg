@@ -94,7 +94,7 @@ fn profile(name: &str, text: &str) -> Row {
         }
     });
     let mut out = String::with_capacity(text.len() * 2);
-    let (html_allocs, html_bytes, ()) = measure(|| html::push_html(&mut out, Parser::new(text)));
+    let (html_allocs, html_bytes, ()) = measure(|| html::push_html(&mut out, Parser::for_export(text, Default::default())));
     Row {
         name: name.to_string(),
         bytes: text.len(),

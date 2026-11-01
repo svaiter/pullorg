@@ -4,10 +4,10 @@
 
 - Discover radio targets from parsed inline objects. Target-like text inside
   verbatim, code, inline source, or LaTeX no longer creates spurious links.
-  As in `org-export-as`, discovery runs a second time with the first targets
-  active, so a radio link that breaks up markup can expose or hide a target.
-  Like the export, that second pass ignores commented subtrees, and it
-  skips containers in whose plain text no first-pass target occurs.
+  `Parser::new` and `new_ext` discover targets in the original document.
+  `Parser::for_export` and the HTML CLI refresh the list after excluding
+  COMMENT subtrees, as in Emacs export. The export prefilter bounds its work
+  on long near-matches and reuses the matcher when target names are unchanged.
   HTML emits a link only when its target is actually rendered. The parser
   shares its matcher across paragraphs and produces their events on demand.
   Targets in `#+CAPTION:` values, which Emacs also registers, are still not

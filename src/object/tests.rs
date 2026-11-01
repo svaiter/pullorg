@@ -39,14 +39,24 @@ fn snippet_settings(src: &str) -> Settings<'_> {
     let mut settings = document_settings(src);
     settings.radio_targets = Default::default();
     let container = (paragraph_range(src), Restriction::Standard, true);
-    collect_radio_targets(src, || std::iter::once(container.clone()), &mut settings);
+    collect_radio_targets(
+        src,
+        || std::iter::once(container.clone()),
+        &mut settings,
+        crate::element::RadioMode::Document,
+    );
     settings
 }
 
 /// Settings of the snippet read as a whole document, for snippets that
 /// stand for an element (headline, item, table).
 fn document_settings(src: &str) -> Settings<'_> {
-    crate::element::parse_document(src, &crate::Options::default()).settings
+    crate::element::parse_document(
+        src,
+        &crate::Options::default(),
+        crate::element::RadioMode::Document,
+    )
+    .settings
 }
 
 /// The paragraph range of a snippet: everything after the `#+LINK:` lines.

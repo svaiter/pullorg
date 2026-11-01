@@ -1,7 +1,8 @@
 //! HTML renderer.
 //!
 //! Mirrors `pulldown_cmark::html`: feed any `Iterator<Item = Event>` to
-//! [`push_html`], [`write_html_fmt`] or [`write_html_io`].
+//! [`push_html`], [`write_html_fmt`] or [`write_html_io`]. Use
+//! [`crate::Parser::for_export`] to produce events from Org source for HTML.
 //!
 //! The output is an HTML fragment (no `<html>` or `<body>`), loosely modelled
 //! on Emacs' `ox-html` but flatter: headlines become `<h2>`..`<h6>` (`<h1>` is
@@ -1866,7 +1867,7 @@ mod tests {
 
     fn parse_html(src: &str) -> String {
         let mut s = String::new();
-        push_html(&mut s, crate::Parser::new(src));
+        push_html(&mut s, crate::Parser::for_export(src, Default::default()));
         s
     }
 

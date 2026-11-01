@@ -72,7 +72,9 @@ and repeated failed bracket-link openers.
 of distinct targets grows. `radio-literal-paragraphs` exercises discovery in
 documents where most target-like spellings occur inside verbatim text.
 `radio-glossary` is mostly definitions that mention no other target, which
-the second discovery pass does not reparse.
+export can often reuse their first-pass discoveries. `radio-export-near-miss`
+measures time to the first export event when a long target almost matches a
+run of repeated characters.
 
 To benchmark real documents, point `PULLORG_BENCH_CORPUS` at a directory:
 every `.org` file in it is added to `parse/<name>`, `html/<name>` and the

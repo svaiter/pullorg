@@ -173,7 +173,11 @@ pub(crate) struct Document<'a> {
 /// part of the line, which is what Emacs does when a buffer is visited with
 /// a Unix coding system; most patterns still work since `\r` counts as
 /// whitespace where Org skips whitespace, but CRLF input is not normalised.
-pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'a> {
+pub(crate) fn parse_document<'a>(
+    text: &'a str,
+    options: &Options,
+    mode: RadioMode,
+) -> Document<'a> {
     let src = Src::new(text);
     // `org-element-org-data-parser`: contents start at the first non blank
     // line.
@@ -198,7 +202,12 @@ pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'
         settings = collect_settings(&nodes, options).0;
     }
     fix_headlines(src, &mut nodes, &settings, options, odd);
-    collect_radio_targets(text, || radio_containers(text, &nodes), &mut settings);
+    collect_radio_targets(
+        text,
+        || radio_containers(text, &nodes, mode),
+        &mut settings,
+        mode,
+    );
     Document {
         nodes,
         roots,
@@ -536,6 +545,14 @@ fn fix_headlines<'a>(
 // ---------------------------------------------------------------------------
 // Radio targets.
 
+/// Org discovers radio targets when opening a document. Export refreshes
+/// that list after removing commented subtrees.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum RadioMode {
+    Document,
+    Export,
+}
+
 /// An object container that may hold a radio target: its range, its
 /// restriction, and whether it survives in the export buffer (it is not in
 /// a commented subtree, which `org-export--delete-comment-trees` removes).
@@ -545,6 +562,7 @@ pub(crate) type RadioContainer = (Range<usize>, Restriction, bool);
 fn radio_containers<'e, 'a>(
     text: &'a str,
     elements: &'e [Element<'a>],
+    mode: RadioMode,
 ) -> impl Iterator<Item = RadioContainer> + 'e
 where
     'a: 'e,
@@ -552,7 +570,7 @@ where
     // Elements are in pre-order, so a subtree is a contiguous index range.
     let mut commented_until = 0;
     elements.iter().enumerate().filter_map(move |(i, element)| {
-        if i >= commented_until {
+        if mode == RadioMode::Export && i >= commented_until {
             if let ElementKind::Headline { data, .. } | ElementKind::Inlinetask { data, .. } =
                 &element.kind
             {
@@ -572,7 +590,7 @@ where
     })
 }
 
-/// Collect the radio targets as `org-export-as` sees them.
+/// Collect the document's radio targets, refreshing them only for export.
 ///
 /// Entering Org mode runs `org-update-radio-target-regexp` with no radio
 /// links. The export deletes commented subtrees and refreshes it once more
@@ -589,29 +607,40 @@ pub(crate) fn collect_radio_targets<'a, I>(
     text: &'a str,
     containers: impl Fn() -> I,
     settings: &mut Settings<'a>,
+    mode: RadioMode,
 ) where
     I: Iterator<Item = RadioContainer>,
 {
     debug_assert!(settings.radio_targets.names().is_empty());
-    // Targets found by the first pass with their ranges; container `i`
-    // found `first[ends[i - 1]..ends[i]]`.
     let mut first = Vec::new();
+    // Only export revisits candidates. Container i's first-pass definitions
+    // occupy first[ends[i - 1]..ends[i]], with corresponding source spans.
+    let mut spans = Vec::new();
     let mut ends = Vec::new();
     for (range, restriction, _) in containers() {
         object::visit_radio_targets(text, range, restriction, settings, |v, r| {
-            first.push((v, r))
+            first.push(v);
+            if mode == RadioMode::Export {
+                spans.push(r);
+            }
         });
-        ends.push(first.len());
+        if mode == RadioMode::Export {
+            ends.push(first.len());
+        }
     }
     if first.is_empty() {
         return;
     }
-    settings.radio_targets =
-        object::RadioTargets::new(priority(first.iter().map(|(v, _)| v.clone())));
+    if mode == RadioMode::Document {
+        settings.radio_targets = object::RadioTargets::new(priority(first.into_iter()));
+        return;
+    }
+    settings.radio_targets = object::RadioTargets::new(priority(first.iter().cloned()));
     let mut second = Vec::new();
     let mut start = 0;
     for ((range, restriction, exported), end) in containers().zip(ends) {
         let found = &first[start..end];
+        let ranges = &spans[start..end];
         start = end;
         if !exported {
             continue;
@@ -619,16 +648,16 @@ pub(crate) fn collect_radio_targets<'a, I>(
         // The two passes diverge only at a radio link, and one cannot match
         // inside a radio target (minimal restriction) or across its `<`.
         let mut from = range.start;
-        let mut plain = found
+        let mut plain = ranges
             .iter()
-            .map(|(_, r)| r.clone())
+            .cloned()
             .chain(std::iter::once(range.end..range.end))
             .map(|r| {
                 let segment = from..r.start.max(from);
                 from = r.end.max(from);
                 segment
             });
-        if plain.any(|r| settings.radio_targets.occurs_in(&text[r])) {
+        if plain.any(|r| settings.radio_targets.may_occur_in(&text[r])) {
             object::visit_radio_targets(text, range, restriction, settings, |v, _| second.push(v));
         } else {
             #[cfg(debug_assertions)]
@@ -637,15 +666,17 @@ pub(crate) fn collect_radio_targets<'a, I>(
                 object::visit_radio_targets(text, range, restriction, settings, |v, r| {
                     again.push((v, r))
                 });
-                debug_assert_eq!(found, again, "radio second pass skipped a change");
+                debug_assert!(
+                    found.iter().zip(ranges).eq(again.iter().map(|(v, r)| (v, r))),
+                    "radio second pass skipped a change"
+                );
             }
-            second.extend(found.iter().map(|(v, _)| v.clone()));
+            second.extend(found.iter().cloned());
         }
     }
-    let second = object::RadioTargets::new(priority(second.into_iter()));
-    if second.names() != settings.radio_targets.names() {
-        settings.radio_targets = second;
-    }
+    settings
+        .radio_targets
+        .replace_names(priority(second.into_iter()));
 }
 
 /// `cl-pushnew` over targets in document order: each name once, the most

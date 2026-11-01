@@ -5,7 +5,7 @@ use pullorg::{html, Parser};
 
 fn render(text: &str) -> String {
     let mut out = String::new();
-    html::push_html(&mut out, Parser::new(text));
+    html::push_html(&mut out, Parser::for_export(text, Default::default()));
     out
 }
 

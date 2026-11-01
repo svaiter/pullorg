@@ -223,7 +223,7 @@ fn check(text: &str, options: Options) {
     }
     assert!(stack.is_empty(), "unclosed {stack:?} in {text:?}");
     let mut out = String::new();
-    html::push_html(&mut out, Parser::new_ext(text, options));
+    html::push_html(&mut out, Parser::for_export(text, options));
 }
 
 #[test]

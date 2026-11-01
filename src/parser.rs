@@ -3,7 +3,7 @@
 use std::collections::VecDeque;
 use std::ops::Range;
 
-use crate::element::{self, Element, ElementKind, Settings};
+use crate::element::{self, Element, ElementKind, RadioMode, Settings};
 use crate::event::{Event, Tag, TagEnd};
 use crate::object::{self, Restriction};
 use crate::options::Options;
@@ -46,7 +46,18 @@ impl<'a> Parser<'a> {
 
     /// Create a parser with the given [`Options`].
     pub fn new_ext(text: &'a str, options: Options) -> Self {
-        let document = element::parse_document(text, &options);
+        Self::with_mode(text, options, RadioMode::Document)
+    }
+
+    /// Parse for HTML export. As in Emacs export, radio targets are refreshed
+    /// after excluding COMMENT subtrees. This can change how nearby inline
+    /// markup is parsed. For document events, use [`Self::new`] or [`Self::new_ext`].
+    pub fn for_export(text: &'a str, options: Options) -> Self {
+        Self::with_mode(text, options, RadioMode::Export)
+    }
+
+    fn with_mode(text: &'a str, options: Options, mode: RadioMode) -> Self {
+        let document = element::parse_document(text, &options, mode);
         Parser {
             text,
             nodes: document.nodes,

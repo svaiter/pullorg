@@ -775,6 +775,12 @@ pub mod adversarial {
         out
     }
 
+    /// The long target nearly matches many overlapping starts in the second paragraph.
+    pub fn radio_prefix_near_miss(n: usize) -> String {
+        let prefix = "a".repeat(n);
+        format!("<<<{prefix}b>>>\n\n<<<q>>> {prefix}\n")
+    }
+
     pub fn distinct_radio_targets(count: usize) -> String {
         let mut text = String::new();
         for i in 0..count {

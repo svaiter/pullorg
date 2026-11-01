@@ -52,42 +52,52 @@ impl<'a> RadioTargets<'a> {
     /// same length (`org-update-radio-target-regexp` lists the most recent
     /// first); empty names and repeats are dropped, and longer targets are
     /// tried first.
-    pub(crate) fn new(mut names: Vec<CowStr<'a>>) -> Self {
+    pub(crate) fn new(names: Vec<CowStr<'a>>) -> Self {
+        let mut index = Self::default();
+        index.replace_names(names);
+        index
+    }
+
+    /// Reuse the existing trie when the refreshed names have the same priority.
+    pub(crate) fn replace_names(&mut self, mut names: Vec<CowStr<'a>>) {
         let mut seen = std::collections::HashSet::new();
         names.retain(|name| !name.is_empty() && seen.insert(name.clone()));
-        if names.is_empty() {
-            return Self::default();
-        }
         names.sort_by_cached_key(|t| std::cmp::Reverse(t.chars().count()));
-        let mut index = Self {
+        if names == self.names {
+            return;
+        }
+        *self = Self {
             names,
-            candidates: vec![Vec::new()],
             ..Self::default()
         };
-        for (id, name) in index.names.iter().enumerate() {
+        if self.names.is_empty() {
+            return;
+        }
+        self.candidates.push(Vec::new());
+        for (id, name) in self.names.iter().enumerate() {
             if let Some(first) = name.chars().next() {
                 if first == ' ' {
                     // A space matches any whitespace.
                     for c in 0..128u8 {
-                        index.ascii_starts[c as usize] |= is_ws(c as char);
+                        self.ascii_starts[c as usize] |= is_ws(c as char);
                     }
                 }
                 for c in std::iter::once(first).chain(first.to_lowercase()) {
                     if c.is_ascii() {
-                        index.ascii_starts[c.to_ascii_lowercase() as usize] = true;
-                        index.ascii_starts[c.to_ascii_uppercase() as usize] = true;
+                        self.ascii_starts[c.to_ascii_lowercase() as usize] = true;
+                        self.ascii_starts[c.to_ascii_uppercase() as usize] = true;
                     }
                 }
             }
             let end = name.find(' ').unwrap_or(name.len());
             let mut node = 0;
             for c in name[..end].chars() {
-                node = *index.edges.entry((node, Letter(c))).or_insert_with(|| {
-                    index.candidates.push(Vec::new());
-                    index.candidates.len() - 1
+                node = *self.edges.entry((node, Letter(c))).or_insert_with(|| {
+                    self.candidates.push(Vec::new());
+                    self.candidates.len() - 1
                 });
             }
-            index.candidates[node].push(id);
+            self.candidates[node].push(id);
             let mut suffix = Vec::new();
             for c in name[end..].chars() {
                 if c != ' ' {
@@ -96,9 +106,8 @@ impl<'a> RadioTargets<'a> {
                     suffix.push(None);
                 }
             }
-            index.suffixes.push(suffix);
+            self.suffixes.push(suffix);
         }
-        index
     }
 
     pub(crate) fn names(&self) -> &[CowStr<'a>] {
@@ -134,37 +143,35 @@ impl<'a> RadioTargets<'a> {
         best
     }
 
-    /// Whether some target's text occurs anywhere in `text`, ignoring the
-    /// boundaries a radio link needs. A container where this is false parses
-    /// the same with or without these targets.
-    pub(crate) fn occurs_in(&self, text: &str) -> bool {
+    /// A conservative prefilter: a matching literal prefix or an exhausted
+    /// budget means the object parser must decide. The budget bounds trie
+    /// probes across all overlapping starts to the length of the segment.
+    pub(crate) fn may_occur_in(&self, text: &str) -> bool {
         if self.names.is_empty() {
             return false;
         }
-        text.char_indices().any(|(start, c)| {
-            // A non-ASCII character can fold onto an ASCII one (the Kelvin
-            // sign), so only ASCII characters are filtered.
+        let mut budget = text.len();
+        for (start, c) in text.char_indices() {
+            // Non-ASCII characters may fold onto an ASCII start (e.g. Kelvin sign).
             if c.is_ascii() && !self.ascii_starts[c as usize] {
-                return false;
+                continue;
             }
-            let (mut node, mut pos) = (0, start);
-            loop {
-                if self.candidates[node]
-                    .iter()
-                    .any(|&id| suffix_end(text, pos, &self.suffixes[id]).is_some())
-                {
+            let mut node = 0;
+            for c in text[start..].chars() {
+                if !self.candidates[node].is_empty() || budget == 0 {
                     return true;
                 }
-                let Some(c) = text[pos..].chars().next() else {
-                    return false;
-                };
+                budget -= 1;
                 let Some(&next) = self.edges.get(&(node, Letter(c))) else {
-                    return false;
+                    break;
                 };
                 node = next;
-                pos += c.len_utf8();
             }
-        })
+            if !self.candidates[node].is_empty() {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -280,11 +287,31 @@ mod tests {
                 .char_indices()
                 .any(|(start, _)| linear_match(matcher.names(), &text[start..]).is_some());
             assert!(
-                !any || matcher.occurs_in(&text),
+                !any || matcher.may_occur_in(&text),
                 "{:?} in {text:?}",
                 matcher.names()
             );
         }
+    }
+
+    #[test]
+    fn near_match_falls_back_to_the_parser() {
+        let prefix = "a".repeat(16_384);
+        let matcher = RadioTargets::new(vec![format!("{prefix}b").into()]);
+        assert!(matcher.may_occur_in(&prefix));
+        assert!(!matcher.may_occur_in("ordinary words"));
+    }
+
+    #[test]
+    fn unchanged_names_reuse_the_trie() {
+        let mut matcher = RadioTargets::new(vec!["abc".into(), "k".into()]);
+        let original = matcher.candidates.as_ptr();
+        matcher.replace_names(vec!["k".into(), "abc".into(), "k".into(), "".into()]);
+        assert_eq!(matcher.candidates.as_ptr(), original);
+        assert_eq!(matcher.names(), ["abc", "k"]);
+        matcher.replace_names(vec!["other".into()]);
+        assert!(matcher.match_at("abc").is_none());
+        assert!(matcher.match_at("other").is_some());
     }
 
     #[test]
