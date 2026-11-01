@@ -575,6 +575,9 @@ pub struct Link<'a> {
     /// bracket links, after removing escapes and expanding link
     /// abbreviations; for plain and angle links, the source text.
     pub raw_link: CowStr<'a>,
+    /// For an automatic radio link, the raw value of the target selected by
+    /// the parser. `path` and `raw_link` retain the reference as written.
+    pub radio_target: Option<CowStr<'a>>,
     /// How the link is written.
     pub format: LinkFormat,
     /// For `file` links, the search option after `::`.

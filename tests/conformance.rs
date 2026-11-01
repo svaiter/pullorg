@@ -1452,6 +1452,7 @@ mod roundtrip {
                     link_type: st(&p["type"]),
                     path: st(&p["path"]),
                     raw_link: st(&p["raw-link"]),
+                    radio_target: None,
                     format: match p["format"].as_str().unwrap() {
                         "plain" => LinkFormat::Plain,
                         "angle" => LinkFormat::Angle,

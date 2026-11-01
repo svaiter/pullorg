@@ -1316,6 +1316,7 @@ fn radio_link_fields() {
     };
     assert_eq!(l.link_type, "radio");
     assert_eq!(l.path, "my\ntarget");
+    assert_eq!(l.radio_target.as_deref(), Some("My Target"));
     assert_eq!(l.format, LinkFormat::Plain);
     assert_eq!(ev[i].1, 20..29);
     assert_eq!(ev[i + 1].0, Event::Text(CowStr::Borrowed("my")));

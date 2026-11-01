@@ -11,6 +11,8 @@
 //! required: tables, footnote definitions and paragraphs
 //! carrying affiliated keywords. Headlines are held back until their property
 //! drawer has been seen, so that a `CUSTOM_ID` property can become the `id`.
+//! On the first radio target or link, the renderer buffers the remaining
+//! events so generated radio ids can avoid explicit ids anywhere in the document.
 //!
 //! # Headline ids and links
 //!
@@ -30,6 +32,10 @@
 //! `input-file` expand to nothing). Unlike Emacs, an expansion is inserted as
 //! escaped plain text and is not parsed as Org again, and a macro must be
 //! defined before its first use. Unknown macros expand to nothing.
+
+mod radio;
+
+use radio::PREFIX as RADIO_PREFIX;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -330,6 +336,7 @@ struct FnEntry {
 }
 
 struct Renderer<W: fmt::Write> {
+    radio: radio::Anchors,
     out: W,
     bufs: Vec<String>,
     skip: usize,
@@ -389,30 +396,6 @@ fn expand_template(tpl: &str, args: &[crate::strings::CowStr<'_>]) -> String {
     out
 }
 
-/// The anchor shared by a radio target and the links that point at it.
-///
-/// Radio links match their target case-insensitively, a space in the target
-/// standing for any run of whitespace, so the target's raw value and the text
-/// of each link are folded the same way: lower-cased, whitespace runs
-/// collapsed to one space. Both sides thus derive the same id from the raw
-/// text, markup delimiters included (`<<</hello/>>>` gives `/hello/`).
-fn radio_id(text: &str) -> String {
-    let mut id = String::with_capacity(text.len());
-    let mut ws = false;
-    for c in text.chars() {
-        if c.is_whitespace() {
-            ws = true;
-        } else {
-            if ws && !id.is_empty() {
-                id.push(' ');
-            }
-            ws = false;
-            id.extend(c.to_lowercase());
-        }
-    }
-    id
-}
-
 fn checkbox_html(c: Checkbox) -> &'static str {
     match c {
         Checkbox::On => "<code>[X]</code> ",
@@ -424,6 +407,7 @@ fn checkbox_html(c: Checkbox) -> &'static str {
 impl<W: fmt::Write> Renderer<W> {
     fn new(out: W) -> Self {
         Renderer {
+            radio: radio::Anchors::default(),
             out,
             bufs: Vec::new(),
             skip: 0,
@@ -473,6 +457,10 @@ impl<W: fmt::Write> Renderer<W> {
     fn feed<'e, I: Iterator<Item = Event<'e>>>(&mut self, iter: I) -> fmt::Result {
         let mut it = iter.peekable();
         while let Some(ev) = it.next() {
+            if self.radio.observe(&ev) {
+                let tail = self.radio.reserve_tail(it);
+                return self.feed(std::iter::once(ev).chain(tail));
+            }
             if self.skip == 0 {
                 if let Event::Start(Tag::Table { kind, .. }) = &ev {
                     let kind = *kind;
@@ -480,6 +468,7 @@ impl<W: fmt::Write> Renderer<W> {
                     let kws = std::mem::take(&mut self.pending);
                     let mut depth = 1usize;
                     let mut evs = Vec::new();
+                    let mut has_radio = false;
                     for e in it.by_ref() {
                         match &e {
                             Event::Start(_) => depth += 1,
@@ -489,7 +478,13 @@ impl<W: fmt::Write> Renderer<W> {
                         if depth == 0 {
                             break;
                         }
+                        has_radio |= self.radio.observe(&e);
                         evs.push(e);
+                    }
+                    if has_radio {
+                        let tail = self.radio.reserve_tail(it);
+                        self.table(kind, evs, &kws)?;
+                        return self.feed(tail.into_iter());
                     }
                     self.table(kind, evs, &kws)?;
                     continue;
@@ -975,7 +970,8 @@ impl<W: fmt::Write> Renderer<W> {
             Tag::Link(l) => {
                 let t = l.link_type.as_ref();
                 let href = if t == "radio" {
-                    format!("#{}", radio_id(&l.path))
+                    let target = l.radio_target.as_deref().unwrap_or(&l.path);
+                    format!("#{RADIO_PREFIX}{}", self.radio.number(target, false))
                 } else if matches!(t, "fuzzy" | "custom-id" | "id" | "coderef") {
                     format!("#{}", l.path)
                 } else if t == "file" || t.is_empty() {
@@ -1015,7 +1011,8 @@ impl<W: fmt::Write> Renderer<W> {
                 self.w(&format!("<a href=\"{}\">", escape(&href)))?;
             }
             Tag::RadioTarget { value } => {
-                self.w(&format!("<a id=\"{}\">", escape(&radio_id(&value))))?;
+                let n = self.radio.number(&value, true);
+                self.w(&format!("<a id=\"{RADIO_PREFIX}{n}\">"))?;
             }
             Tag::FootnoteReference { label } => {
                 let (n, id) = self.footnote_ref(label.as_deref());
@@ -1358,6 +1355,7 @@ mod tests {
             link_type: ty.into(),
             path: path.into(),
             raw_link: format!("{ty}:{path}").into(),
+            radio_target: None,
             format: LinkFormat::Bracket,
             search_option: None,
             application: None,
@@ -1778,7 +1776,7 @@ mod tests {
         ];
         assert_eq!(
             render(ev),
-            "<hr />\n<a id=\"tg\"></a><code>[1/3]</code><i>$a&lt;b$<a id=\"rt\">rt</a>"
+            "<hr />\n<a id=\"tg\"></a><code>[1/3]</code><i>$a&lt;b$<a id=\"org-radio-1\">rt</a>"
         );
     }
 
@@ -1800,18 +1798,82 @@ mod tests {
         // Issue #7: markup inside the target must not split the identity.
         assert_eq!(
             parse_html("<<</hello/>>> then /hello/\n"),
-            "<p><a id=\"/hello/\"><i>hello</i></a> then <a href=\"#/hello/\"><i>hello</i></a></p>\n"
+            "<p><a id=\"org-radio-1\"><i>hello</i></a> then <a href=\"#org-radio-1\"><i>hello</i></a></p>\n"
         );
-        // Case and whitespace differences between target and link fold away.
+        // A different spelling still refers to the matched definition.
         assert_eq!(
             parse_html("<<<My Target>>> foo my  target\n"),
-            "<p><a id=\"my target\">My Target</a> foo <a href=\"#my target\">my  target</a></p>\n"
+            "<p><a id=\"org-radio-1\">My Target</a> foo <a href=\"#org-radio-1\">my  target</a></p>\n"
         );
         // A link before its target still resolves to the same id.
         assert_eq!(
             parse_html("See RADIO.\n\nThe <<<radio>>> target.\n"),
-            "<p>See <a href=\"#radio\">RADIO</a>.</p>\n<p>The <a id=\"radio\">radio</a> target.</p>\n"
+            "<p>See <a href=\"#org-radio-1\">RADIO</a>.</p>\n<p>The <a id=\"org-radio-1\">radio</a> target.</p>\n"
         );
+    }
+
+    #[test]
+    fn radio_link_jumps_to_its_own_target() {
+        let html = parse_html("<<label>>\n\n<<<Label>>> then Label; use [[label]].\n");
+        assert_eq!(
+            html,
+            "<p><a id=\"label\"></a></p>\n<p><a id=\"org-radio-1\">Label</a> then <a href=\"#org-radio-1\">Label</a>; use <a href=\"#label\">label</a>.</p>\n"
+        );
+    }
+
+    #[test]
+    fn radio_link_uses_the_matchers_whitespace_rules() {
+        assert_eq!(
+            parse_html("my\u{200b}target then <<<My Target>>>.\n"),
+            "<p><a href=\"#org-radio-1\">my\u{200b}target</a> then <a id=\"org-radio-1\">My Target</a>.</p>\n"
+        );
+    }
+
+    #[test]
+    fn radio_ids_skip_explicit_ids_before_and_after_first_reference() {
+        let html = parse_html(
+            "<<org-radio-1>>\n\n| LABEL |\n\n<<<Label>>> and <<org-radio-2>>.\n\n\
+             * Heading\n:PROPERTIES:\n:CUSTOM_ID: org-radio-3\n:END:\n\
+             #+ATTR_HTML: :id org-radio-4\nA paragraph.\n",
+        );
+        for n in 1..=5 {
+            assert_eq!(
+                html.matches(&format!("id=\"org-radio-{n}\"")).count(),
+                1,
+                "{html}"
+            );
+        }
+        assert!(
+            html.contains("<a href=\"#org-radio-5\">LABEL</a>"),
+            "{html}"
+        );
+        assert!(html.contains("<a id=\"org-radio-5\">Label</a>"), "{html}");
+    }
+
+    #[test]
+    fn radio_ids_distinguish_literal_whitespace_from_a_matching_space() {
+        let html = parse_html("<<<A B>>> and <<<A\u{a0}B>>>. See A\u{a0}B and A\u{200b}B.\n");
+        assert!(html.contains("<a id=\"org-radio-1\">A B</a>"), "{html}");
+        assert!(
+            html.contains("<a id=\"org-radio-2\">A\u{a0}B</a>"),
+            "{html}"
+        );
+        assert!(
+            html.contains("<a href=\"#org-radio-2\">A\u{a0}B</a>"),
+            "{html}"
+        );
+        assert!(
+            html.contains("<a href=\"#org-radio-1\">A\u{200b}B</a>"),
+            "{html}"
+        );
+    }
+
+    #[test]
+    fn repeated_radio_targets_have_distinct_ids() {
+        let html = parse_html("See word. <<<word>>> and <<<word>>>.\n");
+        assert_eq!(html.matches("id=\"org-radio-1\"").count(), 1);
+        assert_eq!(html.matches("id=\"org-radio-2\"").count(), 1);
+        assert!(html.contains("<a href=\"#org-radio-1\">word</a>"));
     }
 
     #[test]
