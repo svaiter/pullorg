@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 2026-11-02
 
 - Discover radio targets from parsed inline objects. Target-like text inside
   verbatim, code, inline source, or LaTeX no longer creates spurious links.
