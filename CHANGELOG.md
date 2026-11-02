@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Discover radio targets from parsed inline objects. Target-like text inside
+  verbatim, code, inline source, or LaTeX no longer creates spurious links.
+  `Parser::new` and `new_ext` discover targets in the original document.
+  `Parser::for_export`, `for_export_ext` and the HTML CLI refresh the list
+  after excluding COMMENT subtrees, as in Emacs export. The export prefilter
+  checks whole target names, bounds its work on long near-matches and
+  reuses the matcher when target names are unchanged.
+  HTML emits a link only when its target is actually rendered. The parser
+  shares its matcher across paragraphs and produces their events on demand.
+  Targets in `#+CAPTION:` values, which Emacs also registers, are still not
+  found because keyword values are not parsed as objects.
 - HTML exports only footnotes reachable from visible references. Nested
   references are numbered depth-first, the last visible definition wins,
   and macros inside definitions run in source order.

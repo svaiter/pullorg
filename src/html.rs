@@ -1,7 +1,8 @@
 //! HTML renderer.
 //!
 //! Mirrors `pulldown_cmark::html`: feed any `Iterator<Item = Event>` to
-//! [`push_html`], [`write_html_fmt`] or [`write_html_io`].
+//! [`push_html`], [`write_html_fmt`] or [`write_html_io`]. Use
+//! [`crate::Parser::for_export`] to produce events from Org source for HTML.
 //!
 //! The output is an HTML fragment (no `<html>` or `<body>`), loosely modelled
 //! on Emacs' `ox-html` but flatter: headlines become `<h2>`..`<h6>` (`<h1>` is
@@ -346,6 +347,10 @@ fn omit(tag: &Tag<'_>, archived_parent: bool) -> bool {
 
 struct Renderer<W: fmt::Write> {
     radio: radio::Anchors,
+    /// Whether each open link with children emitted an anchor.
+    link_tags: Vec<bool>,
+    /// Whether each open radio target emitted an anchor.
+    target_tags: Vec<bool>,
     out: W,
     // None discards an unused definition while its nested definitions and
     // document-wide macro effects are still processed.
@@ -427,6 +432,8 @@ impl<W: fmt::Write> Renderer<W> {
     fn new(out: W) -> Self {
         Renderer {
             radio: radio::Anchors::default(),
+            link_tags: Vec::new(),
+            target_tags: Vec::new(),
             out,
             bufs: Vec::new(),
             skip: 0,
@@ -484,6 +491,7 @@ impl<W: fmt::Write> Renderer<W> {
             prefix.iter().chain(&tail),
             &self.hstack,
             self.skip,
+            |target| self.radio.register(target),
         ));
         tail
     }
@@ -978,7 +986,15 @@ impl<W: fmt::Write> Renderer<W> {
                 let t = l.link_type.as_ref();
                 let href = if t == "radio" {
                     let target = l.radio_target.as_deref().unwrap_or(&l.path);
-                    format!("#{RADIO_PREFIX}{}", self.radio.number(target, false))
+                    let Some(n) = self.radio.number(target, false) else {
+                        if next == Next::EndLink {
+                            self.we(&l.path)?;
+                            return Ok(true);
+                        }
+                        self.link_tags.push(false);
+                        return Ok(false);
+                    };
+                    format!("#{RADIO_PREFIX}{n}")
                 } else if matches!(t, "fuzzy" | "custom-id" | "id" | "coderef") {
                     format!("#{}", l.path)
                 } else if t == "file" || t.is_empty() {
@@ -1015,17 +1031,22 @@ impl<W: fmt::Write> Renderer<W> {
                     }
                     return Ok(true);
                 }
+                self.link_tags.push(true);
                 self.w(&format!("<a href=\"{}\">", escape(&href)))?;
             }
             Tag::RadioTarget { value } => {
-                // An anchor inside a discarded definition cannot be the
-                // destination of a link elsewhere in the document.
-                if !self
+                let visible = self
                     .footnotes
                     .as_ref()
-                    .is_some_and(|p| p.in_discarded_definition())
-                {
-                    let n = self.radio.number(&value, true);
+                    .and_then(|plan| plan.visible_definition())
+                    .unwrap_or_else(|| !self.hstack.iter().any(|h| h.muted));
+                let number = if visible {
+                    self.radio.number(&value, true)
+                } else {
+                    None
+                };
+                self.target_tags.push(number.is_some());
+                if let Some(n) = number {
                     self.w(&format!("<a id=\"{RADIO_PREFIX}{n}\">"))?;
                 }
             }
@@ -1154,8 +1175,16 @@ impl<W: fmt::Write> Renderer<W> {
             TagEnd::StrikeThrough => self.w("</del>")?,
             TagEnd::Subscript => self.w("</sub>")?,
             TagEnd::Superscript => self.w("</sup>")?,
-            TagEnd::Link => self.w("</a>")?,
-            TagEnd::RadioTarget => self.w("</a>")?,
+            TagEnd::Link => {
+                if self.link_tags.pop() == Some(true) {
+                    self.w("</a>")?;
+                }
+            }
+            TagEnd::RadioTarget => {
+                if self.target_tags.pop() == Some(true) {
+                    self.w("</a>")?;
+                }
+            }
             TagEnd::Citation => self.w("]")?,
         }
         Ok(())
@@ -1838,7 +1867,7 @@ mod tests {
 
     fn parse_html(src: &str) -> String {
         let mut s = String::new();
-        push_html(&mut s, crate::Parser::new(src));
+        push_html(&mut s, crate::Parser::for_export(src));
         s
     }
 
@@ -1859,6 +1888,70 @@ mod tests {
             parse_html("See RADIO.\n\nThe <<<radio>>> target.\n"),
             "<p>See <a href=\"#org-radio-1\">RADIO</a>.</p>\n<p>The <a id=\"org-radio-1\">radio</a> target.</p>\n"
         );
+    }
+
+    #[test]
+    fn radio_target_without_an_anchor_writes_no_closing_tag() {
+        // Rendered without a plan, the target has no number.
+        let mut r = Renderer::new(String::new());
+        for ev in [
+            st(Tag::RadioTarget { value: "x".into() }),
+            Event::Text("x".into()),
+            en(TagEnd::RadioTarget),
+        ] {
+            r.handle(ev, Next::Other).unwrap();
+        }
+        assert_eq!(r.out, "x");
+    }
+
+    #[test]
+    fn radio_targets_from_commented_trees_do_not_link() {
+        // `org-export--delete-comment-trees` runs before the export's
+        // second radio pass. Checked against Emacs' HTML export.
+        let html =
+            parse_html("* COMMENT hidden\n<<<a =b>>>\n* Body\na =b <<<c>>>= x\n\nlater c.\n");
+        assert!(
+            html.contains("<p>a <code>b &lt;&lt;&lt;c&gt;&gt;&gt;</code> x</p>"),
+            "{html}"
+        );
+        assert!(html.contains("<p>later c.</p>"), "{html}");
+    }
+
+    #[test]
+    fn unresolved_radio_link_keeps_its_contents_without_a_dangling_anchor() {
+        let html = parse_html(
+            "<<<a =b>>>\n\na =b <<<z *a>>>= x\n\nz *a ~b* <<<ghost>>>~\n\nlater ghost.\n",
+        );
+        assert!(
+            html.contains("<code>b* &lt;&lt;&lt;ghost&gt;&gt;&gt;</code>"),
+            "{html}"
+        );
+        assert!(html.ends_with("<p>later ghost.</p>\n"), "{html}");
+        assert!(html.contains("<a href=\"#org-radio-2\">z *a</a>"), "{html}");
+    }
+
+    #[test]
+    fn unresolved_radio_link_preserves_emphasis_and_excludes_hidden_targets() {
+        let html = parse_html("See /word/.\n\n* Hidden :noexport:\n<<</word/>>>\n");
+        assert_eq!(html, "<p>See <i>word</i>.</p>\n");
+        let html = parse_html("See word.\n\n[fn:unused] <<<word>>>.\n");
+        assert_eq!(html, "<p>See word.</p>\n");
+    }
+
+    #[test]
+    fn radio_target_in_a_reachable_footnote_can_be_linked_from_the_body() {
+        let html = parse_html(
+            "See word [fn:a].\n\n* Footnotes\nHidden <<<word>>>.\n\n[fn:a] Actual <<<word>>>.\n",
+        );
+        assert!(
+            html.contains("See <a href=\"#org-radio-1\">word</a>"),
+            "{html}"
+        );
+        assert!(
+            html.contains("Actual <a id=\"org-radio-1\">word</a>"),
+            "{html}"
+        );
+        assert!(!html.contains("org-radio-2"), "{html}");
     }
 
     #[test]

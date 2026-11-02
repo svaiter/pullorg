@@ -2,8 +2,8 @@
 //!
 //! This pass turns the whole document into a flat arena of [`Element`]s. Containers
 //! holding objects (paragraphs, verse blocks, table cells, headline titles,
-//! item tags) only record the byte range of their content: objects are parsed
-//! lazily by [`crate::object`] when the events are pulled.
+//! item tags) record their content ranges. [`crate::object`] parses these
+//! when events are pulled, and also during discovery if they contain `<<<`.
 //!
 //! Reference: `org-element.el`, in particular `org-element--parse-elements`,
 //! `org-element--current-element` and the `org-element-*-parser` functions.
@@ -20,6 +20,7 @@ use std::ops::Range;
 use crate::event::{
     Event, Headline, Item, Keyword, ListKind, Priority, TableKind, TableRowKind, TodoType,
 };
+use crate::object::{self, Restriction};
 use crate::options::{Options, SubSuperscripts};
 use crate::strings::CowStr;
 
@@ -123,6 +124,23 @@ pub(crate) enum ElementKind<'a> {
     Leaf(Event<'a>),
 }
 
+impl ElementKind<'_> {
+    /// Region parsed as inline objects, with the syntax allowed in this container.
+    pub(crate) fn object_content(&self) -> Option<(&Range<usize>, Restriction)> {
+        match self {
+            Self::Paragraph { content } | Self::VerseBlock { content } => {
+                Some((content, Restriction::Standard))
+            }
+            Self::Headline { title, .. } | Self::Inlinetask { title, .. } => {
+                Some((title, Restriction::HeadlineTitle))
+            }
+            Self::Item { tag: Some(tag), .. } => Some((tag, Restriction::ItemTag)),
+            Self::TableCell { content } => Some((content, Restriction::TableCell)),
+            _ => None,
+        }
+    }
+}
+
 /// Document-wide settings gathered from in-buffer keywords before parsing,
 /// merged with the user [`Options`].
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -136,7 +154,7 @@ pub(crate) struct Settings<'a> {
     pub link_types: Vec<CowStr<'a>>,
     /// Radio targets (`<<<text>>>`) found in the document, used to turn
     /// matching plain text into radio links.
-    pub radio_targets: Vec<CowStr<'a>>,
+    pub radio_targets: object::RadioTargets<'a>,
 }
 
 /// The parsed document.
@@ -155,7 +173,11 @@ pub(crate) struct Document<'a> {
 /// part of the line, which is what Emacs does when a buffer is visited with
 /// a Unix coding system; most patterns still work since `\r` counts as
 /// whitespace where Org skips whitespace, but CRLF input is not normalised.
-pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'a> {
+pub(crate) fn parse_document<'a>(
+    text: &'a str,
+    options: &Options,
+    mode: RadioMode,
+) -> Document<'a> {
     let src = Src::new(text);
     // `org-element-org-data-parser`: contents start at the first non blank
     // line.
@@ -180,7 +202,7 @@ pub(crate) fn parse_document<'a>(text: &'a str, options: &Options) -> Document<'
         settings = collect_settings(&nodes, options).0;
     }
     fix_headlines(src, &mut nodes, &settings, options, odd);
-    settings.radio_targets = collect_radio_targets(src, &nodes);
+    collect_radio_targets(text, || radio_containers(text, &nodes), &mut settings, mode);
     Document {
         nodes,
         roots,
@@ -518,57 +540,150 @@ fn fix_headlines<'a>(
 // ---------------------------------------------------------------------------
 // Radio targets.
 
-/// Find `<<<target>>>` in the object containers of the tree.
-fn collect_radio_targets<'a>(src: Src<'a>, elements: &[Element<'a>]) -> Vec<CowStr<'a>> {
-    let mut found: Vec<&'a str> = Vec::new();
-    let mut scan = |r: &Range<usize>| {
-        let s = src.s(r.clone());
-        let mut i = 0;
-        while let Some(k) = s[i..].find("<<<") {
-            let st = i + k + 3;
-            let inner_end = s[st..]
-                .find(['<', '>', '\n', '\r'])
-                .map_or(s.len(), |n| st + n);
-            let inner = &s[st..inner_end];
-            // Cheap stand-in for `org-element-context`: skip targets
-            // written inside verbatim or code markup (`=<<<x>>>=`).
-            let in_markup = {
-                let before = s[..i + k].chars().next_back();
-                let after = s[inner_end..].get(3..).and_then(|r| r.chars().next());
-                matches!(before, Some('=') | Some('~')) && before == after
-            };
-            if !inner.is_empty()
-                && !in_markup
-                && s[inner_end..].starts_with(">>>")
-                && !inner.starts_with([' ', '\t'])
-                && !inner.ends_with([' ', '\t'])
+/// Org discovers radio targets when opening a document. Export refreshes
+/// that list after removing commented subtrees.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum RadioMode {
+    Document,
+    Export,
+}
+
+/// An object container that may hold a radio target: its range, its
+/// restriction, and whether it survives in the export buffer (it is not in
+/// a commented subtree, which `org-export--delete-comment-trees` removes).
+/// Only [`RadioMode::Export`] reads that flag.
+pub(crate) type RadioContainer = (Range<usize>, Restriction, bool);
+
+/// The object containers of `elements` that may hold a radio target.
+fn radio_containers<'e, 'a>(
+    text: &'a str,
+    elements: &'e [Element<'a>],
+) -> impl Iterator<Item = RadioContainer> + 'e
+where
+    'a: 'e,
+{
+    // Elements are in pre-order, so a subtree is a contiguous index range.
+    let mut commented_until = 0;
+    elements.iter().enumerate().filter_map(move |(i, element)| {
+        if i >= commented_until {
+            if let ElementKind::Headline { data, .. } | ElementKind::Inlinetask { data, .. } =
+                &element.kind
             {
-                if !found.contains(&inner) {
-                    found.push(inner);
+                if data.commented {
+                    let mut last = i;
+                    while let Some(&child) = elements[last].children.last() {
+                        last = child;
+                    }
+                    commented_until = last + 1;
                 }
-                i = inner_end + 3;
-            } else {
-                i = i + k + 1;
             }
         }
-    };
-    for e in elements {
-        match &e.kind {
-            ElementKind::Paragraph { content }
-            | ElementKind::VerseBlock { content }
-            | ElementKind::TableCell { content } => scan(content),
-            ElementKind::Headline { title, .. } | ElementKind::Inlinetask { title, .. } => {
-                scan(title)
+        let (range, restriction) = element.kind.object_content()?;
+        text[range.clone()]
+            .contains("<<<")
+            .then(|| (range.clone(), restriction, i >= commented_until))
+    })
+}
+
+/// Collect the document's radio targets, refreshing them only for export.
+///
+/// Entering Org mode runs `org-update-radio-target-regexp` with no radio
+/// links. The export deletes commented subtrees and refreshes it once more
+/// with that first list active, so a radio link that consumes the opening
+/// of a verbatim span can expose a target, or one that breaks up markup
+/// can hide one. The second list is the one used for parsing. A container
+/// in whose plain text no first-pass target occurs parses the same in both
+/// passes and keeps its first-pass targets without a second parse.
+///
+/// Only object containers are searched. Emacs also finds targets in parsed
+/// affiliated keywords (`#+CAPTION:`), whose values are not parsed as
+/// objects here.
+pub(crate) fn collect_radio_targets<'a, I>(
+    text: &'a str,
+    containers: impl Fn() -> I,
+    settings: &mut Settings<'a>,
+    mode: RadioMode,
+) where
+    I: Iterator<Item = RadioContainer>,
+{
+    debug_assert!(settings.radio_targets.names().is_empty());
+    let mut first = Vec::new();
+    // Only export revisits candidates. Container i's first-pass definitions
+    // occupy first[ends[i - 1]..ends[i]], with corresponding source spans.
+    let mut spans = Vec::new();
+    let mut ends = Vec::new();
+    for (range, restriction, _) in containers() {
+        object::visit_radio_targets(text, range, restriction, settings, |v, r| {
+            first.push(v);
+            if mode == RadioMode::Export {
+                spans.push(r);
             }
-            ElementKind::Item { tag: Some(t), .. } => scan(t),
-            _ => {}
+        });
+        if mode == RadioMode::Export {
+            ends.push(first.len());
         }
     }
-    // `org-update-radio-target-regexp`: most recent first, then longest
-    // first (stable sort).
-    found.reverse();
-    found.sort_by_key(|t| std::cmp::Reverse(t.chars().count()));
-    found.into_iter().map(Cow::Borrowed).collect()
+    if first.is_empty() {
+        return;
+    }
+    if mode == RadioMode::Document {
+        settings.radio_targets = object::RadioTargets::new(priority(first.into_iter()));
+        return;
+    }
+    settings.radio_targets = object::RadioTargets::new(priority(first.iter().cloned()));
+    let mut second = Vec::new();
+    let mut start = 0;
+    for ((range, restriction, exported), end) in containers().zip(ends) {
+        let found = &first[start..end];
+        let ranges = &spans[start..end];
+        start = end;
+        if !exported {
+            continue;
+        }
+        // The two passes diverge only at a radio link, and one cannot match
+        // inside a radio target (minimal restriction) or across its `<`.
+        let mut from = range.start;
+        let mut plain = ranges
+            .iter()
+            .cloned()
+            .chain(std::iter::once(range.end..range.end))
+            .map(|r| {
+                let segment = from..r.start.max(from);
+                from = r.end.max(from);
+                segment
+            });
+        if plain.any(|r| settings.radio_targets.may_occur_in(&text[r])) {
+            object::visit_radio_targets(text, range, restriction, settings, |v, _| second.push(v));
+        } else {
+            #[cfg(debug_assertions)]
+            {
+                let mut again = Vec::new();
+                object::visit_radio_targets(text, range, restriction, settings, |v, r| {
+                    again.push((v, r))
+                });
+                debug_assert!(
+                    found
+                        .iter()
+                        .zip(ranges)
+                        .eq(again.iter().map(|(v, r)| (v, r))),
+                    "radio second pass skipped a change"
+                );
+            }
+            second.extend(found.iter().cloned());
+        }
+    }
+    settings
+        .radio_targets
+        .replace_names(priority(second.into_iter()));
+}
+
+/// `cl-pushnew` over targets in document order: each name once, the most
+/// recent first.
+fn priority<'a>(names: impl Iterator<Item = CowStr<'a>>) -> Vec<CowStr<'a>> {
+    let mut seen = std::collections::HashSet::new();
+    let mut out: Vec<_> = names.filter(|name| seen.insert(name.clone())).collect();
+    out.reverse();
+    out
 }
 
 #[cfg(test)]

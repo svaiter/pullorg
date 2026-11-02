@@ -30,11 +30,17 @@ what is verified.
 use pullorg::{html, Parser};
 
 let source = "* A headline\nSome /italic/ text with a [[https://orgmode.org][link]].";
-let parser = Parser::new(source);
+let parser = Parser::for_export(source);
 
 let mut out = String::new();
 html::push_html(&mut out, parser);
 ```
+
+Use `Parser::new` or `Parser::new_ext` to inspect document events. They discover
+radio targets across the original document, including COMMENT subtrees.
+`Parser::for_export` (or `for_export_ext` with options) refreshes radio targets
+after excluding those subtrees, as Emacs does before HTML export. The CLI uses document parsing for `--events` and
+export parsing for HTML.
 
 The parser is an `Iterator<Item = Event>`. Containers (headlines, paragraphs,
 lists, blocks, markup, links, ...) are delimited by `Event::Start(Tag)` and

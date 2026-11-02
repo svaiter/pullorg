@@ -598,6 +598,18 @@ pub mod adversarial {
             Corpus::new("huge-src-block", huge_src_block(size)),
             Corpus::new("footnote-storm", footnotes(size)),
             Corpus::new("radio-targets", radio(size)),
+            Corpus::new("radio-target-paragraphs", radio_paragraphs(size)),
+            Corpus::new("radio-glossary", radio_glossary(size)),
+            Corpus::new(
+                "radio-literal-paragraphs",
+                format!(
+                    "<<<real>>>\n\n{}",
+                    repeat(
+                        "Some *bold* /emphasis/ =literal <<<fake>>> here= then real.\n\n",
+                        size
+                    )
+                ),
+            ),
             Corpus::new(
                 "star-lines",
                 repeat("*not a headline\n *nor this\n**nor this\n", size),
@@ -719,5 +731,61 @@ pub mod adversarial {
         let mut out = String::from("<<<the>>> <<<parser>>> <<<and>>> <<<a>>> <<<of>>>\n\n");
         out.push_str(&super::prose(size));
         out
+    }
+
+    fn radio_paragraphs(size: usize) -> String {
+        // Every paragraph holds a target, so each one goes through radio
+        // target discovery as well as emission.
+        let mut out = String::new();
+        let mut n = 0;
+        while out.len() < size {
+            out.push_str(&format!(
+                "Para <<<t{}>>> with *bold* =code= and refs t{} and t{}.\n\n",
+                n % 50,
+                (n + 1) % 50,
+                (n + 7) % 50
+            ));
+            n += 1;
+        }
+        super::truncate_at_char(&mut out, size);
+        out
+    }
+
+    fn radio_glossary(size: usize) -> String {
+        // Definitions that mention no other target, then prose using them:
+        // the second discovery pass has nothing to reparse.
+        let mut out = String::new();
+        let mut n = 0;
+        while out.len() < size / 2 {
+            out.push_str(&format!(
+                "A <<<term{}>>> is defined with *bold* and =code= here.\n\n",
+                n % 200
+            ));
+            n += 1;
+        }
+        while out.len() < size {
+            out.push_str(&format!(
+                "Prose using term{} and term{} with /emphasis/.\n\n",
+                n % 200,
+                (n + 13) % 200
+            ));
+            n += 1;
+        }
+        super::truncate_at_char(&mut out, size);
+        out
+    }
+
+    /// The long target nearly matches many overlapping starts in the second paragraph.
+    pub fn radio_prefix_near_miss(n: usize) -> String {
+        let prefix = "a".repeat(n);
+        format!("<<<{prefix}b>>>\n\n<<<q>>> {prefix}\n")
+    }
+
+    pub fn distinct_radio_targets(count: usize) -> String {
+        let mut text = String::new();
+        for i in 0..count {
+            writeln!(text, "<<<t{i:05}>>>\n").unwrap();
+        }
+        text
     }
 }

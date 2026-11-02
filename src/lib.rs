@@ -4,7 +4,7 @@
 //! use pullorg::{html, Parser};
 //!
 //! let source = "* A headline\nSome /italic/ text.";
-//! let parser = Parser::new(source);
+//! let parser = Parser::for_export(source);
 //! let mut out = String::new();
 //! html::push_html(&mut out, parser);
 //! ```

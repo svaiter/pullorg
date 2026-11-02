@@ -51,6 +51,18 @@ fn adversarial(c: &mut Criterion) {
     group.finish();
 }
 
+fn radio_export_near_miss(c: &mut Criterion) {
+    let mut group = c.benchmark_group("radio-export-near-miss");
+    for n in [1024, 4096, 16_384, 65_536] {
+        let text = common::adversarial::radio_prefix_near_miss(n);
+        group.throughput(Throughput::Bytes(text.len() as u64));
+        group.bench_with_input(BenchmarkId::from_parameter(n), &text, |b, text| {
+            b.iter(|| Parser::for_export(black_box(text)).next())
+        });
+    }
+    group.finish();
+}
+
 /// Shorter than Criterion's defaults; the inputs are small and the suite is
 /// large. Command-line flags (`--warm-up-time`, `--measurement-time`,
 /// `--quick`) still override these.
@@ -64,6 +76,6 @@ fn config() -> Criterion {
 criterion_group! {
     name = benches;
     config = config();
-    targets = documents, adversarial
+    targets = documents, adversarial, radio_export_near_miss
 }
 criterion_main!(benches);

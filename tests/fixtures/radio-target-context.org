@@ -1,0 +1,36 @@
+Early mention of visible.
+
+=literal <<<verbatimword>>> and <<<visible>>> here=
+
+~literal <<<codeword>>> here~
+
+src_text{<<<sourceword>>>}
+
+$<<<mathword>>>$
+
+[[https://example.org][<<<descriptionword>>>]]
+
+#+begin_src org
+<<<blockword>>>
+#+end_src
+
+verbatimword, codeword, sourceword, mathword, descriptionword, and blockword.
+
+x=<<<bareword>>>=y then bareword.
+
+A real <<<visible>>> target next to =literal <<<decoyword>>> text=.
+
+visible and decoyword.
+
+A nested *bold <<<boldword>>> target*. Later, boldword.
+
+* Heading <<<titleword>>>
+A titleword link.
+
+- <<<tagword>>> :: A tagword link.
+
+| <<<cellword>>> | cellword |
+
+#+begin_verse
+<<<verseword>>> then verseword.
+#+end_verse

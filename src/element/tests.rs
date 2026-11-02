@@ -8,7 +8,7 @@ use crate::event::{Checkbox, ClockStatus, Priority, Timestamp, TimestampKind};
 use crate::options::SubSuperscripts;
 
 fn parse(text: &str) -> Document<'_> {
-    parse_document(text, &Options::default())
+    parse_document(text, &Options::default(), RadioMode::Document)
 }
 
 /// Compact description of a tree: `kind start..end` per element, children
@@ -745,7 +745,7 @@ fn in_buffer_settings() {
         s.link_abbreviations,
         vec![(Cow::Borrowed("gh"), Cow::Borrowed("https://github.com/%s"))]
     );
-    assert_eq!(s.radio_targets, vec!["radio"]);
+    assert_eq!(s.radio_targets.names(), ["radio"]);
     let types: Vec<_> = doc
         .roots
         .iter()
@@ -769,7 +769,7 @@ fn in_buffer_settings() {
         todo_keywords: vec!["WAIT".into()],
         ..Options::default()
     };
-    let doc = parse_document("* WAIT x\n* TODO y\n", &opts);
+    let doc = parse_document("* WAIT x\n* TODO y\n", &opts, RadioMode::Document);
     let kws: Vec<_> = doc
         .roots
         .iter()
@@ -805,7 +805,7 @@ fn inline_tasks() {
         inlinetask_min_level: Some(15),
         ..Options::default()
     };
-    let doc = parse_document(text, &opts);
+    let doc = parse_document(text, &opts, RadioMode::Document);
     let sec = at(&doc, &[0, 0]);
     assert_eq!(sec.range, 4..61);
     let task = &doc.nodes[sec.children[0]];
@@ -1098,12 +1098,11 @@ fn dump() {
         if let Ok(n) = std::env::var("ORG_DUMP_INLINE") {
             opts.inlinetask_min_level = n.parse().ok();
         }
-        let doc = parse_document(&text, &opts);
+        let doc = parse_document(&text, &opts, RadioMode::Document);
         let mut out = Vec::new();
         dump_tree(&text, &doc, &mut out);
         let s = &doc.settings;
-        let j =
-            |v: &Vec<CowStr<'_>>, sep: &str| v.iter().map(|x| &**x).collect::<Vec<_>>().join(sep);
+        let j = |v: &[CowStr<'_>], sep: &str| v.iter().map(|x| &**x).collect::<Vec<_>>().join(sep);
         println!(
             "=== {}",
             std::path::Path::new(path)
@@ -1119,8 +1118,38 @@ fn dump() {
             "SETTINGS todo={} done={} radio={}",
             q(Some(&j(&s.todo_keywords, " "))),
             q(Some(&j(&s.done_keywords, " "))),
-            q(Some(&j(&s.radio_targets, "|")))
+            q(Some(&j(s.radio_targets.names(), "|")))
         );
     }
     println!("END-DUMP");
+}
+
+fn parse_for_export(text: &str) -> Document<'_> {
+    parse_document(text, &Options::default(), RadioMode::Export)
+}
+
+/// Radio targets as `org-export-as` sees them: a second discovery pass with
+/// the first targets active. Checked against Emacs' HTML export.
+#[test]
+fn radio_targets_second_pass() {
+    // The radio link `a =b` consumes the verbatim opener and exposes `c`.
+    let doc = parse_for_export("<<<a =b>>>\n\na =b <<<c>>>= x\n\nlater c.\n");
+    assert_eq!(doc.settings.radio_targets.names(), ["a =b", "c"]);
+    // The radio link `z *a` breaks the bold and `~` now hides `x`.
+    let doc = parse_for_export("<<<z *a>>>\n\nz *a ~b* <<<x>>>~\n\nlater x.\n");
+    assert_eq!(doc.settings.radio_targets.names(), ["z *a"]);
+}
+
+/// Containers whose plain text holds no first-pass target skip the second
+/// parse; the result is the same as reparsing them.
+#[test]
+fn radio_second_pass_skips_unaffected_containers() {
+    let doc = parse_for_export(
+        "A <<<widget>>> here.\n\n=x <<<hidden>>>= and a <<<gadget>>>.\n\nwidget gadget hidden\n",
+    );
+    assert_eq!(doc.settings.radio_targets.names(), ["gadget", "widget"]);
+    // The second paragraph defines `d`, but `a =b` also occurs in its plain
+    // text: it is reparsed and exposes `c`.
+    let doc = parse_for_export("<<<a =b>>>\n\n<<<d>>> a =b <<<c>>>= x\n");
+    assert_eq!(doc.settings.radio_targets.names(), ["a =b", "c", "d"]);
 }

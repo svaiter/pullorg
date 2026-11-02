@@ -9,7 +9,7 @@ use std::fmt::Write;
 use std::ops::Range;
 
 use super::{parse_objects, Restriction};
-use crate::element::Settings;
+use crate::element::{collect_radio_targets, Settings};
 use crate::event::*;
 use crate::options::SubSuperscripts;
 use crate::strings::CowStr;
@@ -32,33 +32,31 @@ fn opt(s: &Option<CowStr<'_>>) -> String {
     s.as_deref().map_or_else(|| "-".to_string(), quote)
 }
 
-/// Settings for a snippet: radio targets (`<<<...>>>`) and `#+LINK:` lines,
-/// as the element parser would collect them.
+/// Settings for a snippet parsed as one paragraph (see [`paragraph_range`]):
+/// `#+LINK:` abbreviations from the document, radio targets discovered in
+/// that paragraph range, whatever elements the snippet would otherwise be.
 fn snippet_settings(src: &str) -> Settings<'_> {
-    let mut settings = Settings::default();
-    for (i, _) in src.match_indices("<<<") {
-        let after = &src[i + 3..];
-        let n = after.find(['<', '>', '\n', '\r']).unwrap_or(after.len());
-        let t = &after[..n];
-        if !t.is_empty()
-            && after[n..].starts_with(">>>")
-            && !t.starts_with([' ', '\t'])
-            && !t.ends_with([' ', '\t'])
-        {
-            settings.radio_targets.push(CowStr::Borrowed(t));
-        }
-    }
-    for line in src.lines() {
-        if let Some(l) = line.strip_prefix("#+LINK: ") {
-            let mut it = l.splitn(2, ' ');
-            let k = it.next().unwrap();
-            let v = it.next().unwrap_or("").trim();
-            settings
-                .link_abbreviations
-                .push((CowStr::Borrowed(k), CowStr::Borrowed(v)));
-        }
-    }
+    let mut settings = document_settings(src);
+    settings.radio_targets = Default::default();
+    let container = (paragraph_range(src), Restriction::Standard, true);
+    collect_radio_targets(
+        src,
+        || std::iter::once(container.clone()),
+        &mut settings,
+        crate::element::RadioMode::Document,
+    );
     settings
+}
+
+/// Settings of the snippet read as a whole document, for snippets that
+/// stand for an element (headline, item, table).
+fn document_settings(src: &str) -> Settings<'_> {
+    crate::element::parse_document(
+        src,
+        &crate::Options::default(),
+        crate::element::RadioMode::Document,
+    )
+    .settings
 }
 
 /// The paragraph range of a snippet: everything after the `#+LINK:` lines.
@@ -297,7 +295,7 @@ fn render(src: &str) -> String {
 /// title), `| ` (one-row table: cells joined with ` | `) and `- tag :: `
 /// (item tag).
 fn render_element(src: &str) -> String {
-    let settings = snippet_settings(src);
+    let settings = document_settings(src);
     if let Some(title) = src.strip_prefix("* ") {
         let start = src.len() - title.len();
         let end = start + title.trim_end().len();
@@ -1697,9 +1695,9 @@ fn soup_never_panics() {
         }
         let mut settings = snippet_settings(&s);
         if i % 3 == 0 {
-            settings.radio_targets.push("a b".into());
-            settings.radio_targets.push("é".into());
-            settings.radio_targets.push("a".into());
+            let mut names = settings.radio_targets.names().to_vec();
+            names.extend(["a b".into(), "é".into(), "a".into()]);
+            settings.radio_targets = super::RadioTargets::new(names);
         }
         settings.sub_superscripts = match i % 3 {
             0 => SubSuperscripts::Always,
@@ -1763,7 +1761,7 @@ fn large_input_is_linear_enough() {
     // shared CI runners (debug build, 3 cores) need well over the local time.
     assert!(start.elapsed().as_secs() < 120);
     let mut settings = snippet_settings(&src);
-    settings.radio_targets.push("text".into());
+    settings.radio_targets = super::RadioTargets::new(vec!["text".into()]);
     let mut out = Vec::new();
     parse_objects(
         &src,

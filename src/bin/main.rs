@@ -123,7 +123,7 @@ fn run(cli: Cli) -> Result<(), String> {
     } else {
         let mut title = cli.title.clone();
         let mut events = Vec::new();
-        for event in Parser::new_ext(&source, options) {
+        for event in Parser::for_export_ext(&source, options) {
             if title.is_none() {
                 if let Event::Keyword(k) = &event {
                     if k.key.eq_ignore_ascii_case("TITLE") {

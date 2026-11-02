@@ -31,9 +31,12 @@
 mod chars;
 mod link;
 mod misc;
+mod radio;
 #[cfg(test)]
 mod tests;
 mod timestamp;
+
+pub(crate) use radio::RadioTargets;
 
 use std::cell::{Cell, RefCell};
 use std::ops::Range;
@@ -171,13 +174,45 @@ pub(crate) fn parse_objects<'a>(
     settings: &Settings<'a>,
     out: &mut Vec<(Event<'a>, Range<usize>)>,
 ) {
+    walk_objects::<true>(text, range, restriction, settings, |event, range| {
+        out.push((event, range))
+    });
+}
+
+/// Use the same object boundaries as event emission, without accumulating
+/// text, leaf events, or container events for the discovery pass.
+pub(crate) fn visit_radio_targets<'a>(
+    text: &'a str,
+    range: Range<usize>,
+    restriction: Restriction,
+    settings: &Settings<'a>,
+    mut visit: impl FnMut(CowStr<'a>, Range<usize>),
+) {
+    walk_objects::<false>(text, range, restriction, settings, |event, range| {
+        if let Event::Start(Tag::RadioTarget { value }) = event {
+            visit(value, range);
+        }
+    });
+}
+
+fn walk_objects<'a, const EMIT_TEXT: bool>(
+    text: &'a str,
+    range: Range<usize>,
+    restriction: Restriction,
+    settings: &Settings<'a>,
+    mut emit: impl FnMut(Event<'a>, Range<usize>),
+) {
     let end = range.end.min(text.len());
     let start = range.start.min(end);
     if !text.is_char_boundary(start) || !text.is_char_boundary(end) {
         debug_assert!(false, "parse_objects: range not on char boundaries");
         return;
     }
-    let parser = ObjectParser::new(text, settings);
+    let parser = ObjectParser {
+        text,
+        settings,
+        discovering: !EMIT_TEXT,
+    };
     let mut stack = vec![Frame {
         start,
         end,
@@ -214,30 +249,34 @@ pub(crate) fn parse_objects<'a>(
                 o
             }
             _ => {
-                push_text(text, frame.text_from..frame.end, out);
+                if EMIT_TEXT {
+                    push_text(text, frame.text_from..frame.end, &mut emit);
+                }
                 let close = frame.close.take();
                 stack.pop();
                 if let Some((end, range)) = close {
-                    out.push((Event::End(end), range));
+                    emit(Event::End(end), range);
                 }
                 continue;
             }
         };
-        push_text(text, frame.text_from..obj.begin, out);
+        if EMIT_TEXT {
+            push_text(text, frame.text_from..obj.begin, &mut emit);
+        }
         // Parsing resumes after the trailing blanks, but these belong to the
         // following text.
         frame.pos = obj.after;
         frame.text_from = obj.end.min(frame.end);
         let range = obj.begin..obj.end;
         match obj.kind {
-            Kind::Leaf(ev) => out.push((ev, range)),
+            Kind::Leaf(ev) => emit(ev, range),
             Kind::Container {
                 tag,
                 contents,
                 restriction,
             } => {
                 let end = tag.to_end();
-                out.push((Event::Start(tag), range.clone()));
+                emit(Event::Start(tag), range.clone());
                 match contents {
                     Some(c) if c.start >= range.start && c.end <= range.end && c.start < c.end => {
                         stack.push(Frame {
@@ -250,11 +289,11 @@ pub(crate) fn parse_objects<'a>(
                             cache: FrameCache::default(),
                         });
                     }
-                    _ => out.push((Event::End(end), range)),
+                    _ => emit(Event::End(end), range),
                 }
             }
             Kind::Citation { tag, contents } => {
-                out.push((Event::Start(tag), range.clone()));
+                emit(Event::Start(tag), range.clone());
                 stack.push(Frame {
                     start: contents.start,
                     end: contents.end,
@@ -270,17 +309,21 @@ pub(crate) fn parse_objects<'a>(
 }
 
 /// Emit `text[range]` as `Text` runs separated by `SoftBreak`s.
-fn push_text<'a>(text: &'a str, range: Range<usize>, out: &mut Vec<(Event<'a>, Range<usize>)>) {
+fn push_text<'a>(
+    text: &'a str,
+    range: Range<usize>,
+    emit: &mut impl FnMut(Event<'a>, Range<usize>),
+) {
     let mut pos = range.start;
     while pos < range.end {
         let nl = text[pos..range.end].find('\n').map(|i| pos + i);
         let stop = nl.unwrap_or(range.end);
         if stop > pos {
-            out.push((Event::Text(CowStr::Borrowed(&text[pos..stop])), pos..stop));
+            emit(Event::Text(CowStr::Borrowed(&text[pos..stop])), pos..stop);
         }
         match nl {
             Some(n) => {
-                out.push((Event::SoftBreak, n..n + 1));
+                emit(Event::SoftBreak, n..n + 1);
                 pos = n + 1;
             }
             None => break,
@@ -329,56 +372,13 @@ enum Kind<'a> {
     },
 }
 
-/// A radio target, pre-processed for matching.
-struct Radio<'a> {
-    value: CowStr<'a>,
-    /// Characters, lower-cased; `None` stands for a run of spaces, which
-    /// matches one or more whitespace characters.
-    pieces: Vec<Option<char>>,
-}
-
-/// Document-wide data shared by all containers.
 struct ObjectParser<'a, 's> {
     text: &'a str,
     settings: &'s Settings<'a>,
-    radios: Vec<Radio<'a>>,
-}
-
-impl<'a, 's> ObjectParser<'a, 's> {
-    fn new(text: &'a str, settings: &'s Settings<'a>) -> Self {
-        let mut targets = Vec::new();
-        for t in &settings.radio_targets {
-            if !t.is_empty() && !targets.contains(&t) {
-                targets.push(t);
-            }
-        }
-        // `org-update-radio-target-regexp' tries longer targets first.
-        targets.sort_by_key(|t| std::cmp::Reverse(t.chars().count()));
-        let radios = targets
-            .into_iter()
-            .map(|t| {
-                let mut pieces = Vec::new();
-                for c in t.chars() {
-                    if c == ' ' {
-                        if pieces.last() != Some(&None) {
-                            pieces.push(None);
-                        }
-                    } else {
-                        pieces.push(Some(c));
-                    }
-                }
-                Radio {
-                    value: t.clone(),
-                    pieces,
-                }
-            })
-            .collect();
-        ObjectParser {
-            text,
-            settings,
-            radios,
-        }
-    }
+    /// Radio target discovery: object boundaries matter, but values that
+    /// would need a new allocation (unescaped or expanded link paths, macro
+    /// arguments, header arguments) are left raw.
+    discovering: bool,
 }
 
 /// Caches of forward searches in a container. A search from `from` that
@@ -565,7 +565,7 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
 
     /// Find the next object at or after `pos` (`org-element--object-lex`).
     fn lex(&self, pos: usize, set: Set) -> Option<Obj<'a>> {
-        let radio = if set.has(Set::LINK) && !self.p.radios.is_empty() {
+        let radio = if set.has(Set::LINK) && !self.p.settings.radio_targets.names().is_empty() {
             self.radio_limit(pos)
         } else {
             None
@@ -646,55 +646,21 @@ impl<'p, 'a, 's> Scanner<'p, 'a, 's> {
             }
         }
         for s in starts.into_iter().flatten() {
-            for (radio, r) in self.p.radios.iter().enumerate() {
-                if let Some(e) = self.radio_target_at(s, r) {
-                    let after = if self.eol(e) {
-                        Some(e)
-                    } else {
-                        self.ch(e)
-                            .filter(|&c| !is_alnum(c) || is_line_breakable(c))
-                            .map(|c| e + c.len_utf8())
-                    };
-                    if let Some(end) = after {
-                        return Some(RadioMatch {
-                            radio,
-                            start: m,
-                            target: (s, e),
-                            end,
-                        });
-                    }
-                }
+            if let Some((radio, len, after)) = self
+                .p
+                .settings
+                .radio_targets
+                .match_at(&self.text()[s..self.end])
+            {
+                return Some(RadioMatch {
+                    radio,
+                    start: m,
+                    target: (s, s + len),
+                    end: s + after,
+                });
             }
         }
         None
-    }
-
-    /// Match one radio target at `s`, case-insensitively, spaces matching
-    /// any run of whitespace. Returns the end of the match.
-    fn radio_target_at(&self, s: usize, r: &Radio<'_>) -> Option<usize> {
-        let mut p = s;
-        for piece in &r.pieces {
-            match piece {
-                Some(pc) => {
-                    let c = self.ch(p)?;
-                    if !chars::eq_fold(c, *pc) {
-                        return None;
-                    }
-                    p += c.len_utf8();
-                }
-                None => {
-                    let mut n = 0;
-                    while let Some(c) = self.ch(p).filter(|&c| is_ws(c)) {
-                        p += c.len_utf8();
-                        n += 1;
-                    }
-                    if n == 0 {
-                        return None;
-                    }
-                }
-            }
-        }
-        Some(p)
     }
 
     /// Try the parsers relevant at `p`, if `org-element--object-regexp`
