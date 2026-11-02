@@ -202,12 +202,7 @@ pub(crate) fn parse_document<'a>(
         settings = collect_settings(&nodes, options).0;
     }
     fix_headlines(src, &mut nodes, &settings, options, odd);
-    collect_radio_targets(
-        text,
-        || radio_containers(text, &nodes, mode),
-        &mut settings,
-        mode,
-    );
+    collect_radio_targets(text, || radio_containers(text, &nodes), &mut settings, mode);
     Document {
         nodes,
         roots,
@@ -556,13 +551,13 @@ pub(crate) enum RadioMode {
 /// An object container that may hold a radio target: its range, its
 /// restriction, and whether it survives in the export buffer (it is not in
 /// a commented subtree, which `org-export--delete-comment-trees` removes).
+/// Only [`RadioMode::Export`] reads that flag.
 pub(crate) type RadioContainer = (Range<usize>, Restriction, bool);
 
 /// The object containers of `elements` that may hold a radio target.
 fn radio_containers<'e, 'a>(
     text: &'a str,
     elements: &'e [Element<'a>],
-    mode: RadioMode,
 ) -> impl Iterator<Item = RadioContainer> + 'e
 where
     'a: 'e,
@@ -570,7 +565,7 @@ where
     // Elements are in pre-order, so a subtree is a contiguous index range.
     let mut commented_until = 0;
     elements.iter().enumerate().filter_map(move |(i, element)| {
-        if mode == RadioMode::Export && i >= commented_until {
+        if i >= commented_until {
             if let ElementKind::Headline { data, .. } | ElementKind::Inlinetask { data, .. } =
                 &element.kind
             {

@@ -1867,7 +1867,7 @@ mod tests {
 
     fn parse_html(src: &str) -> String {
         let mut s = String::new();
-        push_html(&mut s, crate::Parser::for_export(src, Default::default()));
+        push_html(&mut s, crate::Parser::for_export(src));
         s
     }
 

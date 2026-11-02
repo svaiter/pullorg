@@ -183,9 +183,23 @@ fn random_document(rng: &mut Rng) -> String {
 }
 
 fn check(text: &str, options: Options) {
-    let events: Vec<(Event, Range<usize>)> = Parser::new_ext(text, options.clone())
+    let document: Vec<(Event, Range<usize>)> = Parser::new_ext(text, options.clone())
         .into_offset_iter()
         .collect();
+    check_events(text, &document);
+    // Export discovers radio targets differently, which can change how
+    // inline markup nests.
+    let export: Vec<(Event, Range<usize>)> = Parser::for_export_ext(text, options)
+        .into_offset_iter()
+        .collect();
+    check_events(text, &export);
+    let mut out = String::new();
+    html::push_html(&mut out, export.into_iter().map(|(event, _)| event));
+}
+
+/// Ranges stay on char boundaries, containers are balanced and `Text` has
+/// no newline outside raw containers.
+fn check_events(text: &str, events: &[(Event, Range<usize>)]) {
     let mut stack: Vec<TagEnd> = Vec::new();
     // Raw containers hold their whole body in a single `Text`.
     let raw = |end: &TagEnd| {
@@ -198,7 +212,7 @@ fn check(text: &str, options: Options) {
                 | TagEnd::Table
         )
     };
-    for (event, range) in &events {
+    for (event, range) in events {
         assert!(
             range.start <= range.end && range.end <= text.len(),
             "bad range {range:?} for {event:?} in {text:?}"
@@ -222,8 +236,6 @@ fn check(text: &str, options: Options) {
         }
     }
     assert!(stack.is_empty(), "unclosed {stack:?} in {text:?}");
-    let mut out = String::new();
-    html::push_html(&mut out, Parser::for_export(text, options));
 }
 
 #[test]

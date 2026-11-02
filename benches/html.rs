@@ -29,10 +29,7 @@ fn html_full(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::from_parameter(&name), text, |b, text| {
             b.iter(|| {
                 let mut out = String::new();
-                html::push_html(
-                    &mut out,
-                    Parser::for_export(black_box(text), Default::default()),
-                );
+                html::push_html(&mut out, Parser::for_export(black_box(text)));
                 out
             })
         });
@@ -44,7 +41,7 @@ fn html_render_only(c: &mut Criterion) {
     let docs = common::documents(common::DEFAULT_SIZE);
     let mut group = c.benchmark_group("html-render-only");
     for d in &docs {
-        let events: Vec<Event> = Parser::for_export(&d.text, Default::default()).collect();
+        let events: Vec<Event> = Parser::for_export(&d.text).collect();
         group.throughput(Throughput::Bytes(d.text.len() as u64));
         group.bench_with_input(BenchmarkId::from_parameter(d.name), &events, |b, events| {
             b.iter_batched(

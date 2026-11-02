@@ -49,10 +49,25 @@ impl<'a> Parser<'a> {
         Self::with_mode(text, options, RadioMode::Document)
     }
 
-    /// Parse for HTML export. As in Emacs export, radio targets are refreshed
-    /// after excluding COMMENT subtrees. This can change how nearby inline
-    /// markup is parsed. For document events, use [`Self::new`] or [`Self::new_ext`].
-    pub fn for_export(text: &'a str, options: Options) -> Self {
+    /// Parse for HTML export, with the default [`Options`]. As in Emacs
+    /// export, radio targets are refreshed after excluding COMMENT subtrees.
+    /// This can change how nearby inline markup is parsed. For document
+    /// events, use [`Self::new`] or [`Self::new_ext`].
+    ///
+    /// ```
+    /// use pullorg::{html, Parser};
+    ///
+    /// let mut out = String::new();
+    /// html::push_html(&mut out, Parser::for_export("Some /italic/ text."));
+    /// assert_eq!(out, "<p>Some <i>italic</i> text.</p>\n");
+    /// ```
+    pub fn for_export(text: &'a str) -> Self {
+        Self::for_export_ext(text, Options::default())
+    }
+
+    /// Parse for HTML export with the given [`Options`], see
+    /// [`Self::for_export`].
+    pub fn for_export_ext(text: &'a str, options: Options) -> Self {
         Self::with_mode(text, options, RadioMode::Export)
     }
 

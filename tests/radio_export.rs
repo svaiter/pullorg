@@ -21,9 +21,9 @@ fn comment_target_is_a_document_link_but_has_no_export_destination() {
         radio_paths(Parser::new_ext(src, Default::default())),
         ["term"]
     );
-    assert!(radio_paths(Parser::for_export(src, Default::default())).is_empty());
+    assert!(radio_paths(Parser::for_export(src)).is_empty());
     let mut out = String::new();
-    html::push_html(&mut out, Parser::for_export(src, Default::default()));
+    html::push_html(&mut out, Parser::for_export(src));
     assert!(out.contains("<p>term.</p>"), "{out}");
     assert!(!out.contains("org-radio-"), "{out}");
 }
@@ -32,11 +32,8 @@ fn comment_target_is_a_document_link_but_has_no_export_destination() {
 fn export_refreshes_a_target_exposed_by_a_radio_link() {
     let src = "<<<a =b>>>\n\na =b <<<c>>>= x\n\nlater c.\n";
     assert_eq!(radio_paths(Parser::new(src)), ["a =b"]);
-    assert_eq!(
-        radio_paths(Parser::for_export(src, Default::default())),
-        ["a =b", "c"]
-    );
+    assert_eq!(radio_paths(Parser::for_export(src)), ["a =b", "c"]);
     let mut out = String::new();
-    html::push_html(&mut out, Parser::for_export(src, Default::default()));
+    html::push_html(&mut out, Parser::for_export(src));
     assert!(out.contains("<a href=\"#org-radio-2\">c</a>"), "{out}");
 }

@@ -57,7 +57,7 @@ fn radio_export_near_miss(c: &mut Criterion) {
         let text = common::adversarial::radio_prefix_near_miss(n);
         group.throughput(Throughput::Bytes(text.len() as u64));
         group.bench_with_input(BenchmarkId::from_parameter(n), &text, |b, text| {
-            b.iter(|| Parser::for_export(black_box(text), Default::default()).next())
+            b.iter(|| Parser::for_export(black_box(text)).next())
         });
     }
     group.finish();

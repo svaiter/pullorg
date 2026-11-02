@@ -143,22 +143,35 @@ impl<'a> RadioTargets<'a> {
         best
     }
 
-    /// A conservative prefilter: a matching literal prefix or an exhausted
-    /// budget means the object parser must decide. The budget bounds trie
-    /// probes across all overlapping starts to the length of the segment.
+    /// A conservative prefilter: a target's text matching somewhere (link
+    /// boundaries aside) or an exhausted budget means the object parser must
+    /// decide. The budget bounds the characters read across all overlapping
+    /// starts, trie walks and suffix checks linearly in the segment length.
     pub(crate) fn may_occur_in(&self, text: &str) -> bool {
         if self.names.is_empty() {
             return false;
         }
-        let mut budget = text.len();
+        // Linear in the segment, with room for a few full checks in short
+        // segments.
+        let mut budget = text.len() + 64;
         for (start, c) in text.char_indices() {
             // Non-ASCII characters may fold onto an ASCII start (e.g. Kelvin sign).
             if c.is_ascii() && !self.ascii_starts[c as usize] {
                 continue;
             }
-            let mut node = 0;
-            for c in text[start..].chars() {
-                if !self.candidates[node].is_empty() || budget == 0 {
+            let (mut node, mut pos) = (0, start);
+            loop {
+                for &id in &self.candidates[node] {
+                    match suffix_within(text, pos, &self.suffixes[id], &mut budget) {
+                        Some(false) => {}
+                        // A match, or no budget left to rule one out.
+                        Some(true) | None => return true,
+                    }
+                }
+                let Some(c) = text[pos..].chars().next() else {
+                    break;
+                };
+                if budget == 0 {
                     return true;
                 }
                 budget -= 1;
@@ -166,13 +179,45 @@ impl<'a> RadioTargets<'a> {
                     break;
                 };
                 node = next;
-            }
-            if !self.candidates[node].is_empty() {
-                return true;
+                pos += c.len_utf8();
             }
         }
         false
     }
+}
+
+/// Whether `suffix` matches at `pos`, like [`suffix_end`], spending one unit
+/// of `budget` per character read; `None` when the budget runs out first.
+fn suffix_within(
+    text: &str,
+    mut pos: usize,
+    suffix: &[Option<char>],
+    budget: &mut usize,
+) -> Option<bool> {
+    let mut next = |pos: usize| -> Option<Option<char>> {
+        if *budget == 0 {
+            return None;
+        }
+        *budget -= 1;
+        Some(text[pos..].chars().next())
+    };
+    for piece in suffix {
+        let Some(c) = next(pos)? else {
+            return Some(false);
+        };
+        match piece {
+            Some(pc) if eq_fold(*pc, c) => pos += c.len_utf8(),
+            None if is_ws(c) => {
+                pos += c.len_utf8();
+                while let Some(c) = text[pos..].chars().next().filter(|&c| is_ws(c)) {
+                    next(pos)?;
+                    pos += c.len_utf8();
+                }
+            }
+            _ => return Some(false),
+        }
+    }
+    Some(true)
 }
 
 /// End of `suffix` matched at `pos`: literal characters compare
@@ -300,6 +345,10 @@ mod tests {
         let matcher = RadioTargets::new(vec![format!("{prefix}b").into()]);
         assert!(matcher.may_occur_in(&prefix));
         assert!(!matcher.may_occur_in("ordinary words"));
+        // The rest of a multi-word target is checked, not only its first word.
+        let matcher = RadioTargets::new(vec!["a b".into()]);
+        assert!(!matcher.may_occur_in("a c, a, b a"));
+        assert!(matcher.may_occur_in("x A \t B y"));
     }
 
     #[test]
