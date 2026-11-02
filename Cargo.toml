@@ -1,6 +1,6 @@
 [package]
 name = "pullorg"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.75"
 description = "A pull parser for Org-mode, in the style of pulldown-cmark, with an HTML renderer and CLI"
