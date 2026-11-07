@@ -58,6 +58,10 @@ harness = false
 name = "alloc"
 harness = false
 
+[[bench]]
+name = "vs_emacs"
+harness = false
+
 [profile.release]
 lto = true
 codegen-units = 1

@@ -29,6 +29,7 @@ different sizes compare directly.
 | `objects`  | `objects/<kind>`, `objects-options/<opt>`     | 8 KiB of a single object kind through `Parser::new_inline`; the options that change the object grammar |
 | `scaling`  | `scaling/<doc>/<size>`, `scaling-adversarial/<case>/<size>` | the same input at 4, 16, 64 and 256 KiB; throughput must stay flat |
 | `alloc`    | (plain binary, no Criterion)                  | heap allocations and borrowed-text ratio per corpus, see below |
+| `vs_emacs` | (plain binary, no Criterion)                  | pullorg side of the comparison with Emacs, run through `tools/bench-vs-emacs.sh` |
 
 ## Corpora
 
@@ -112,6 +113,49 @@ The machine matters more than the statistics: close heavy applications, plug
 in a laptop, and treat changes under about 5 % as noise unless they repeat.
 Criterion's `--noise-threshold` and `--significance-level` tune what it
 reports as a change.
+
+## Comparing with Emacs
+
+`tools/bench-vs-emacs.sh` times pullorg and Emacs'
+`org-element-parse-buffer` on the same files and prints both side by side:
+
+```sh
+sh tools/bench-vs-emacs.sh                    # every corpus, 20 samples each
+sh tools/bench-vs-emacs.sh -n 5 64k           # 5 samples, the 64 KiB corpora only
+PULLORG_BENCH_CORPUS=/tmp/corpus sh tools/bench-vs-emacs.sh org-manual
+```
+
+Nothing is checked in. On every run the `vs_emacs` target regenerates every
+document corpus at 4, 16, 64 and 256 KiB, plus the files of
+`PULLORG_BENCH_CORPUS`, writes them to `target/vs-emacs/corpus` (`-o DIR`
+to change) and times pullorg on them; `tools/bench-emacs.el` then times
+Emacs on those very files. Both sides use the same rule: a calibration run
+sets the iterations per sample (at least 10 ms), warm-up samples are
+dropped (`-w`, default 3), and the median, minimum and maximum of the timed
+samples (`-n`, default 20) are reported per parse. Emacs runs with
+`org-element-use-cache` off and its time includes garbage collection, whose
+mean share is shown separately.
+
+Two levels are compared:
+
+- `elements`: `Parser::new(text)`, which builds the element tree and
+  leaves inline objects for later, against granularity `element`. Close,
+  not identical: pullorg also discovers radio targets at this point.
+- `full`: every event of `Parser::new(text)`, against granularity `object`
+  (the default), the whole tree down to inline objects.
+
+The two parsers do not produce the same thing: Emacs builds a tree with
+parent links and copied strings, pullorg streams events borrowing from the
+input. The ratio measures the cost of getting the parse in each, not two
+implementations of one data structure.
+
+The report, also saved as `target/vs-emacs/report.txt`, starts with the
+pullorg commit, the Emacs and Org versions, whether Org ran byte-compiled
+or natively compiled, and the machine. The Org version must match
+`tests/emacs/ORG-VERSION`, as for the fixtures: set `ORG_LOAD_PATH` to the
+`lisp/` directory of another Org checkout (natively compiled, say), or
+`ALLOW_ORG_MISMATCH=1`. Native compilation changes the Emacs numbers more
+than anything else, so compare reports only when that line matches.
 
 ## Allocation report
 
