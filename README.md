@@ -136,11 +136,7 @@ to settle a question about the syntax.
 
 ## Benchmarks
 
-`cargo bench` runs a Criterion suite over generated corpora (a realistic
-notes file, plain prose, markup-dense paragraphs, element-heavy documents,
-adversarial inputs at several sizes) and `cargo bench --bench alloc` prints
-a deterministic allocation report. `benches/README.md` describes the
-targets, the corpora, and how to compare two commits.
+See [benches/README.md](benches/README.md).
 
 ## Status
 
